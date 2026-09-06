@@ -1137,16 +1137,6 @@ document.addEventListener('DOMContentLoaded', () => {
     window.timeplusToggleRoleDirect();
   };
 
-  // Form Login Handler (Supabase Auth + Local)
-  window.timeplusHandleFormLogin = async () => {
-    const emailInput = document.getElementById('login-input-email');
-    const passInput = document.getElementById('login-input-password');
-    const errEl = document.getElementById('login-error-msg');
-    const succEl = document.getElementById('login-success-msg');
-
-    if (errEl) errEl.classList.add('hidden');
-    if (succEl) succEl.classList.add('hidden');
-
   // --- Multi-Role Switcher & Login Tab Handlers ---
   window.timeplusSwitchLoginTab = (tab) => {
     const btnAdmin = document.getElementById('tab-login-superadmin');
