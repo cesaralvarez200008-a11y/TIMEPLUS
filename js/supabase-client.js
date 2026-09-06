@@ -23,52 +23,71 @@ window.timeplusSupabase = {
   url: SUPABASE_URL,
   key: SUPABASE_ANON_KEY,
   
-  // Helpers para sincronización de datos
+  // Helpers para sincronización de datos con Supabase Cloud
   async getProfiles() {
     if (!supabaseClient) return [];
-    const { data, error } = await supabaseClient.from('profiles').select('*');
-    if (error) {
-      console.error('Error fetching profiles:', error);
+    try {
+      const { data, error } = await supabaseClient.from('profiles').select('*');
+      if (error) {
+        console.warn('Info: profiles RLS activo o tabla vacía:', error.message);
+        return [];
+      }
+      return data || [];
+    } catch (e) {
+      console.warn('Error fetching profiles:', e);
       return [];
     }
-    return data;
+  },
+
+  async saveProfile(profile) {
+    if (!supabaseClient) return null;
+    try {
+      const { data, error } = await supabaseClient.from('profiles').upsert(profile, { onConflict: 'email' });
+      if (error) console.warn('Error saving profile to Supabase:', error.message);
+      return data;
+    } catch (e) {
+      console.warn('Exception saving profile:', e);
+      return null;
+    }
   },
 
   async getActivities(userId) {
     if (!supabaseClient) return [];
-    let query = supabaseClient.from('activities').select('*');
-    if (userId) query = query.eq('user_id', userId);
-    const { data, error } = await query;
-    if (error) {
-      console.error('Error fetching activities:', error);
+    try {
+      let query = supabaseClient.from('activities').select('*');
+      if (userId) query = query.eq('user_id', userId);
+      const { data, error } = await query;
+      if (error) return [];
+      return data || [];
+    } catch (e) {
       return [];
     }
-    return data;
   },
 
   async getPlaces(userId) {
     if (!supabaseClient) return [];
-    let query = supabaseClient.from('places').select('*');
-    if (userId) query = query.eq('user_id', userId);
-    const { data, error } = await query;
-    if (error) {
-      console.error('Error fetching places:', error);
+    try {
+      let query = supabaseClient.from('places').select('*');
+      if (userId) query = query.eq('user_id', userId);
+      const { data, error } = await query;
+      if (error) return [];
+      return data || [];
+    } catch (e) {
       return [];
     }
-    return data;
   },
 
   async getAdminMetrics() {
     if (!supabaseClient) return null;
-    const { data, error } = await supabaseClient
-      .from('admin_metrics_log')
-      .select('*')
-      .order('snapshot_date', { ascending: false })
-      .limit(1);
-    if (error) {
-      console.error('Error fetching metrics:', error);
+    try {
+      const { data, error } = await supabaseClient
+        .from('admin_metrics_log')
+        .select('*')
+        .order('snapshot_date', { ascending: false })
+        .limit(1);
+      return data?.[0] || null;
+    } catch (e) {
       return null;
     }
-    return data?.[0] || null;
   }
 };

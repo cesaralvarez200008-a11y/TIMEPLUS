@@ -294,7 +294,32 @@ document.addEventListener('DOMContentLoaded', () => {
     const badgeActive = document.getElementById('badge-active-clients-count');
     if (!tbody) return;
 
-    const clients = store.getClientsList();
+    let clients = store.getClientsList();
+
+    // Consultar clientes reales registrados en la nube de Supabase si está disponible
+    if (window.timeplusSupabase && window.timeplusSupabase.client) {
+      window.timeplusSupabase.getProfiles().then(profiles => {
+        if (profiles && profiles.length > 0) {
+          const cloudClients = profiles.filter(p => p.role === 'client');
+          cloudClients.forEach(cp => {
+            if (!clients.some(c => c.email.toLowerCase() === cp.email.toLowerCase())) {
+              clients.unshift({
+                id: cp.id,
+                name: cp.full_name || cp.email.split('@')[0],
+                email: cp.email,
+                plan: cp.plan || 'TIMEPLUS Connect Pro',
+                status: cp.plan_status === 'activo' ? 'Activo' : 'Inactivo',
+                acquiredDate: cp.acquired_date || 'Reciente',
+                activitiesCount: 0,
+                placesCount: 0,
+                iaQueriesCount: 0
+              });
+            }
+          });
+        }
+      }).catch(e => console.warn('Supabase profiles fetch:', e));
+    }
+
     if (badgeActive) badgeActive.textContent = `${clients.length} clientes activos`;
     tbody.innerHTML = '';
 
