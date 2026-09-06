@@ -238,11 +238,6 @@
           <span>＋</span> Nueva Actividad
         </button>
 
-        <!-- Switch Role Quick Button -->
-        <button id="btn-switch-account" onclick="window.timeplusSwitchAccountModal()" class="px-2.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl transition-all flex items-center gap-1" title="Cambiar entre Quien maneja todo y Quien adquiere la app">
-          <span>⇄</span> <span class="hidden md:inline">Cambiar Rol</span>
-        </button>
-
         <!-- Profile & Clear Logout Button -->
         <div class="flex items-center gap-2 pl-2 border-l border-slate-200">
           <div id="user-avatar-pill" class="w-9 h-9 rounded-full bg-slate-900 text-white font-bold text-xs flex items-center justify-center">
@@ -338,20 +333,6 @@
             </button>
           </div>
         </nav>
-
-        <!-- Role Switcher Card in Sidebar -->
-        <div class="bg-gradient-to-br from-slate-900 to-indigo-950 text-white p-5 rounded-3xl shadow-sm text-xs space-y-2">
-          <div class="flex items-center justify-between">
-            <span class="font-bold text-indigo-300">Modo de Vista</span>
-            <span id="role-pill-indicator" class="text-[10px] font-bold px-2 py-0.5 bg-blue-500/30 text-blue-300 rounded-md">Cliente</span>
-          </div>
-          <p class="text-slate-300 text-[11px] leading-relaxed">
-            Puedes alternar en cualquier momento entre Quien maneja todo (Admin) y Quien adquiere la app (Cliente).
-          </p>
-          <button onclick="window.timeplusToggleRoleDirect()" class="w-full mt-2 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-[11px] font-bold rounded-xl transition-colors">
-            ⇄ Alternar Rol (Admin / Cliente)
-          </button>
-        </div>
       </aside>
 
       <!-- CONTENT VIEWPORT -->
