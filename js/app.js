@@ -1531,6 +1531,9 @@ document.addEventListener('DOMContentLoaded', () => {
           console.warn('Error al actualizar rechazo en Supabase:', err);
         }
       }
+    }
+  };
+
   // SuperAdmin Elimina un cliente individual
   window.timeplusDeleteClient = async (email, name = '') => {
     const displayName = name || email;
