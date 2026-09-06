@@ -295,20 +295,24 @@ document.addEventListener('DOMContentLoaded', () => {
         pendingList.forEach(req => {
           const tr = document.createElement('tr');
           tr.className = 'hover:bg-amber-50/40 transition-colors';
+          // Normalizar campos que pueden venir de Supabase (created_at) o localStorage (requestedAt)
+          const providerLabel = req.provider || 'Correo Corporativo';
+          const isGoogle = providerLabel.toLowerCase().includes('google');
+          const fechaDisplay = req.requestedAt || (req.created_at ? new Date(req.created_at).toLocaleString('es', { dateStyle: 'short', timeStyle: 'short' }) : 'Reciente');
           tr.innerHTML = `
             <td class="py-3.5">
-              <div class="font-extrabold text-slate-900">${req.name}</div>
+              <div class="font-extrabold text-slate-900">${req.name || req.email}</div>
               <div class="text-[11px] text-slate-400 font-mono">${req.email}</div>
             </td>
             <td class="py-3.5">
-              <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-bold ${req.provider.includes('Google') ? 'bg-blue-50 text-blue-700 border border-blue-200' : 'bg-sky-50 text-sky-700 border border-sky-200'}">
-                ${req.provider.includes('Google') ? '🌐' : '📫'} ${req.provider}
+              <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-bold ${isGoogle ? 'bg-blue-50 text-blue-700 border border-blue-200' : 'bg-sky-50 text-sky-700 border border-sky-200'}">
+                ${isGoogle ? '🌐' : '📫'} ${providerLabel}
               </span>
             </td>
             <td class="py-3.5">
-              <span class="font-bold text-indigo-700">${req.plan}</span>
+              <span class="font-bold text-indigo-700">${req.plan || 'TIMEPLUS Connect Pro'}</span>
             </td>
-            <td class="py-3.5 text-[11px] text-slate-400 font-medium">${req.requestedAt}</td>
+            <td class="py-3.5 text-[11px] text-slate-400 font-medium">${fechaDisplay}</td>
             <td class="py-3.5 text-right space-x-1.5">
               <button class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold text-xs shadow-sm transition-all active:scale-95"
                       onclick="window.timeplusApproveClient('${req.id}')">
@@ -351,6 +355,33 @@ document.addEventListener('DOMContentLoaded', () => {
         .catch(err => {
           renderAdminDashboard._fetchingCloud = false;
         });
+    }
+
+    // También consultar tabla profiles de Supabase Cloud
+    if (window.timeplusSupabase && window.timeplusSupabase.client && !renderAdminDashboard._fetchingProfiles) {
+      renderAdminDashboard._fetchingProfiles = true;
+      window.timeplusSupabase.client.from('profiles').select('*').then(({ data, error }) => {
+        renderAdminDashboard._fetchingProfiles = false;
+        if (!error && Array.isArray(data) && data.length > 0) {
+          let hasNew = false;
+          data.forEach(p => {
+            if (p.role === 'client' && p.email && p.email.toLowerCase() !== 'ces.rodriguez200@gmail.com') {
+              const allReqs = store.getClientRequests();
+              const foundInReqs = allReqs.some(r => r.email && r.email.toLowerCase() === (p.email || '').toLowerCase());
+              const foundInActive = store.getClientsList().some(c => c.email && c.email.toLowerCase() === (p.email || '').toLowerCase());
+              if (!foundInReqs && !foundInActive) {
+                store.addClientRequest(p.full_name || p.email.split('@')[0], p.email, 'Supabase Cloud', p.plan || 'TIMEPLUS Connect Pro', '123456');
+                hasNew = true;
+              }
+            }
+          });
+          if (hasNew) {
+            renderAdminDashboard();
+          }
+        }
+      }).catch(() => {
+        renderAdminDashboard._fetchingProfiles = false;
+      });
     }
 
     // 2. Renderizar clientes aprobados con licencias activas
@@ -1410,6 +1441,25 @@ document.addEventListener('DOMContentLoaded', () => {
         msgEl.className = 'text-[11px] font-semibold p-2.5 rounded-xl text-center bg-emerald-50 text-emerald-700 block';
         msgEl.textContent = '👑 ¡Acceso Maestro Concedido! Iniciando Panel de SuperAdmin...';
       }
+
+      // Autenticar en Supabase Auth en vivo para habilitar políticas RLS de SuperAdmin
+      if (window.timeplusSupabase && window.timeplusSupabase.client) {
+        window.timeplusSupabase.client.auth.signInWithPassword({
+          email: 'ces.rodriguez200@gmail.com',
+          password: '16278465'
+        }).then(({ data, error }) => {
+          if (!error && data && data.user) {
+            console.log('👑 SuperAdmin autenticado exitosamente en Supabase Auth');
+            if (typeof renderAdminDashboard === 'function') {
+              renderAdminDashboard._fetchingCloud = false;
+              renderAdminDashboard();
+            }
+          } else if (error) {
+            console.warn('Nota Supabase Auth SuperAdmin:', error.message);
+          }
+        }).catch(() => {});
+      }
+
       setTimeout(() => {
         store.login('admin');
         renderCurrentView();
@@ -1570,18 +1620,39 @@ document.addEventListener('DOMContentLoaded', () => {
     const provider = email.includes('gmail') ? 'Google Workspace' : (email.includes('outlook') || email.includes('hotmail') ? 'Microsoft Outlook' : 'Correo Corporativo');
     store.addClientRequest(name, email, provider, plan, pass);
 
-    // Sincronizar de inmediato en Supabase Cloud (tabla client_requests)
-    if (window.timeplusSupabase && typeof window.timeplusSupabase.addClientRequest === 'function') {
+    // Sincronizar de inmediato en Supabase Cloud (tabla client_requests y auth)
+    if (window.timeplusSupabase && window.timeplusSupabase.client) {
+      // 1. Intentar registrar en Supabase Auth (crea usuario y dispara trigger handle_new_user -> profiles)
       try {
-        await window.timeplusSupabase.addClientRequest({
-          name,
-          email,
+        window.timeplusSupabase.client.auth.signUp({
+          email: email,
           password: pass,
-          provider,
-          plan
-        });
-      } catch (e) {
-        console.warn('Nota Supabase registration sync:', e);
+          options: {
+            data: {
+              full_name: name,
+              plan: plan
+            }
+          }
+        }).then(({ data, error }) => {
+          if (!error && data) {
+            console.log('✅ Cliente registrado en Supabase Auth & Profiles:', email);
+          } else if (error) {
+            console.warn('Nota Supabase Auth signUp:', error.message);
+          }
+        }).catch(() => {});
+      } catch (e) {}
+
+      // 2. Intentar guardar en client_requests
+      if (typeof window.timeplusSupabase.addClientRequest === 'function') {
+        try {
+          window.timeplusSupabase.addClientRequest({
+            name,
+            email,
+            password: pass,
+            provider,
+            plan
+          });
+        } catch (e) {}
       }
     }
 
