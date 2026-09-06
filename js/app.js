@@ -1256,6 +1256,72 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   };
 
+  // --- Subtab interno de Clientes: Login vs Registro ---
+  window.timeplusToggleClientSubTab = (subtab) => {
+    const btnLogin = document.getElementById('btn-client-subtab-login');
+    const btnReg = document.getElementById('btn-client-subtab-register');
+    const panelLogin = document.getElementById('client-subpanel-login');
+    const panelReg = document.getElementById('client-subpanel-register');
+
+    if (subtab === 'login') {
+      if (btnLogin) btnLogin.className = 'flex-1 py-2 font-black rounded-lg bg-white text-blue-900 shadow-sm transition-all text-center';
+      if (btnReg) btnReg.className = 'flex-1 py-2 font-bold rounded-lg text-slate-500 hover:text-slate-800 transition-all text-center';
+      if (panelLogin) panelLogin.classList.remove('hidden');
+      if (panelReg) panelReg.classList.add('hidden');
+    } else {
+      if (btnReg) btnReg.className = 'flex-1 py-2 font-black rounded-lg bg-white text-blue-900 shadow-sm transition-all text-center';
+      if (btnLogin) btnLogin.className = 'flex-1 py-2 font-bold rounded-lg text-slate-500 hover:text-slate-800 transition-all text-center';
+      if (panelReg) panelReg.classList.remove('hidden');
+      if (panelLogin) panelLogin.classList.add('hidden');
+    }
+  };
+
+  // Login directo con Google u Outlook para cliente aprobado
+  window.timeplusDirectClientLogin = (provider) => {
+    const email = prompt(`[${provider.toUpperCase()}] Ingresa tu correo electrónico registrado y aprobado:`);
+    if (!email || !email.includes('@')) return;
+
+    // Verificar si el cliente existe en la lista de aprobados o en Supabase
+    const clients = store.getClientsList();
+    const approved = clients.find(c => c.email.toLowerCase() === email.toLowerCase());
+
+    if (approved) {
+      alert(`¡Bienvenido de nuevo, ${approved.name}! Tu plan activo es: ${approved.plan}`);
+      store.login('client');
+      renderCurrentView();
+    } else {
+      alert(`El correo "${email}" no se encuentra en la lista de clientes aprobados.\n\nSi aún no te has registrado, completa el formulario de solicitud para que el SuperAdmin te habilite el acceso.`);
+    }
+  };
+
+  // Formulario de login para cliente aprobado
+  window.timeplusHandleClientApprovedLogin = () => {
+    const emailInput = document.getElementById('client-login-email');
+    const msgEl = document.getElementById('client-login-msg');
+    const email = emailInput ? emailInput.value.trim() : '';
+
+    if (!email) return;
+
+    const clients = store.getClientsList();
+    const approved = clients.find(c => c.email.toLowerCase() === email.toLowerCase());
+
+    if (approved) {
+      if (msgEl) {
+        msgEl.className = 'text-[11px] font-semibold p-2.5 rounded-xl text-center bg-emerald-50 text-emerald-700 block';
+        msgEl.textContent = `✓ Cuenta aprobada encontrada (${approved.name} - ${approved.plan}). Iniciando agenda...`;
+      }
+      setTimeout(() => {
+        store.login('client');
+        renderCurrentView();
+      }, 500);
+    } else {
+      if (msgEl) {
+        msgEl.className = 'text-[11px] font-semibold p-2.5 rounded-xl text-center bg-amber-50 text-amber-800 border border-amber-200 block';
+        msgEl.textContent = `El correo "${email}" aún no tiene aprobación activa del SuperAdmin. Si ya enviaste la solicitud, espera a que sea aceptada.`;
+      }
+    }
+  };
+
   // Autenticación Social (Google Workspace / Microsoft Outlook)
   window.timeplusSocialAuth = (provider) => {
     const promptEmail = prompt(`[${provider}] Ingresa tu correo de usuario:`, provider.includes('Google') ? 'usuario@gmail.com' : 'usuario@outlook.com');
