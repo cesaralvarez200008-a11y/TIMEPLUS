@@ -639,6 +639,81 @@ class TimeplusStore {
   switchRole(targetRole) {
     return this.login(targetRole);
   }
+
+  // Solicitudes de nuevos clientes (Google / Outlook / Email) pendientes de aprobación
+  getClientRequests() {
+    if (!this.data.auth.clientRequests) {
+      this.data.auth.clientRequests = [
+        {
+          id: 'req-1',
+          name: 'Dra. Camila Vargas',
+          email: 'camila.vargas@medplus.org',
+          provider: 'Google Workspace',
+          plan: 'TIMEPLUS Médico & Citas',
+          status: 'Pendiente',
+          requestedAt: '05 Sep 2026, 18:30'
+        },
+        {
+          id: 'req-2',
+          name: 'Ing. Fernando Rios',
+          email: 'fernando.rios@outlook.com',
+          provider: 'Microsoft Outlook',
+          plan: 'TIMEPLUS Connect Pro',
+          status: 'Pendiente',
+          requestedAt: '05 Sep 2026, 20:15'
+        }
+      ];
+      this.saveData();
+    }
+    return this.data.auth.clientRequests;
+  }
+
+  addClientRequest(name, email, provider, plan) {
+    const requests = this.getClientRequests();
+    const newReq = {
+      id: 'req-' + Date.now(),
+      name: name || email.split('@')[0],
+      email: email,
+      provider: provider || 'Google Workspace',
+      plan: plan || 'TIMEPLUS Connect Pro',
+      status: 'Pendiente',
+      requestedAt: 'Hoy, ' + new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+    };
+    requests.unshift(newReq);
+    this.saveData();
+    return newReq;
+  }
+
+  approveClientRequest(reqId) {
+    const req = this.getClientRequests().find(r => r.id === reqId);
+    if (!req) return;
+    req.status = 'Aprobado';
+
+    // Agregar a la lista de clientes activos
+    this.data.auth.clientsList.unshift({
+      id: 'cli-' + Date.now(),
+      name: req.name,
+      email: req.email,
+      plan: req.plan,
+      status: 'Activo',
+      acquiredDate: 'Hoy',
+      activitiesCount: 0,
+      placesCount: 0,
+      iaQueriesCount: 0
+    });
+
+    this.saveData();
+    this.notify();
+  }
+
+  rejectClientRequest(reqId) {
+    const req = this.getClientRequests().find(r => r.id === reqId);
+    if (req) {
+      req.status = 'Rechazado';
+      this.saveData();
+      this.notify();
+    }
+  }
 }
 
 // Global singleton instance

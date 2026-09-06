@@ -232,10 +232,70 @@ document.addEventListener('DOMContentLoaded', () => {
   // VIEW: ADMIN DASHBOARD (QUIEN MANEJA TODO)
   // ==========================================
   function renderAdminDashboard() {
+    // 1. Renderizar solicitudes pendientes de aprobación (Google / Outlook / Registro)
+    const requestsTbody = document.getElementById('admin-requests-table-body');
+    const badgePending = document.getElementById('badge-pending-count');
+    const requests = store.getClientRequests ? store.getClientRequests() : [];
+    const pendingList = requests.filter(r => r.status === 'Pendiente');
+
+    if (badgePending) {
+      badgePending.textContent = `${pendingList.length} pendientes`;
+      badgePending.className = pendingList.length > 0
+        ? 'text-[10px] font-black px-2.5 py-0.5 bg-amber-100 text-amber-800 rounded-full animate-pulse'
+        : 'text-[10px] font-black px-2.5 py-0.5 bg-slate-100 text-slate-500 rounded-full';
+    }
+
+    if (requestsTbody) {
+      requestsTbody.innerHTML = '';
+      if (pendingList.length === 0) {
+        requestsTbody.innerHTML = `
+          <tr>
+            <td colspan="5" class="py-6 text-center text-xs text-slate-400 font-medium">
+              ✨ No hay solicitudes pendientes. Todos los clientes registrados han sido procesados.
+            </td>
+          </tr>
+        `;
+      } else {
+        pendingList.forEach(req => {
+          const tr = document.createElement('tr');
+          tr.className = 'hover:bg-amber-50/40 transition-colors';
+          tr.innerHTML = `
+            <td class="py-3.5">
+              <div class="font-extrabold text-slate-900">${req.name}</div>
+              <div class="text-[11px] text-slate-400 font-mono">${req.email}</div>
+            </td>
+            <td class="py-3.5">
+              <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-bold ${req.provider.includes('Google') ? 'bg-blue-50 text-blue-700 border border-blue-200' : 'bg-sky-50 text-sky-700 border border-sky-200'}">
+                ${req.provider.includes('Google') ? '🌐' : '📫'} ${req.provider}
+              </span>
+            </td>
+            <td class="py-3.5">
+              <span class="font-bold text-indigo-700">${req.plan}</span>
+            </td>
+            <td class="py-3.5 text-[11px] text-slate-400 font-medium">${req.requestedAt}</td>
+            <td class="py-3.5 text-right space-x-1.5">
+              <button class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold text-xs shadow-sm transition-all active:scale-95"
+                      onclick="window.timeplusApproveClient('${req.id}')">
+                ✓ Aprobar
+              </button>
+              <button class="px-2.5 py-1.5 bg-slate-100 hover:bg-red-50 text-slate-500 hover:text-red-600 rounded-xl font-bold text-xs transition-colors"
+                      onclick="window.timeplusRejectClient('${req.id}')">
+                ✕ Rechazar
+              </button>
+            </td>
+          `;
+          requestsTbody.appendChild(tr);
+        });
+      }
+    }
+
+    // 2. Renderizar clientes aprobados con licencias activas
     const tbody = document.getElementById('admin-clients-table-body');
+    const badgeActive = document.getElementById('badge-active-clients-count');
     if (!tbody) return;
 
     const clients = store.getClientsList();
+    if (badgeActive) badgeActive.textContent = `${clients.length} clientes activos`;
     tbody.innerHTML = '';
 
     clients.forEach(client => {
@@ -1087,108 +1147,134 @@ document.addEventListener('DOMContentLoaded', () => {
     if (errEl) errEl.classList.add('hidden');
     if (succEl) succEl.classList.add('hidden');
 
+  // --- Multi-Role Switcher & Login Tab Handlers ---
+  window.timeplusSwitchLoginTab = (tab) => {
+    const btnAdmin = document.getElementById('tab-login-superadmin');
+    const btnClient = document.getElementById('tab-login-client');
+    const panelAdmin = document.getElementById('panel-login-admin');
+    const panelClient = document.getElementById('panel-login-client');
+
+    if (tab === 'admin') {
+      if (btnAdmin) {
+        btnAdmin.className = 'flex-1 py-2.5 px-3 rounded-xl text-xs font-black transition-all flex items-center justify-center gap-1.5 bg-white text-indigo-900 shadow-sm';
+      }
+      if (btnClient) {
+        btnClient.className = 'flex-1 py-2.5 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 text-slate-600 hover:text-slate-900';
+      }
+      if (panelAdmin) panelAdmin.classList.remove('hidden');
+      if (panelClient) panelClient.classList.add('hidden');
+    } else {
+      if (btnClient) {
+        btnClient.className = 'flex-1 py-2.5 px-3 rounded-xl text-xs font-black transition-all flex items-center justify-center gap-1.5 bg-white text-blue-900 shadow-sm';
+      }
+      if (btnAdmin) {
+        btnAdmin.className = 'flex-1 py-2.5 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 text-slate-600 hover:text-slate-900';
+      }
+      if (panelClient) panelClient.classList.remove('hidden');
+      if (panelAdmin) panelAdmin.classList.add('hidden');
+    }
+  };
+
+  // Login SuperAdmin Directo (con credenciales)
+  window.timeplusHandleSuperadminLogin = async () => {
+    const emailInput = document.getElementById('admin-login-email');
+    const passInput = document.getElementById('admin-login-password');
+    const msgEl = document.getElementById('admin-login-msg');
+
     const email = emailInput ? emailInput.value.trim() : '';
     const pass = passInput ? passInput.value : '';
 
-    if (!email || !pass) {
-      if (errEl) {
-        errEl.textContent = 'Por favor ingresa correo y contraseña.';
-        errEl.classList.remove('hidden');
+    if (msgEl) {
+      msgEl.classList.remove('hidden', 'bg-red-50', 'text-red-700', 'bg-emerald-50', 'text-emerald-700');
+    }
+
+    // Validación SuperAdmin
+    if (email.toLowerCase() === 'ces.rodriguez200@gmail.com' && pass === '16278465') {
+      if (msgEl) {
+        msgEl.className = 'text-[11px] font-semibold p-2.5 rounded-xl text-center bg-emerald-50 text-emerald-700 block';
+        msgEl.textContent = '👑 ¡Acceso Maestro Concedido! Iniciando Panel de SuperAdmin...';
       }
+      setTimeout(() => {
+        store.login('admin');
+        renderCurrentView();
+      }, 500);
       return;
     }
 
-    // 1. Intentar inicio de sesión con Supabase Auth si está disponible
+    // Intentar con Supabase Auth si se registró con contraseña distinta
     if (window.timeplusSupabase && window.timeplusSupabase.client) {
       try {
         const { data, error } = await window.timeplusSupabase.client.auth.signInWithPassword({
           email: email,
           password: pass
         });
-
         if (!error && data && data.user) {
           const isAdmin = email.toLowerCase() === 'ces.rodriguez200@gmail.com';
           store.login(isAdmin ? 'admin' : 'client');
           renderCurrentView();
           return;
         }
-      } catch (err) {
-        console.warn('Fallo Supabase Auth, verificando local:', err);
+      } catch (e) {
+        console.warn('Fallo Supabase sign-in:', e);
       }
     }
 
-    // 2. Verificación local (credenciales fijas)
-    const loggedUser = store.login(email, pass);
-    if (loggedUser) {
-      renderCurrentView();
-    } else {
-      if (errEl) {
-        errEl.textContent = 'Credenciales no coinciden. Para el SuperAdmin usa ces.rodriguez200@gmail.com con su clave o presiona Registrar en Supabase.';
-        errEl.classList.remove('hidden');
-      }
+    if (msgEl) {
+      msgEl.className = 'text-[11px] font-semibold p-2.5 rounded-xl text-center bg-red-50 text-red-700 block';
+      msgEl.textContent = 'Credenciales maestras incorrectas. Usa ces.rodriguez200@gmail.com con la contraseña 16278465.';
     }
   };
 
-  // Form Register Handler con Supabase Auth
-  window.timeplusHandleRegisterSupabase = async () => {
-    const emailInput = document.getElementById('login-input-email');
-    const passInput = document.getElementById('login-input-password');
-    const errEl = document.getElementById('login-error-msg');
-    const succEl = document.getElementById('login-success-msg');
+  // Autenticación Social (Google Workspace / Microsoft Outlook)
+  window.timeplusSocialAuth = (provider) => {
+    const promptEmail = prompt(`[${provider}] Ingresa el correo de tu cuenta:`, provider.includes('Google') ? 'usuario@gmail.com' : 'usuario@outlook.com');
+    if (!promptEmail || !promptEmail.includes('@')) return;
 
-    if (errEl) errEl.classList.add('hidden');
-    if (succEl) succEl.classList.add('hidden');
+    const name = prompt('Ingresa tu nombre o empresa: ', promptEmail.split('@')[0]);
+    const plan = prompt('Plan que deseas adquirir (ej: TIMEPLUS Connect Pro / TIMEPLUS Médico & Citas / TIMEPLUS Corporativo):', 'TIMEPLUS Connect Pro') || 'TIMEPLUS Connect Pro';
 
+    // Registrar solicitud pendiente para que el SuperAdmin la apruebe
+    store.addClientRequest(name, promptEmail, provider, plan);
+
+    alert(`¡Solicitud enviada con éxito mediante ${provider}!\n\nTu cuenta (${promptEmail}) y el plan "${plan}" fueron remitidos al SuperAdmin (ces.rodriguez200@gmail.com) para su aprobación.\n\nTe notificaremos en cuanto el acceso sea habilitado.`);
+  };
+
+  // Formulario manual de registro de cliente (para aprobación)
+  window.timeplusHandleClientRegistration = () => {
+    const nameInput = document.getElementById('client-reg-name');
+    const emailInput = document.getElementById('client-reg-email');
+    const planSelect = document.getElementById('client-reg-plan');
+    const msgEl = document.getElementById('client-reg-msg');
+
+    const name = nameInput ? nameInput.value.trim() : '';
     const email = emailInput ? emailInput.value.trim() : '';
-    const pass = passInput ? passInput.value : '';
+    const plan = planSelect ? planSelect.value : 'TIMEPLUS Connect Pro';
 
-    if (!email || !pass) {
-      if (errEl) {
-        errEl.textContent = 'Ingresa el correo y la contraseña que deseas registrar.';
-        errEl.classList.remove('hidden');
-      }
-      return;
+    if (!email || !name) return;
+
+    const provider = email.includes('gmail') ? 'Google Workspace' : (email.includes('outlook') || email.includes('hotmail') ? 'Microsoft Outlook' : 'Correo Corporativo');
+    store.addClientRequest(name, email, provider, plan);
+
+    if (msgEl) {
+      msgEl.className = 'text-[11px] font-semibold p-2.5 rounded-xl text-center bg-emerald-50 text-emerald-700 block';
+      msgEl.textContent = `✅ Solicitud enviada al SuperAdmin para aprobación. En cuanto apruebe tu plan "${plan}", tu cuenta quedará activa.`;
     }
 
-    if (!window.timeplusSupabase || !window.timeplusSupabase.client) {
-      if (errEl) {
-        errEl.textContent = 'El cliente de Supabase no está listo.';
-        errEl.classList.remove('hidden');
-      }
-      return;
-    }
+    if (nameInput) nameInput.value = '';
+    if (emailInput) emailInput.value = '';
+  };
 
-    try {
-      const { data, error } = await window.timeplusSupabase.client.auth.signUp({
-        email: email,
-        password: pass,
-        options: {
-          data: {
-            full_name: email.toLowerCase() === 'ces.rodriguez200@gmail.com' ? 'César Rodríguez' : 'Usuario TIMEPLUS'
-          }
-        }
-      });
+  // SuperAdmin Aprueba un cliente
+  window.timeplusApproveClient = (reqId) => {
+    store.approveClientRequest(reqId);
+    renderAdminDashboard();
+  };
 
-      if (error) {
-        if (errEl) {
-          errEl.textContent = `Error al registrar: ${error.message}`;
-          errEl.classList.remove('hidden');
-        }
-      } else {
-        if (succEl) {
-          succEl.textContent = '¡Usuario registrado en Supabase! Ya puedes iniciar sesión.';
-          succEl.classList.remove('hidden');
-        }
-        // Iniciar sesión directamente
-        const isAdmin = email.toLowerCase() === 'ces.rodriguez200@gmail.com';
-        store.login(isAdmin ? 'admin' : 'client');
-        setTimeout(() => renderCurrentView(), 800);
-      }
-    } catch (err) {
-      if (errEl) {
-        errEl.textContent = `Excepción al conectar con Supabase: ${err.message}`;
-        errEl.classList.remove('hidden');
-      }
+  // SuperAdmin Rechaza un cliente
+  window.timeplusRejectClient = (reqId) => {
+    if (confirm('¿Seguro que deseas rechazar esta solicitud de acceso?')) {
+      store.rejectClientRequest(reqId);
+      renderAdminDashboard();
     }
   };
 });
