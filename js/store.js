@@ -26,7 +26,7 @@ const INITIAL_DATA = {
         roleTitle: '2. Quien adquiere la aplicación',
         roleLabel: 'Cliente / Suscriptor Activo',
         name: 'Rafael Carvajal',
-        plan: 'Plan Anual TIMEPLUS Connect',
+        plan: 'TIMEPLUS Connect Pro',
         avatar: 'RC'
       }
     ],
@@ -37,43 +37,10 @@ const INITIAL_DATA = {
         email: 'rafael@timeplus.com',
         plan: 'TIMEPLUS Connect Pro',
         status: 'Activo',
-        acquiredDate: '15 Ago 2026',
-        activitiesCount: 147,
+        acquiredDate: 'Hoy',
+        activitiesCount: 6,
         placesCount: 4,
-        iaQueriesCount: 68
-      },
-      {
-        id: 'cli-2',
-        name: 'Dra. Mariana Torres',
-        email: 'mariana.torres@saludplus.org',
-        plan: 'TIMEPLUS Médico & Citas',
-        status: 'Activo',
-        acquiredDate: '22 Ago 2026',
-        activitiesCount: 94,
-        placesCount: 6,
-        iaQueriesCount: 42
-      },
-      {
-        id: 'cli-3',
-        name: 'Carlos Mendoza',
-        email: 'carlos.mendoza@empresa.com',
-        plan: 'TIMEPLUS Corporativo',
-        status: 'Activo',
-        acquiredDate: '28 Ago 2026',
-        activitiesCount: 215,
-        placesCount: 8,
-        iaQueriesCount: 110
-      },
-      {
-        id: 'cli-4',
-        name: 'Sofía Gómez',
-        email: 'sofia.gomez@uni.edu',
-        plan: 'TIMEPLUS Académico',
-        status: 'Activo',
-        acquiredDate: '01 Sep 2026',
-        activitiesCount: 63,
-        placesCount: 3,
-        iaQueriesCount: 29
+        iaQueriesCount: 12
       }
     ],
     adminStats: {

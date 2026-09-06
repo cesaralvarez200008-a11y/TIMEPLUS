@@ -298,6 +298,22 @@ document.addEventListener('DOMContentLoaded', () => {
     if (badgeActive) badgeActive.textContent = `${clients.length} clientes activos`;
     tbody.innerHTML = '';
 
+    // Actualizar métricas KPI reales y dinámicas
+    const kpiClientsEl = document.getElementById('kpi-admin-clients');
+    const kpiLicensesEl = document.getElementById('kpi-admin-licenses');
+    const kpiPlacesEl = document.getElementById('kpi-admin-places');
+    const kpiQueriesEl = document.getElementById('kpi-admin-queries');
+
+    const totalPlacesReal = clients.reduce((acc, c) => acc + (c.placesCount || 0), 0);
+    const totalQueriesReal = clients.reduce((acc, c) => acc + (c.iaQueriesCount || 0), 0);
+    const activeClientsCount = clients.filter(c => c.status === 'Activo').length;
+    const licenseRate = clients.length > 0 ? Math.round((activeClientsCount / clients.length) * 100) : 100;
+
+    if (kpiClientsEl) kpiClientsEl.textContent = clients.length;
+    if (kpiLicensesEl) kpiLicensesEl.textContent = `${licenseRate}%`;
+    if (kpiPlacesEl) kpiPlacesEl.textContent = totalPlacesReal;
+    if (kpiQueriesEl) kpiQueriesEl.textContent = totalQueriesReal;
+
     clients.forEach(client => {
       const tr = document.createElement('tr');
       tr.className = 'hover:bg-slate-50 transition-colors';
@@ -1254,17 +1270,46 @@ document.addEventListener('DOMContentLoaded', () => {
     if (emailInput) emailInput.value = '';
   };
 
-  // SuperAdmin Aprueba un cliente
-  window.timeplusApproveClient = (reqId) => {
+  // SuperAdmin Aprueba un cliente (Sincronizado con Supabase Cloud)
+  window.timeplusApproveClient = async (reqId) => {
+    const req = store.getClientRequests().find(r => r.id === reqId);
     store.approveClientRequest(reqId);
     renderAdminDashboard();
+
+    // Sincronizar en vivo con la tabla profiles de Supabase
+    if (req && window.timeplusSupabase && window.timeplusSupabase.client) {
+      try {
+        await window.timeplusSupabase.client.from('profiles').upsert({
+          email: req.email,
+          full_name: req.name,
+          role: 'client',
+          plan: req.plan,
+          plan_status: 'activo',
+          acquired_date: new Date().toISOString().split('T')[0]
+        }, { onConflict: 'email' });
+        console.log('✅ Cliente aprobado y sincronizado en Supabase Cloud:', req.email);
+      } catch (err) {
+        console.warn('Error al sincronizar cliente en Supabase:', err);
+      }
+    }
   };
 
   // SuperAdmin Rechaza un cliente
-  window.timeplusRejectClient = (reqId) => {
-    if (confirm('¿Seguro que deseas rechazar esta solicitud de acceso?')) {
+  window.timeplusRejectClient = async (reqId) => {
+    const req = store.getClientRequests().find(r => r.id === reqId);
+    if (confirm(`¿Seguro que deseas rechazar la solicitud de ${req ? req.name : 'este usuario'}?`)) {
       store.rejectClientRequest(reqId);
       renderAdminDashboard();
+
+      if (req && window.timeplusSupabase && window.timeplusSupabase.client) {
+        try {
+          await window.timeplusSupabase.client.from('profiles').update({
+            plan_status: 'inactivo'
+          }).eq('email', req.email);
+        } catch (err) {
+          console.warn('Error al actualizar rechazo en Supabase:', err);
+        }
+      }
     }
   };
 });
