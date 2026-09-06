@@ -46,6 +46,15 @@ document.addEventListener('DOMContentLoaded', () => {
     store.subscribe(() => {
       renderCurrentView();
     });
+
+    // Auto-polling cada 5s: si el admin está logueado, sincronizar datos
+    // desde localStorage para ver solicitudes nuevas en tiempo real.
+    setInterval(() => {
+      const user = store.getCurrentUser();
+      if (user && user.role === 'admin') {
+        store.reloadFromStorage();
+      }
+    }, 5000);
   }
 
   function updateClock() {
@@ -1193,6 +1202,25 @@ document.addEventListener('DOMContentLoaded', () => {
     store.switchRole('client');
     currentView = 'home';
     renderCurrentView();
+  };
+
+  // Botón 🔄 Actualizar del panel de solicitudes admin
+  window.timeplusRefreshAdminRequests = () => {
+    store.reloadFromStorage();
+    renderAdminDashboard();
+    // Feedback visual en el botón
+    const btn = document.querySelector('[onclick="window.timeplusRefreshAdminRequests()"]');
+    if (btn) {
+      const original = btn.innerHTML;
+      btn.innerHTML = '✅ Actualizado';
+      btn.disabled = true;
+      btn.classList.add('opacity-60');
+      setTimeout(() => {
+        btn.innerHTML = original;
+        btn.disabled = false;
+        btn.classList.remove('opacity-60');
+      }, 1500);
+    }
   };
 
   // --- Modal Explicativo ("¿Para qué sirve TIMEPLUS?") ---

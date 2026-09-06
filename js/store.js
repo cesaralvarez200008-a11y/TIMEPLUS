@@ -305,6 +305,25 @@ class TimeplusStore {
   constructor() {
     this.data = this.loadData();
     this.listeners = [];
+
+    // Sincronización en tiempo real entre pestañas: cuando otra pestaña
+    // escribe al localStorage, recargar datos y notificar a todos los listeners.
+    window.addEventListener('storage', (e) => {
+      if (e.key === STORAGE_KEY && e.newValue) {
+        try {
+          const fresh = JSON.parse(e.newValue);
+          // Preservar currentUser de la sesión actual
+          const currentUser = this.data.auth ? this.data.auth.currentUser : null;
+          this.data = fresh;
+          if (currentUser && this.data.auth) {
+            this.data.auth.currentUser = currentUser;
+          }
+          this.notify();
+        } catch (err) {
+          console.warn('Error al sincronizar datos entre pestañas:', err);
+        }
+      }
+    });
   }
 
   loadData() {
@@ -375,6 +394,24 @@ class TimeplusStore {
   resetToDefaults() {
     this.data = JSON.parse(JSON.stringify(INITIAL_DATA));
     this.saveData();
+  }
+
+  // Fuerza recarga desde localStorage (útil para sincronizar entre pestañas)
+  reloadFromStorage() {
+    try {
+      const stored = localStorage.getItem(STORAGE_KEY);
+      if (stored) {
+        const currentUser = this.data.auth ? this.data.auth.currentUser : null;
+        this.data = JSON.parse(stored);
+        // Preservar sesión activa del usuario en esta pestaña
+        if (currentUser && this.data.auth) {
+          this.data.auth.currentUser = currentUser;
+        }
+        this.notify();
+      }
+    } catch (e) {
+      console.warn('Error al recargar desde localStorage:', e);
+    }
   }
 
   // --- Activity Actions ---

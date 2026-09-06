@@ -875,11 +875,16 @@
                 <div>
                   <h2 class="text-base font-black text-slate-900 flex items-center gap-2">
                     Solicitudes de Nuevos Clientes para Aprobar
-                    <span id="badge-pending-count" class="text-[10px] font-black px-2.5 py-0.5 bg-amber-100 text-amber-800 rounded-full">2 pendientes</span>
+                    <span id="badge-pending-count" class="text-[10px] font-black px-2.5 py-0.5 bg-amber-100 text-amber-800 rounded-full">0 pendientes</span>
                   </h2>
                   <p class="text-xs text-slate-500 mt-0.5">Usuarios que se registraron con Google u Outlook y seleccionaron su plan. Tú decides quién entra.</p>
                 </div>
               </div>
+              <!-- Botón actualizar manual -->
+              <button onclick="window.timeplusRefreshAdminRequests()"
+                class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-indigo-700 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 rounded-xl transition-all active:scale-95 shadow-sm">
+                🔄 Actualizar
+              </button>
             </div>
 
             <!-- Tabla de Solicitudes Pendientes -->
