@@ -156,20 +156,27 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
+  function closeAllAuthModals() {
+    ['modal-auth-client', 'modal-auth-admin', 'modal-auth-plan', 'view-login'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.classList.add('hidden');
+    });
+  }
+
   function renderCurrentView() {
     const currentUser = store.getCurrentUser();
 
     // If no user is logged in, show Landing Page and keep Shell hidden
     if (!currentUser) {
       if (viewLanding) viewLanding.classList.remove('hidden');
-      if (viewLogin) viewLogin.classList.add('hidden'); // Modal is closed by default
+      closeAllAuthModals();
       if (appShell) appShell.classList.add('hidden');
       return;
     }
 
-    // User is logged in: show app shell, hide landing and login modal
+    // User is logged in: show app shell, hide landing and auth modals
     if (viewLanding) viewLanding.classList.add('hidden');
-    if (viewLogin) viewLogin.classList.add('hidden');
+    closeAllAuthModals();
     if (appShell) appShell.classList.remove('hidden');
     updateAuthHeaderUI(currentUser);
 
@@ -911,8 +918,8 @@ document.addEventListener('DOMContentLoaded', () => {
           window.timeplusCloseExplainerModal();
           return;
         }
-        if (viewLogin && !viewLogin.classList.contains('hidden') && !store.getCurrentUser()) {
-          window.timeplusCloseLoginModal();
+        if (!store.getCurrentUser()) {
+          closeAllAuthModals();
         }
       }
     });
@@ -1232,22 +1239,42 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   };
 
-  // --- Modal de Inicio de Sesión (Landing Page -> Modal Login) ---
-  window.timeplusOpenLoginModal = (tab = 'auto') => {
-    if (viewLogin) {
-      viewLogin.classList.remove('hidden');
-    }
+  // --- Modales de Autenticación Separados (Cliente vs Admin vs Adquirir Plan) ---
+  window.timeplusOpenClientModal = () => {
+    closeAllAuthModals();
+    const modal = document.getElementById('modal-auth-client');
+    if (modal) modal.classList.remove('hidden');
+  };
+
+  window.timeplusOpenAdminModal = () => {
+    closeAllAuthModals();
+    const modal = document.getElementById('modal-auth-admin');
+    if (modal) modal.classList.remove('hidden');
+  };
+
+  window.timeplusOpenPlanModal = () => {
+    closeAllAuthModals();
+    const modal = document.getElementById('modal-auth-plan');
+    if (modal) modal.classList.remove('hidden');
+  };
+
+  window.timeplusCloseAuthModal = () => {
+    closeAllAuthModals();
+  };
+
+  // Compatibilidad con invocaciones existentes
+  window.timeplusOpenLoginModal = (tab = 'client') => {
     if (tab === 'admin') {
-      window.timeplusSwitchLoginTab('admin');
-    } else if (tab === 'client') {
-      window.timeplusSwitchLoginTab('client');
+      window.timeplusOpenAdminModal();
+    } else if (tab === 'plan') {
+      window.timeplusOpenPlanModal();
+    } else {
+      window.timeplusOpenClientModal();
     }
   };
 
   window.timeplusCloseLoginModal = () => {
-    if (viewLogin) {
-      viewLogin.classList.add('hidden');
-    }
+    closeAllAuthModals();
   };
 
   // --- Multi-Role Switcher & Login Tab Handlers ---

@@ -37,21 +37,26 @@
         </div>
       </div>
 
-      <!-- Enlaces y Botón de Inicio Rápido -->
-      <div class="flex items-center gap-2 sm:gap-3">
-        <!-- BOTÓN MODAL PREGUNTANDO PARA QUÉ SIRVE -->
-        <button onclick="window.timeplusOpenExplainerModal('timeline')" class="text-xs font-extrabold text-blue-700 bg-blue-50 hover:bg-blue-100 border border-blue-200 px-3.5 py-2 rounded-xl transition-all flex items-center gap-1.5 shadow-xs">
-          <span>💡</span> <span class="hidden sm:inline">¿Para qué sirve?</span><span class="sm:hidden">Guía</span>
+      <!-- Enlaces y Botones Separados para No Confundir -->
+      <div class="flex items-center gap-2 sm:gap-2.5">
+        <!-- 1. GUÍA PARA QUÉ SIRVE -->
+        <button onclick="window.timeplusOpenExplainerModal('timeline')" class="text-xs font-extrabold text-blue-700 bg-blue-50 hover:bg-blue-100 border border-blue-200 px-3 py-2 rounded-xl transition-all flex items-center gap-1.5 shadow-xs">
+          <span>💡</span> <span class="hidden sm:inline">¿Para qué sirve?</span>
         </button>
-        <button onclick="window.timeplusOpenLoginModal('client')" class="hidden md:block text-xs font-bold text-slate-600 hover:text-slate-900 px-3 py-2 transition-colors">
-          Solicitar Plan
+
+        <!-- 2. ADQUIRIR PLAN (NUEVO CLIENTE) -->
+        <button onclick="window.timeplusOpenPlanModal()" class="text-xs font-bold text-slate-700 hover:text-blue-700 bg-slate-100 hover:bg-slate-200 border border-slate-200 px-3 py-2 rounded-xl transition-colors flex items-center gap-1">
+          <span>✨</span> <span class="hidden md:inline">Adquirir Plan</span><span class="md:hidden">Planes</span>
         </button>
-        <button onclick="window.timeplusOpenLoginModal('admin')" class="hidden sm:flex items-center gap-1 text-xs font-bold text-indigo-700 hover:text-indigo-900 bg-indigo-50/70 border border-indigo-100 px-3 py-2 rounded-xl transition-colors">
-          <span>👑</span> SuperAdmin
+
+        <!-- 3. ACCESO SUPERADMIN -->
+        <button onclick="window.timeplusOpenAdminModal()" class="flex items-center gap-1 text-xs font-bold text-amber-800 hover:text-amber-950 bg-amber-50 hover:bg-amber-100 border border-amber-200 px-3 py-2 rounded-xl transition-colors">
+          <span>👑</span> <span class="hidden sm:inline">SuperAdmin</span>
         </button>
-        <!-- BOTÓN RÁPIDO DE INICIO DE SESIÓN DESTACADO -->
-        <button onclick="window.timeplusOpenLoginModal('auto')" class="flex items-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-extrabold text-xs rounded-xl shadow-lg shadow-blue-500/25 active:scale-95 transition-all">
-          <span>🔑</span> Iniciar Sesión
+
+        <!-- 4. INICIAR SESIÓN CLIENTE -->
+        <button onclick="window.timeplusOpenClientModal()" class="flex items-center gap-1.5 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-extrabold text-xs rounded-xl shadow-md shadow-blue-500/25 active:scale-95 transition-all">
+          <span>👤</span> <span>Iniciar Sesión</span>
         </button>
       </div>
     </header>
@@ -77,16 +82,29 @@
         Agenda cronológica continua, citas profesionales, sedes y lugares frecuentes con contador de visitas, y motor de Inteligencia Artificial por voz para no perder tiempo llenando formularios.
       </p>
 
-      <!-- Botones de Acción Hero -->
-      <div class="flex flex-col sm:flex-row items-center gap-3.5 mt-8 w-full sm:w-auto z-10">
-        <button onclick="window.timeplusOpenLoginModal('auto')" class="w-full sm:w-auto px-8 py-4 bg-blue-600 hover:bg-blue-700 text-white font-black text-sm rounded-2xl shadow-xl shadow-blue-500/25 transition-all flex items-center justify-center gap-2 active:scale-95">
-          <span>🚀</span> <span>Inicio Rápido a Sesión</span> <span>→</span>
+      <!-- Botones de Acción Hero Separados -->
+      <div class="flex flex-col sm:flex-row items-center gap-3 mt-8 w-full sm:w-auto z-10">
+        <!-- Opción 1: Cliente Aprobado -->
+        <button onclick="window.timeplusOpenClientModal()" class="w-full sm:w-auto px-7 py-3.5 bg-blue-600 hover:bg-blue-700 text-white font-black text-xs sm:text-sm rounded-2xl shadow-xl shadow-blue-500/25 transition-all flex items-center justify-center gap-2 active:scale-95">
+          <span>👤</span> <span>Iniciar Sesión como Cliente</span> <span>→</span>
         </button>
-        <button onclick="window.timeplusOpenExplainerModal('timeline')" class="w-full sm:w-auto px-6 py-4 bg-white hover:bg-slate-50 text-slate-800 border border-slate-300 font-bold text-sm rounded-2xl transition-all flex items-center justify-center gap-2 shadow-xs hover:border-blue-300">
-          <span>💡</span> <span>¿Para qué sirve? (Ver cómo funciona)</span>
+
+        <!-- Opción 2: Adquirir Plan -->
+        <button onclick="window.timeplusOpenPlanModal()" class="w-full sm:w-auto px-6 py-3.5 bg-white hover:bg-slate-50 text-slate-900 border border-slate-300 font-extrabold text-xs sm:text-sm rounded-2xl transition-all flex items-center justify-center gap-2 shadow-xs hover:border-blue-400">
+          <span>✨</span> <span>Adquirir Plan para mi Empresa</span>
         </button>
-        <button onclick="window.timeplusOpenLoginModal('client')" class="w-full sm:w-auto px-6 py-4 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-sm rounded-2xl transition-all flex items-center justify-center gap-2">
-          <span>👥</span> <span>Adquirir Plan</span>
+
+        <!-- Opción 3: Para qué sirve -->
+        <button onclick="window.timeplusOpenExplainerModal('timeline')" class="w-full sm:w-auto px-5 py-3.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs sm:text-sm rounded-2xl transition-all flex items-center justify-center gap-1.5">
+          <span>💡</span> <span>¿Para qué sirve?</span>
+        </button>
+      </div>
+
+      <!-- Acceso Directo SuperAdmin abajo del Hero -->
+      <div class="mt-4 text-xs text-slate-500 z-10 flex items-center justify-center gap-1.5">
+        <span>¿Eres el administrador de TIMEPLUS?</span>
+        <button onclick="window.timeplusOpenAdminModal()" class="font-extrabold text-indigo-700 hover:text-indigo-900 underline decoration-indigo-300 hover:decoration-indigo-600 transition-colors">
+          Acceso Maestro SuperAdmin 👑
         </button>
       </div>
 
@@ -420,221 +438,227 @@
   </div>
 
 
-  <!-- ========================================================= -->
-  <!-- VIEW 0: MODAL / OVERLAY DE INICIO DE SESIÓN (LOGIN RÁPIDO)-->
-  <!-- ========================================================= -->
-  <div id="view-login" onclick="if(event.target === this) window.timeplusCloseLoginModal()" class="fixed inset-0 z-50 min-h-screen w-full flex items-center justify-center p-3 sm:p-6 bg-slate-900/60 backdrop-blur-md hidden overflow-y-auto">
-    
-    <!-- Background subtle glows -->
-    <div class="absolute top-1/4 -left-20 w-96 h-96 bg-blue-600/10 rounded-full blur-3xl pointer-events-none"></div>
-    <div class="absolute bottom-1/4 -right-20 w-96 h-96 bg-indigo-600/10 rounded-full blur-3xl pointer-events-none"></div>
+  <!-- Placeholder para compatibilidad histórica -->
+  <div id="view-login" class="hidden"></div>
 
-    <div onclick="event.stopPropagation()" class="w-full max-w-xl bg-white/95 backdrop-blur-xl rounded-[2.5rem] shadow-2xl p-6 sm:p-10 border border-slate-200/80 relative z-10 my-auto">
+  <!-- ========================================================= -->
+  <!-- MODAL 1: INICIAR SESIÓN — CLIENTES CON CUENTA APROBADA     -->
+  <!-- ========================================================= -->
+  <div id="modal-auth-client" onclick="if(event.target === this) window.timeplusCloseAuthModal()" class="fixed inset-0 z-50 min-h-screen w-full flex items-center justify-center p-3 sm:p-6 bg-slate-900/60 backdrop-blur-md hidden overflow-y-auto">
+    <div onclick="event.stopPropagation()" class="w-full max-w-md bg-white rounded-[2.5rem] shadow-2xl p-6 sm:p-9 border border-slate-200 relative z-10 my-auto text-slate-800 animate-in fade-in zoom-in-95 duration-150">
       
-      <!-- Botón de Cerrar Modal para volver a la página -->
-      <button onclick="window.timeplusCloseLoginModal()" class="absolute top-6 right-6 w-9 h-9 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center font-bold text-sm transition-all" title="Volver a la página">
+      <button onclick="window.timeplusCloseAuthModal()" class="absolute top-6 right-6 w-9 h-9 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center font-bold text-sm transition-all" title="Cerrar">
         ✕
       </button>
-      
-      <!-- Brand & Platform Header -->
+
       <div class="text-center space-y-2 mb-6">
-        <div class="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-tr from-blue-600 via-indigo-600 to-purple-600 text-white text-2xl font-black shadow-xl shadow-blue-500/30">
-          T+
+        <div class="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-blue-600 text-white text-xl font-black shadow-lg shadow-blue-500/25">
+          👤
         </div>
-        <h1 class="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">TIMEPLUS</h1>
-        <p class="text-xs sm:text-sm text-slate-500 font-medium max-w-sm mx-auto">
-          Ecosistema integral de agenda conectada con IA para Web y Dispositivos Móviles.
+        <h2 class="text-2xl font-black text-slate-900 tracking-tight">Iniciar Sesión — Clientes</h2>
+        <p class="text-xs text-slate-500 font-medium max-w-xs mx-auto">
+          Ingreso para profesionales y empresas con cuenta y plan activo.
         </p>
       </div>
 
-      <!-- Navigation Tabs: SuperAdmin vs Cliente / Adquirente -->
-      <div class="flex p-1.5 bg-slate-100/80 rounded-2xl mb-6 border border-slate-200/60">
-        <button id="tab-login-superadmin" onclick="window.timeplusSwitchLoginTab('admin')"
-                class="flex-1 py-2.5 px-3 rounded-xl text-xs font-black transition-all flex items-center justify-center gap-1.5 bg-white text-indigo-900 shadow-sm">
-          <span>👑</span> <span>Super Administrador</span>
+      <!-- Botones de Acceso Rápido con Google / Outlook -->
+      <div class="grid grid-cols-2 gap-2 mb-4">
+        <button type="button" onclick="window.timeplusDirectClientLogin('google')"
+                class="py-2.5 px-3 bg-white hover:bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-700 transition-all flex items-center justify-center gap-2 shadow-xs active:scale-95">
+          <svg class="w-4 h-4" viewBox="0 0 24 24">
+            <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+            <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+            <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
+            <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
+          </svg>
+          <span>Google</span>
         </button>
-        <button id="tab-login-client" onclick="window.timeplusSwitchLoginTab('client')"
-                class="flex-1 py-2.5 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 text-slate-600 hover:text-slate-900">
-          <span>👥</span> <span>Clientes & Planes</span>
+        <button type="button" onclick="window.timeplusDirectClientLogin('outlook')"
+                class="py-2.5 px-3 bg-white hover:bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-700 transition-all flex items-center justify-center gap-2 shadow-xs active:scale-95">
+          <svg class="w-4 h-4" viewBox="0 0 24 24">
+            <path fill="#0078D4" d="M22 6.5v11a2.5 2.5 0 0 1-2.5 2.5H12V4h7.5A2.5 2.5 0 0 1 22 6.5z"/>
+            <path fill="#28A8EA" d="M12 4v16H4.5A2.5 2.5 0 0 1 2 17.5v-11A2.5 2.5 0 0 1 4.5 4H12z"/>
+            <path fill="#002050" opacity=".2" d="M2 17.5V18a2.5 2.5 0 0 0 2.5 2.5h15a2.5 2.5 0 0 0 2.5-2.5v-.5a2.5 2.5 0 0 1-2.5 2.5h-15A2.5 2.5 0 0 1 2 17.5z"/>
+            <path fill="#fff" d="M8.5 15a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7zm0-1.5a2 2 0 1 0 0-4 2 2 0 0 0 0 4z"/>
+          </svg>
+          <span>Outlook</span>
         </button>
       </div>
 
-      <!-- TAB PANEL 1: SUPERADMINISTRADOR (Control Total) -->
-      <div id="panel-login-admin" class="space-y-4">
-        <div class="p-4 rounded-2xl bg-indigo-50/70 border border-indigo-100 flex items-start gap-3">
-          <div class="w-9 h-9 rounded-xl bg-indigo-600 text-white flex items-center justify-center text-lg font-bold flex-shrink-0 shadow-md shadow-indigo-500/20">
-            👑
-          </div>
-          <div class="text-xs">
-            <h4 class="font-extrabold text-indigo-950">Acceso Maestro — Quien maneja todo</h4>
-            <p class="text-slate-600 mt-0.5 leading-relaxed">
-              Supervisión de clientes registrados, planes adquiridos, aprobación de nuevas cuentas y control total del sistema.
-            </p>
-          </div>
-        </div>
-
-        <form id="form-admin-login" onsubmit="event.preventDefault(); window.timeplusHandleSuperadminLogin();" class="space-y-3.5">
-          <div>
-            <label class="block text-[11px] font-bold text-slate-700 mb-1">Correo de SuperAdmin</label>
-            <input type="email" id="admin-login-email" value="ces.rodriguez200@gmail.com" required
-                   class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-800 focus:outline-none focus:border-indigo-600 focus:bg-white transition-all shadow-inner">
-          </div>
-          <div>
-            <label class="block text-[11px] font-bold text-slate-700 mb-1">Contraseña Maestra</label>
-            <input type="password" id="admin-login-password" value="16278465" required
-                   class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-800 focus:outline-none focus:border-indigo-600 focus:bg-white transition-all shadow-inner">
-          </div>
-          
-          <div id="admin-login-msg" class="hidden text-[11px] font-semibold p-2.5 rounded-xl text-center"></div>
-
-          <button type="submit" class="w-full py-3.5 bg-gradient-to-r from-indigo-700 to-indigo-900 hover:from-indigo-800 hover:to-slate-900 text-white font-extrabold text-xs rounded-xl shadow-lg shadow-indigo-600/25 transition-all flex items-center justify-center gap-2 active:scale-98">
-            <span>🛡️</span> <span>Entrar al Panel de Control Maestro</span> <span>→</span>
-          </button>
-        </form>
+      <div class="relative flex py-2 items-center">
+        <div class="flex-grow border-t border-slate-200"></div>
+        <span class="flex-shrink mx-3 text-[11px] text-slate-400 font-semibold">o con correo y contraseña</span>
+        <div class="flex-grow border-t border-slate-200"></div>
       </div>
 
-      <!-- TAB PANEL 2: CLIENTES / ADQUIRENTES (Iniciar Sesión o Solicitar Cuenta) -->
-      <div id="panel-login-client" class="space-y-4 hidden">
-        
-        <!-- Toggle interno: Iniciar Sesión vs Registrarse -->
-        <div class="flex p-1 bg-slate-100 rounded-xl text-xs">
-          <button id="btn-client-subtab-login" type="button" onclick="window.timeplusToggleClientSubTab('login')"
-                  class="flex-1 py-2 font-black rounded-lg bg-white text-blue-900 shadow-sm transition-all text-center">
-            🔑 Ya tengo cuenta aprobada
+      <form id="form-client-direct-login" onsubmit="event.preventDefault(); window.timeplusHandleClientApprovedLogin();" class="space-y-3 pt-1">
+        <div>
+          <label class="block text-[11px] font-bold text-slate-700 mb-1">Correo Electrónico</label>
+          <input type="email" id="client-login-email" placeholder="usuario@gmail.com o empresa@correo.com" required
+                 class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-800 focus:outline-none focus:border-blue-600 focus:bg-white transition-all shadow-inner">
+        </div>
+
+        <div>
+          <label class="block text-[11px] font-bold text-slate-700 mb-1">Contraseña</label>
+          <input type="password" id="client-login-password" placeholder="••••••••" required
+                 class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-800 focus:outline-none focus:border-blue-600 focus:bg-white transition-all shadow-inner">
+        </div>
+
+        <div id="client-login-msg" class="hidden text-[11px] font-semibold p-2.5 rounded-xl text-center"></div>
+
+        <button type="submit" class="w-full py-3.5 bg-blue-600 hover:bg-blue-700 text-white font-black text-xs rounded-xl shadow-lg shadow-blue-500/25 transition-all flex items-center justify-center gap-2 active:scale-95">
+          <span>🚀</span> <span>Ingresar a Mi Agenda Conectada</span> <span>→</span>
+        </button>
+      </form>
+
+      <!-- Enlaces Inferiores Limpios -->
+      <div class="mt-6 pt-5 border-t border-slate-100 text-center space-y-2">
+        <p class="text-xs text-slate-500">
+          ¿No tienes una cuenta aún?
+          <button onclick="window.timeplusOpenPlanModal()" class="font-extrabold text-blue-600 hover:text-blue-800 underline ml-1">
+            Adquirir Plan / Solicitar Cuenta →
           </button>
-          <button id="btn-client-subtab-register" type="button" onclick="window.timeplusToggleClientSubTab('register')"
-                  class="flex-1 py-2 font-bold rounded-lg text-slate-500 hover:text-slate-800 transition-all text-center">
-            ✨ Nueva Solicitud / Registro
-          </button>
-        </div>
-
-        <!-- 1. SUB-PANEL: CLIENTE YA APROBADO (INICIAR SESIÓN) -->
-        <div id="client-subpanel-login" class="space-y-3.5">
-          <div class="p-3.5 rounded-2xl bg-emerald-50/70 border border-emerald-100 flex items-start gap-2.5">
-            <div class="w-8 h-8 rounded-xl bg-emerald-600 text-white flex items-center justify-center text-sm font-bold flex-shrink-0">
-              ✓
-            </div>
-            <div class="text-xs">
-              <h4 class="font-extrabold text-emerald-950">Ingreso para Clientes Activos</h4>
-              <p class="text-slate-600 mt-0.5">
-                Si el SuperAdmin ya aprobó tu solicitud, ingresa con tu correo de <strong>Google, Outlook o institucional</strong>.
-              </p>
-            </div>
-          </div>
-
-          <!-- Botones de Acceso Rápido con Google / Outlook -->
-          <div class="grid grid-cols-2 gap-2">
-            <button type="button" onclick="window.timeplusDirectClientLogin('google')"
-                    class="py-2.5 px-3 bg-white hover:bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-700 transition-all flex items-center justify-center gap-2 shadow-sm active:scale-95">
-              <svg class="w-4 h-4" viewBox="0 0 24 24">
-                <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-                <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-                <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
-                <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
-              </svg>
-              <span>Entrar con Google</span>
-            </button>
-            <button type="button" onclick="window.timeplusDirectClientLogin('outlook')"
-                    class="py-2.5 px-3 bg-white hover:bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-700 transition-all flex items-center justify-center gap-2 shadow-sm active:scale-95">
-              <svg class="w-4 h-4" viewBox="0 0 24 24">
-                <path fill="#0078D4" d="M22 6.5v11a2.5 2.5 0 0 1-2.5 2.5H12V4h7.5A2.5 2.5 0 0 1 22 6.5z"/>
-                <path fill="#28A8EA" d="M12 4v16H4.5A2.5 2.5 0 0 1 2 17.5v-11A2.5 2.5 0 0 1 4.5 4H12z"/>
-                <path fill="#002050" opacity=".2" d="M2 17.5V18a2.5 2.5 0 0 0 2.5 2.5h15a2.5 2.5 0 0 0 2.5-2.5v-.5a2.5 2.5 0 0 1-2.5 2.5h-15A2.5 2.5 0 0 1 2 17.5z"/>
-                <path fill="#fff" d="M8.5 15a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7zm0-1.5a2 2 0 1 0 0-4 2 2 0 0 0 0 4z"/>
-              </svg>
-              <span>Entrar con Outlook</span>
-            </button>
-          </div>
-
-          <form id="form-client-direct-login" onsubmit="event.preventDefault(); window.timeplusHandleClientApprovedLogin();" class="space-y-3 pt-1">
-            <div>
-              <label class="block text-[11px] font-bold text-slate-700 mb-1">Correo Electrónico Aprobado</label>
-              <input type="email" id="client-login-email" placeholder="usuario@gmail.com o usuario@outlook.com" required
-                     class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-800 focus:outline-none focus:border-blue-600 focus:bg-white transition-all shadow-inner">
-            </div>
-
-            <div>
-              <label class="block text-[11px] font-bold text-slate-700 mb-1">Contraseña</label>
-              <input type="password" id="client-login-password" placeholder="••••••••" required
-                     class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-800 focus:outline-none focus:border-blue-600 focus:bg-white transition-all shadow-inner">
-            </div>
-
-            <div id="client-login-msg" class="hidden text-[11px] font-semibold p-2.5 rounded-xl text-center"></div>
-
-            <button type="submit" class="w-full py-3.5 bg-blue-600 hover:bg-blue-700 text-white font-extrabold text-xs rounded-xl shadow-lg shadow-blue-500/25 transition-all flex items-center justify-center gap-2 active:scale-95">
-              <span>🚀</span> <span>Ingresar a Mi Agenda Conectada</span> <span>→</span>
-            </button>
-          </form>
-        </div>
-
-        <!-- 2. SUB-PANEL: NUEVA SOLICITUD / REGISTRO CON CONTRASEÑA -->
-        <div id="client-subpanel-register" class="space-y-3.5 hidden">
-          <div class="p-3.5 rounded-2xl bg-blue-50/70 border border-blue-100 flex items-start gap-2.5">
-            <div class="w-8 h-8 rounded-xl bg-blue-600 text-white flex items-center justify-center text-sm font-bold flex-shrink-0">
-              📝
-            </div>
-            <div class="text-xs">
-              <h4 class="font-extrabold text-blue-950">Solicitar Nueva Cuenta y Crear Contraseña</h4>
-              <p class="text-slate-600 mt-0.5">
-                Crea tu usuario y contraseña. Cuando el SuperAdmin apruebe tu plan, podrás ingresar de inmediato con esta clave.
-              </p>
-            </div>
-          </div>
-
-          <form id="form-client-register" onsubmit="event.preventDefault(); window.timeplusHandleClientRegistration();" class="space-y-3">
-            <div>
-              <label class="block text-[11px] font-bold text-slate-700 mb-1">Nombre Completo o Razón Social</label>
-              <input type="text" id="client-reg-name" placeholder="Ej. Dr. Andrés Peña o Clínica Norte" required
-                     class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-800 focus:outline-none focus:border-blue-500 focus:bg-white transition-all shadow-inner">
-            </div>
-
-            <div>
-              <label class="block text-[11px] font-bold text-slate-700 mb-1">Correo Electrónico (Gmail u Outlook)</label>
-              <input type="email" id="client-reg-email" placeholder="usuario@gmail.com o usuario@outlook.com" required
-                     class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-800 focus:outline-none focus:border-blue-500 focus:bg-white transition-all shadow-inner">
-            </div>
-
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
-              <div>
-                <label class="block text-[11px] font-bold text-slate-700 mb-1">Crea tu Contraseña</label>
-                <input type="password" id="client-reg-pass" placeholder="••••••••" required minlength="6"
-                       class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-800 focus:outline-none focus:border-blue-500 focus:bg-white transition-all shadow-inner">
-              </div>
-              <div>
-                <label class="block text-[11px] font-bold text-slate-700 mb-1">Confirmar Contraseña</label>
-                <input type="password" id="client-reg-pass-confirm" placeholder="••••••••" required minlength="6"
-                       class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-800 focus:outline-none focus:border-blue-500 focus:bg-white transition-all shadow-inner">
-              </div>
-            </div>
-
-            <div>
-              <label class="block text-[11px] font-bold text-slate-700 mb-1">Plan que deseas Adquirir</label>
-              <select id="client-reg-plan" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-800 focus:outline-none focus:border-blue-500 focus:bg-white transition-all shadow-inner">
-                <option value="TIMEPLUS Connect Pro">TIMEPLUS Connect Pro ($9.99/mes) — Todo conectado con IA</option>
-                <option value="TIMEPLUS Médico & Citas">TIMEPLUS Médico & Citas ($14.99/mes) — Citas y Pacientes</option>
-                <option value="TIMEPLUS Corporativo">TIMEPLUS Corporativo ($29.99/mes) — Equipos y Empresas</option>
-                <option value="TIMEPLUS Académico">TIMEPLUS Académico ($4.99/mes) — Universidad y Entregas</option>
-                <option value="TIMEPLUS Free">TIMEPLUS Free (Plan Básico Gratuito)</option>
-              </select>
-            </div>
-
-            <div id="client-reg-msg" class="hidden text-[11px] font-semibold p-2.5 rounded-xl text-center"></div>
-
-            <button type="submit" class="w-full py-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-extrabold text-xs rounded-xl shadow-md shadow-blue-500/20 transition-all flex items-center justify-center gap-1.5 active:scale-95">
-              <span>🔒</span> <span>Crear Cuenta y Enviar a Aprobación</span>
-            </button>
-          </form>
-        </div>
-
-      </div>
-
-      <!-- Footer Info -->
-      <div class="pt-6 mt-6 border-t border-slate-100 text-center space-y-1">
+        </p>
         <p class="text-[11px] text-slate-400">
-          SuperAdmin activo: <span class="font-bold text-slate-600">ces.rodriguez200@gmail.com</span>
+          ¿Eres el Super Administrador?
+          <button onclick="window.timeplusOpenAdminModal()" class="font-bold text-amber-700 hover:text-amber-900 underline ml-1">
+            Acceso SuperAdmin Maestro 👑
+          </button>
         </p>
-        <p class="text-[10px] text-slate-400">
-          Sincronizado con Supabase Cloud Database & Vercel Edge Network.
+      </div>
+
+    </div>
+  </div>
+
+
+  <!-- ========================================================= -->
+  <!-- MODAL 2: INICIAR SESIÓN — SUPER ADMINISTRADOR MAESTRO     -->
+  <!-- ========================================================= -->
+  <div id="modal-auth-admin" onclick="if(event.target === this) window.timeplusCloseAuthModal()" class="fixed inset-0 z-50 min-h-screen w-full flex items-center justify-center p-3 sm:p-6 bg-slate-900/60 backdrop-blur-md hidden overflow-y-auto">
+    <div onclick="event.stopPropagation()" class="w-full max-w-md bg-white rounded-[2.5rem] shadow-2xl p-6 sm:p-9 border border-indigo-200 relative z-10 my-auto text-slate-800 animate-in fade-in zoom-in-95 duration-150">
+      
+      <button onclick="window.timeplusCloseAuthModal()" class="absolute top-6 right-6 w-9 h-9 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center font-bold text-sm transition-all" title="Cerrar">
+        ✕
+      </button>
+
+      <div class="text-center space-y-2 mb-6">
+        <div class="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-indigo-900 text-white text-xl font-black shadow-lg shadow-indigo-700/25">
+          👑
+        </div>
+        <div class="inline-block px-3 py-1 rounded-full bg-amber-50 border border-amber-200 text-amber-800 text-[10px] font-black uppercase tracking-wider">
+          1. Quien Maneja Todo el Sistema
+        </div>
+        <h2 class="text-2xl font-black text-slate-900 tracking-tight">Acceso Super Administrador</h2>
+        <p class="text-xs text-slate-500 font-medium max-w-xs mx-auto">
+          Control general de licencias, supervisión de clientes y métricas del sistema.
+        </p>
+      </div>
+
+      <form id="form-admin-login" onsubmit="event.preventDefault(); window.timeplusHandleSuperadminLogin();" class="space-y-3.5">
+        <div>
+          <label class="block text-[11px] font-bold text-slate-700 mb-1">Correo de SuperAdmin</label>
+          <input type="email" id="admin-login-email" value="ces.rodriguez200@gmail.com" required
+                 class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-800 focus:outline-none focus:border-indigo-600 focus:bg-white transition-all shadow-inner">
+        </div>
+        <div>
+          <label class="block text-[11px] font-bold text-slate-700 mb-1">Contraseña Maestra</label>
+          <input type="password" id="admin-login-password" value="16278465" required
+                 class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-800 focus:outline-none focus:border-indigo-600 focus:bg-white transition-all shadow-inner">
+        </div>
+        
+        <div id="admin-login-msg" class="hidden text-[11px] font-semibold p-2.5 rounded-xl text-center"></div>
+
+        <button type="submit" class="w-full py-3.5 bg-gradient-to-r from-indigo-700 to-indigo-950 hover:from-indigo-800 hover:to-black text-white font-extrabold text-xs rounded-xl shadow-lg shadow-indigo-600/25 transition-all flex items-center justify-center gap-2 active:scale-98">
+          <span>🛡️</span> <span>Entrar al Panel de Control Maestro</span> <span>→</span>
+        </button>
+      </form>
+
+      <div class="mt-6 pt-5 border-t border-slate-100 text-center">
+        <p class="text-xs text-slate-500">
+          ¿No eres administrador?
+          <button onclick="window.timeplusOpenClientModal()" class="font-extrabold text-blue-600 hover:text-blue-800 underline ml-1">
+            Iniciar Sesión como Cliente 👤
+          </button>
+        </p>
+      </div>
+
+    </div>
+  </div>
+
+
+  <!-- ========================================================= -->
+  <!-- MODAL 3: ADQUIRIR / SOLICITAR PLAN (NUEVO CLIENTE)        -->
+  <!-- ========================================================= -->
+  <div id="modal-auth-plan" onclick="if(event.target === this) window.timeplusCloseAuthModal()" class="fixed inset-0 z-50 min-h-screen w-full flex items-center justify-center p-3 sm:p-6 bg-slate-900/60 backdrop-blur-md hidden overflow-y-auto">
+    <div onclick="event.stopPropagation()" class="w-full max-w-lg bg-white rounded-[2.5rem] shadow-2xl p-6 sm:p-9 border border-slate-200 relative z-10 my-auto text-slate-800 animate-in fade-in zoom-in-95 duration-150">
+      
+      <button onclick="window.timeplusCloseAuthModal()" class="absolute top-6 right-6 w-9 h-9 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center font-bold text-sm transition-all" title="Cerrar">
+        ✕
+      </button>
+
+      <div class="text-center space-y-2 mb-6">
+        <div class="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-gradient-to-tr from-blue-600 to-indigo-600 text-white text-xl font-black shadow-lg shadow-blue-500/25">
+          ✨
+        </div>
+        <div class="inline-block px-3 py-1 rounded-full bg-blue-50 border border-blue-200 text-blue-800 text-[10px] font-black uppercase tracking-wider">
+          2. Quien Adquiere la App
+        </div>
+        <h2 class="text-2xl font-black text-slate-900 tracking-tight">Adquirir Plan TIMEPLUS</h2>
+        <p class="text-xs text-slate-500 font-medium max-w-sm mx-auto">
+          Elige el plan adecuado para tu empresa o actividad personal y crea tu contraseña.
+        </p>
+      </div>
+
+      <form id="form-client-register" onsubmit="event.preventDefault(); window.timeplusHandleClientRegistration();" class="space-y-3">
+        <div>
+          <label class="block text-[11px] font-bold text-slate-700 mb-1">Nombre Completo o Empresa</label>
+          <input type="text" id="client-reg-name" placeholder="Ej. Dr. Andrés Peña o Clínica Norte" required
+                 class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-800 focus:outline-none focus:border-blue-500 focus:bg-white transition-all shadow-inner">
+        </div>
+
+        <div>
+          <label class="block text-[11px] font-bold text-slate-700 mb-1">Correo Electrónico (Google, Outlook o Corporativo)</label>
+          <input type="email" id="client-reg-email" placeholder="usuario@gmail.com o empresa@correo.com" required
+                 class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-800 focus:outline-none focus:border-blue-500 focus:bg-white transition-all shadow-inner">
+        </div>
+
+        <div>
+          <label class="block text-[11px] font-bold text-slate-700 mb-1">Plan que deseas Adquirir</label>
+          <select id="client-reg-plan" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-800 focus:outline-none focus:border-blue-500 focus:bg-white transition-all shadow-inner">
+            <option value="TIMEPLUS Connect Pro">TIMEPLUS Connect Pro ($9.99/mes) — Todo conectado con IA</option>
+            <option value="TIMEPLUS Médico & Citas">TIMEPLUS Médico & Citas ($14.99/mes) — Citas y Pacientes</option>
+            <option value="TIMEPLUS Corporativo">TIMEPLUS Corporativo ($29.99/mes) — Equipos y Empresas</option>
+            <option value="TIMEPLUS Académico">TIMEPLUS Académico ($4.99/mes) — Universidad y Entregas</option>
+            <option value="TIMEPLUS Free">TIMEPLUS Free (Plan Básico Gratuito)</option>
+          </select>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+          <div>
+            <label class="block text-[11px] font-bold text-slate-700 mb-1">Crea tu Contraseña</label>
+            <input type="password" id="client-reg-pass" placeholder="••••••••" required minlength="6"
+                   class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-800 focus:outline-none focus:border-blue-500 focus:bg-white transition-all shadow-inner">
+          </div>
+          <div>
+            <label class="block text-[11px] font-bold text-slate-700 mb-1">Confirmar Contraseña</label>
+            <input type="password" id="client-reg-pass-confirm" placeholder="••••••••" required minlength="6"
+                   class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-800 focus:outline-none focus:border-blue-500 focus:bg-white transition-all shadow-inner">
+          </div>
+        </div>
+
+        <div id="client-reg-msg" class="hidden text-[11px] font-semibold p-2.5 rounded-xl text-center"></div>
+
+        <button type="submit" class="w-full py-3.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-extrabold text-xs rounded-xl shadow-lg shadow-blue-500/25 transition-all flex items-center justify-center gap-1.5 active:scale-95">
+          <span>🔒</span> <span>Crear Cuenta y Solicitar Activación</span> <span>→</span>
+        </button>
+      </form>
+
+      <div class="mt-6 pt-5 border-t border-slate-100 text-center">
+        <p class="text-xs text-slate-500">
+          ¿Ya tienes una cuenta aprobada?
+          <button onclick="window.timeplusOpenClientModal()" class="font-extrabold text-blue-600 hover:text-blue-800 underline ml-1">
+            Iniciar Sesión como Cliente aquí 🔑
+          </button>
         </p>
       </div>
 
