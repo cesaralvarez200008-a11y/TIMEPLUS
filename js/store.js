@@ -4,6 +4,86 @@ const STORAGE_KEY = 'TIMEPLUS_DATA_V1';
 
 // Initial sample data replicating the exact vision of TIMEPLUS
 const INITIAL_DATA = {
+  auth: {
+    currentUser: null, // Starts at Login screen!
+    accounts: [
+      {
+        id: 'user-admin',
+        email: 'admin@timeplus.com',
+        password: 'admin',
+        role: 'admin',
+        roleTitle: '1. Quien maneja todo',
+        roleLabel: 'Super Administrador del Sistema',
+        name: 'Administrador Maestro',
+        plan: 'Control Total & Gestión de Licencias',
+        avatar: '👑'
+      },
+      {
+        id: 'user-client',
+        email: 'rafael@timeplus.com',
+        password: '123',
+        role: 'client',
+        roleTitle: '2. Quien adquiere la aplicación',
+        roleLabel: 'Cliente / Suscriptor Activo',
+        name: 'Rafael Carvajal',
+        plan: 'Plan Anual TIMEPLUS Connect',
+        avatar: 'RC'
+      }
+    ],
+    clientsList: [
+      {
+        id: 'cli-1',
+        name: 'Rafael Carvajal',
+        email: 'rafael@timeplus.com',
+        plan: 'TIMEPLUS Connect Pro',
+        status: 'Activo',
+        acquiredDate: '15 Ago 2026',
+        activitiesCount: 147,
+        placesCount: 4,
+        iaQueriesCount: 68
+      },
+      {
+        id: 'cli-2',
+        name: 'Dra. Mariana Torres',
+        email: 'mariana.torres@saludplus.org',
+        plan: 'TIMEPLUS Médico & Citas',
+        status: 'Activo',
+        acquiredDate: '22 Ago 2026',
+        activitiesCount: 94,
+        placesCount: 6,
+        iaQueriesCount: 42
+      },
+      {
+        id: 'cli-3',
+        name: 'Carlos Mendoza',
+        email: 'carlos.mendoza@empresa.com',
+        plan: 'TIMEPLUS Corporativo',
+        status: 'Activo',
+        acquiredDate: '28 Ago 2026',
+        activitiesCount: 215,
+        placesCount: 8,
+        iaQueriesCount: 110
+      },
+      {
+        id: 'cli-4',
+        name: 'Sofía Gómez',
+        email: 'sofia.gomez@uni.edu',
+        plan: 'TIMEPLUS Académico',
+        status: 'Activo',
+        acquiredDate: '01 Sep 2026',
+        activitiesCount: 63,
+        placesCount: 3,
+        iaQueriesCount: 29
+      }
+    ],
+    adminStats: {
+      totalClients: 1420,
+      activeLicenses: '98.4%',
+      totalMonthlyRevenue: '$14,200 USD',
+      globalPlacesConnected: 8650,
+      globalIAQueriesToday: 3840
+    }
+  },
   user: {
     name: 'Rafael',
     greeting: 'Buenos días',
@@ -287,7 +367,11 @@ class TimeplusStore {
     try {
       const stored = localStorage.getItem(STORAGE_KEY);
       if (stored) {
-        return JSON.parse(stored);
+        const parsed = JSON.parse(stored);
+        if (!parsed.auth) {
+          parsed.auth = JSON.parse(JSON.stringify(INITIAL_DATA.auth));
+        }
+        return parsed;
       }
     } catch (e) {
       console.warn('Could not read from localStorage, using initial data:', e);
@@ -506,6 +590,47 @@ class TimeplusStore {
       total,
       breakdown: calculated
     };
+  }
+
+  // --- Authentication & Multi-Role System ---
+  getCurrentUser() {
+    return (this.data.auth && this.data.auth.currentUser) ? this.data.auth.currentUser : null;
+  }
+
+  getAccounts() {
+    return (this.data.auth && this.data.auth.accounts) ? this.data.auth.accounts : [];
+  }
+
+  getClientsList() {
+    return (this.data.auth && this.data.auth.clientsList) ? this.data.auth.clientsList : [];
+  }
+
+  getAdminStats() {
+    return (this.data.auth && this.data.auth.adminStats) ? this.data.auth.adminStats : null;
+  }
+
+  login(emailOrRole, password = '') {
+    if (!this.data.auth) return null;
+    const account = this.data.auth.accounts.find(
+      a => a.role === emailOrRole || a.email.toLowerCase() === emailOrRole.toLowerCase()
+    );
+    if (account) {
+      this.data.auth.currentUser = { ...account };
+      this.saveData();
+      return account;
+    }
+    return null;
+  }
+
+  logout() {
+    if (this.data.auth) {
+      this.data.auth.currentUser = null;
+      this.saveData();
+    }
+  }
+
+  switchRole(targetRole) {
+    return this.login(targetRole);
   }
 }
 

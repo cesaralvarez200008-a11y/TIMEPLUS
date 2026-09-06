@@ -12,12 +12,15 @@ document.addEventListener('DOMContentLoaded', () => {
   let selectedActivityId = null;
 
   // DOM Containers
+  const viewLogin = document.getElementById('view-login');
+  const appShell = document.getElementById('app-shell');
   const viewHome = document.getElementById('view-home');
   const viewAgenda = document.getElementById('view-agenda');
   const viewPlaces = document.getElementById('view-places');
   const viewStats = document.getElementById('view-stats');
   const viewPlaceDetail = document.getElementById('view-place-detail');
   const viewActivityDetail = document.getElementById('view-activity-detail');
+  const viewAdminDashboard = document.getElementById('view-admin-dashboard');
 
   // Modals
   const modalCreateActivity = document.getElementById('modal-create-activity');
@@ -54,6 +57,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // --- View Switcher ---
   function navigateTo(viewName, param = null) {
+    const currentUser = store.getCurrentUser();
+    if (!currentUser) {
+      currentView = 'login';
+      renderCurrentView();
+      return;
+    }
+
     currentView = viewName;
     if (viewName === 'place-detail' && param) {
       selectedPlaceId = param;
@@ -67,7 +77,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Hide all views
-    [viewHome, viewAgenda, viewPlaces, viewStats, viewPlaceDetail, viewActivityDetail].forEach(v => {
+    [viewHome, viewAgenda, viewPlaces, viewStats, viewPlaceDetail, viewActivityDetail, viewAdminDashboard].forEach(v => {
       if (v) v.classList.add('hidden');
     });
 
@@ -87,8 +97,98 @@ document.addEventListener('DOMContentLoaded', () => {
     renderCurrentView();
   }
 
+  function updateAuthHeaderUI(user) {
+    if (!user) return;
+    const avatarEl = document.getElementById('user-avatar-pill');
+    const nameEl = document.getElementById('user-name-display');
+    const planEl = document.getElementById('user-plan-display');
+    const sidebarName = document.getElementById('sidebar-user-name');
+    const sidebarPlan = document.getElementById('sidebar-user-plan');
+    const roleBadge = document.getElementById('header-role-badge');
+    const roleDesc = document.getElementById('header-role-desc');
+    const rolePill = document.getElementById('role-pill-indicator');
+    const greetingIcon = document.getElementById('sidebar-greeting-icon');
+    const roleIndicator = document.getElementById('sidebar-role-indicator');
+    const adminNavGroup = document.getElementById('admin-nav-group');
+    const clientNavGroup = document.getElementById('client-nav-group');
+    const btnNewActTop = document.getElementById('btn-new-activity-top');
+    const searchContainer = document.getElementById('header-search-container');
+
+    if (avatarEl) avatarEl.textContent = user.avatar || 'U';
+    if (nameEl) nameEl.textContent = user.name;
+    if (planEl) planEl.textContent = user.plan;
+    if (sidebarName) sidebarName.textContent = user.name;
+    if (sidebarPlan) sidebarPlan.textContent = user.plan;
+
+    if (user.role === 'admin') {
+      if (roleBadge) {
+        roleBadge.textContent = '1. Quien Maneja Todo';
+        roleBadge.className = 'text-[10px] font-bold px-2 py-0.5 bg-indigo-100 text-indigo-700 rounded-full';
+      }
+      if (roleDesc) roleDesc.textContent = 'Super Administrador del Sistema';
+      if (rolePill) {
+        rolePill.textContent = '👑 Admin';
+        rolePill.className = 'text-[10px] font-bold px-2 py-0.5 bg-indigo-500/30 text-indigo-300 rounded-md';
+      }
+      if (greetingIcon) greetingIcon.textContent = '👑';
+      if (roleIndicator) roleIndicator.textContent = 'Super Administrador';
+      if (adminNavGroup) adminNavGroup.classList.remove('hidden');
+      if (clientNavGroup) clientNavGroup.classList.add('hidden');
+      if (btnNewActTop) btnNewActTop.classList.add('hidden');
+      if (searchContainer) searchContainer.classList.add('hidden');
+    } else {
+      if (roleBadge) {
+        roleBadge.textContent = '2. Quien Adquiere la App';
+        roleBadge.className = 'text-[10px] font-bold px-2 py-0.5 bg-blue-100 text-blue-700 rounded-full';
+      }
+      if (roleDesc) roleDesc.textContent = 'Cliente / Suscriptor Activo';
+      if (rolePill) {
+        rolePill.textContent = '👤 Cliente';
+        rolePill.className = 'text-[10px] font-bold px-2 py-0.5 bg-blue-500/30 text-blue-300 rounded-md';
+      }
+      if (greetingIcon) greetingIcon.textContent = '☀️';
+      if (roleIndicator) roleIndicator.textContent = 'Buenos días';
+      if (adminNavGroup) adminNavGroup.classList.add('hidden');
+      if (clientNavGroup) clientNavGroup.classList.remove('hidden');
+      if (btnNewActTop) btnNewActTop.classList.remove('hidden');
+      if (searchContainer) searchContainer.classList.remove('hidden');
+    }
+  }
+
   function renderCurrentView() {
+    const currentUser = store.getCurrentUser();
+
+    // If no user is logged in, show Login Screen first!
+    if (!currentUser) {
+      if (viewLogin) viewLogin.classList.remove('hidden');
+      if (appShell) appShell.classList.add('hidden');
+      return;
+    }
+
+    // User is logged in: show app shell
+    if (viewLogin) viewLogin.classList.add('hidden');
+    if (appShell) appShell.classList.remove('hidden');
+    updateAuthHeaderUI(currentUser);
+
+    // If current user is admin and currentView was home, default to admin-dashboard
+    if (currentUser.role === 'admin' && (currentView === 'home' || currentView === 'login')) {
+      currentView = 'admin-dashboard';
+    } else if (currentUser.role === 'client' && (currentView === 'admin-dashboard' || currentView === 'login')) {
+      currentView = 'home';
+    }
+
+    // Hide all view panels first
+    [viewHome, viewAgenda, viewPlaces, viewStats, viewPlaceDetail, viewActivityDetail, viewAdminDashboard].forEach(v => {
+      if (v) v.classList.add('hidden');
+    });
+
     switch (currentView) {
+      case 'admin-dashboard':
+        if (viewAdminDashboard) {
+          viewAdminDashboard.classList.remove('hidden');
+          renderAdminDashboard();
+        }
+        break;
       case 'home':
         if (viewHome) {
           viewHome.classList.remove('hidden');
@@ -126,6 +226,46 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         break;
     }
+  }
+
+  // ==========================================
+  // VIEW: ADMIN DASHBOARD (QUIEN MANEJA TODO)
+  // ==========================================
+  function renderAdminDashboard() {
+    const tbody = document.getElementById('admin-clients-table-body');
+    if (!tbody) return;
+
+    const clients = store.getClientsList();
+    tbody.innerHTML = '';
+
+    clients.forEach(client => {
+      const tr = document.createElement('tr');
+      tr.className = 'hover:bg-slate-50 transition-colors';
+      tr.innerHTML = `
+        <td class="py-3.5">
+          <div class="font-bold text-slate-800">${client.name}</div>
+          <div class="text-[11px] text-slate-400 font-mono">${client.email}</div>
+        </td>
+        <td class="py-3.5">
+          <span class="font-semibold text-slate-700">${client.plan}</span>
+          <span class="block text-[10px] text-slate-400">Desde ${client.acquiredDate}</span>
+        </td>
+        <td class="py-3.5">
+          <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700">
+            <span>●</span> ${client.status}
+          </span>
+        </td>
+        <td class="py-3.5 font-bold font-mono text-slate-800">${client.activitiesCount}</td>
+        <td class="py-3.5 font-bold font-mono text-blue-600">${client.placesCount} lugares</td>
+        <td class="py-3.5">
+          <button class="px-3 py-1 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-xl font-bold text-[11px] transition-colors"
+                  onclick="window.timeplusSimulateClient('${client.name}')">
+            Ver como cliente →
+          </button>
+        </td>
+      `;
+      tbody.appendChild(tr);
+    });
   }
 
   // ==========================================
@@ -897,5 +1037,36 @@ document.addEventListener('DOMContentLoaded', () => {
       store.addChecklistItem(actId, text.trim());
       renderActivityDetail(actId);
     }
+  };
+
+  // Auth & Multi-Role Global Handlers
+  window.quickLogin = (role) => {
+    store.login(role);
+    renderCurrentView();
+  };
+  window.timeplusLogout = () => {
+    store.logout();
+    renderCurrentView();
+  };
+  window.timeplusSwitchRole = (role) => {
+    store.switchRole(role);
+    renderCurrentView();
+  };
+  window.timeplusToggleRoleDirect = () => {
+    const curr = store.getCurrentUser();
+    if (curr && curr.role === 'admin') {
+      store.switchRole('client');
+    } else {
+      store.switchRole('admin');
+    }
+    renderCurrentView();
+  };
+  window.timeplusSimulateClient = (clientName) => {
+    store.switchRole('client');
+    currentView = 'home';
+    renderCurrentView();
+  };
+  window.timeplusSwitchAccountModal = () => {
+    window.timeplusToggleRoleDirect();
   };
 });

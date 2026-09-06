@@ -15,396 +15,595 @@
 <body class="bg-slate-100 text-slate-900 min-h-screen flex flex-col antialiased selection:bg-blue-600 selection:text-white">
 
   <!-- ========================================================= -->
-  <!-- TOP WEB NAVIGATION BAR                                    -->
+  <!-- VIEW 0: PANTALLA DE INICIO DE SESIÓN (LOGIN MULTI-ROL)   -->
   <!-- ========================================================= -->
-  <header class="sticky top-0 z-40 w-full bg-white/95 backdrop-blur border-b border-slate-200 px-4 lg:px-8 py-3 flex items-center justify-between shadow-sm">
-    <div class="flex items-center gap-3">
-      <!-- Mobile menu button -->
-      <button id="mobile-menu-toggle" class="lg:hidden p-2 text-slate-600 hover:bg-slate-100 rounded-xl">
-        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
-      </button>
-
-      <!-- App Logo -->
-      <div class="flex items-center gap-2.5 cursor-pointer" onclick="window.timeplusNavigate('home')">
-        <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center text-white text-xl shadow-md shadow-blue-500/20 font-black">
+  <div id="view-login" class="min-h-screen w-full flex items-center justify-center p-4 bg-gradient-to-br from-slate-900 via-slate-800 to-indigo-950">
+    <div class="w-full max-w-2xl bg-white rounded-3xl shadow-2xl p-6 sm:p-10 border border-slate-200">
+      
+      <!-- Brand Header -->
+      <div class="text-center space-y-2 mb-8">
+        <div class="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-tr from-blue-600 to-indigo-600 text-white text-2xl font-black shadow-lg shadow-blue-500/30">
           T+
         </div>
-        <div>
-          <span class="text-lg font-black tracking-tight text-slate-900 flex items-center gap-1.5">
-            TIMEPLUS
-            <span class="text-[11px] font-bold px-2 py-0.5 bg-blue-100 text-blue-700 rounded-full">Web</span>
-          </span>
-          <p class="text-[10px] text-slate-500 font-medium hidden sm:block">Agenda Conectada con Inteligencia Artificial</p>
-        </div>
-      </div>
-    </div>
-
-    <!-- AI Voice & Natural Search Bar (Center) -->
-    <div class="flex-1 max-w-xl mx-4 hidden md:block">
-      <div id="ai-search-trigger" class="flex items-center justify-between bg-slate-50 border border-slate-200 hover:border-blue-400 focus-within:border-blue-500 rounded-2xl px-4 py-2 transition-all cursor-pointer shadow-inner">
-        <div class="flex items-center gap-3 text-slate-500 text-xs w-full">
-          <span class="text-base">🔍</span>
-          <span class="truncate">¿Qué necesitas organizar? 🎙️ Escribe o habla...</span>
-        </div>
-        <button id="btn-voice-mic" class="flex items-center gap-1.5 px-3 py-1 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-xl text-xs font-semibold transition-colors flex-shrink-0" title="Hablar con TIMEPLUS IA">
-          <span>🎙️</span> Hablar
-        </button>
-      </div>
-    </div>
-
-    <!-- Right Controls -->
-    <div class="flex items-center gap-3">
-      <button id="btn-open-ai" class="hidden sm:flex items-center gap-1.5 px-3.5 py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-xs font-bold rounded-xl transition-all">
-        <span>🧠</span> Asistente IA
-      </button>
-
-      <button id="btn-new-activity-top" class="flex items-center gap-1.5 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl shadow-md shadow-blue-500/20 active:scale-95 transition-all">
-        <span>＋</span> Nueva Actividad
-      </button>
-
-      <!-- Profile Avatar -->
-      <div class="flex items-center gap-2.5 pl-2 border-l border-slate-200">
-        <div class="w-9 h-9 rounded-full bg-slate-900 text-white font-bold text-xs flex items-center justify-center">
-          RC
-        </div>
-        <div class="hidden xl:block text-left">
-          <span class="block text-xs font-bold text-slate-800">Rafael Carvajal</span>
-          <span class="block text-[10px] text-slate-400">Plan Premium</span>
-        </div>
-      </div>
-    </div>
-  </header>
-
-  <!-- ========================================================= -->
-  <!-- MAIN LAYOUT: SIDEBAR + CONTENT AREA                      -->
-  <!-- ========================================================= -->
-  <div class="flex-1 flex w-full max-w-7xl mx-auto px-4 lg:px-8 py-6 gap-6">
-
-    <!-- SIDEBAR (Navigation Desktop) -->
-    <aside id="app-sidebar" class="hidden lg:flex flex-col w-64 flex-shrink-0 space-y-6">
-      
-      <!-- User Greeting Card -->
-      <div class="bg-white rounded-3xl p-5 border border-slate-200 shadow-sm">
-        <div class="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-blue-600">
-          <span>☀️</span> Buenos días
-        </div>
-        <h2 class="text-base font-extrabold text-slate-900 mt-1">Rafael Carvajal</h2>
-        <p class="text-xs text-slate-500 mt-0.5">Viernes, 4 de septiembre</p>
-
-        <div class="grid grid-cols-2 gap-2 mt-4 pt-4 border-t border-slate-100 text-center">
-          <div class="p-2 bg-slate-50 rounded-2xl">
-            <span id="kpi-total" class="text-xl font-black text-slate-900 block font-mono">8</span>
-            <span class="text-[10px] font-bold text-slate-500 uppercase">Actividades</span>
-          </div>
-          <div class="p-2 bg-blue-50 rounded-2xl">
-            <span id="kpi-pending" class="text-xl font-black text-blue-600 block font-mono">3</span>
-            <span class="text-[10px] font-bold text-blue-600 uppercase">Pendientes</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- Navigation Menu Links -->
-      <nav class="bg-white rounded-3xl p-3 border border-slate-200 shadow-sm space-y-1">
-        <button class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-2xl font-bold text-xs transition-all text-blue-600 bg-blue-50" data-view="home">
-          <span class="text-lg">🏠</span>
-          <span class="text-sm">Inicio (Dashboard)</span>
-        </button>
-
-        <button class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-2xl font-semibold text-xs transition-all text-slate-600 hover:bg-slate-50 hover:text-slate-900" data-view="agenda">
-          <span class="text-lg">📅</span>
-          <span class="text-sm">Agenda & Línea de Tiempo</span>
-        </button>
-
-        <button class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-2xl font-semibold text-xs transition-all text-slate-600 hover:bg-slate-50 hover:text-slate-900" data-view="places">
-          <span class="text-lg">📍</span>
-          <span class="text-sm">Mis Lugares</span>
-          <span class="ml-auto text-[10px] bg-slate-100 text-slate-600 font-bold px-2 py-0.5 rounded-full">4</span>
-        </button>
-
-        <button class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-2xl font-semibold text-xs transition-all text-slate-600 hover:bg-slate-50 hover:text-slate-900" data-view="stats">
-          <span class="text-lg">📊</span>
-          <span class="text-sm">Mi Actividad (Métricas)</span>
-        </button>
-
-        <button class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-2xl font-semibold text-xs transition-all text-slate-600 hover:bg-slate-50 hover:text-slate-900" data-view="activity-detail-list">
-          <span class="text-lg">📄</span>
-          <span class="text-sm">Entregas de Trabajo</span>
-        </button>
-      </nav>
-
-      <!-- Connected Philosophy Callout -->
-      <div class="bg-gradient-to-br from-indigo-900 to-slate-900 text-white p-5 rounded-3xl shadow-sm text-xs space-y-2">
-        <div class="flex items-center gap-1.5 font-bold text-indigo-300">
-          <span>✨</span> Todo queda conectado
-        </div>
-        <p class="text-slate-300 leading-relaxed text-[11px]">
-          Una cita vincula un lugar. El lugar acumula visitas. La entrega genera checklist y recordatorios automáticos.
+        <h1 class="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">Bienvenido a TIMEPLUS</h1>
+        <p class="text-xs sm:text-sm text-slate-500 max-w-md mx-auto">
+          Plataforma integral de agenda conectada con IA. Selecciona tu perfil para ingresar:
         </p>
-        <button id="reset-demo-btn" class="w-full mt-2 py-2 bg-slate-800 hover:bg-slate-700 text-amber-300 text-[11px] font-bold rounded-xl transition-colors">
-          🔄 Reiniciar Datos Demo
-        </button>
       </div>
-    </aside>
 
-    <!-- CONTENT VIEWPORT -->
-    <main class="flex-1 flex flex-col min-w-0">
-
-      <!-- ========================================================= -->
-      <!-- VIEW 1: INICIO (DASHBOARD COMPLETO DE ESCRITORIO)         -->
-      <!-- ========================================================= -->
-      <section id="view-home" class="space-y-6">
+      <!-- 2 Roles Selection Cards -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
         
-        <!-- Welcome Banner -->
-        <div class="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+        <!-- ROL 1: QUIEN MANEJA TODO (SUPER ADMINISTRADOR) -->
+        <div class="role-card p-5 rounded-2xl border-2 border-slate-200 hover:border-indigo-600 bg-slate-50/60 hover:bg-indigo-50/40 cursor-pointer transition-all flex flex-col justify-between"
+             onclick="window.quickLogin('admin')">
           <div>
-            <div class="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-blue-600">
-              <span>☀️</span> Viernes, 4 de septiembre de 2026
+            <div class="flex items-center justify-between mb-3">
+              <span class="w-10 h-10 rounded-xl bg-indigo-100 text-indigo-700 flex items-center justify-center text-xl font-bold">
+                👑
+              </span>
+              <span class="text-[10px] font-extrabold uppercase px-2.5 py-1 bg-indigo-100 text-indigo-800 rounded-full">
+                Rol 1
+              </span>
             </div>
-            <h1 class="text-2xl lg:text-3xl font-black text-slate-900 mt-1">¡Buenos días, Rafael!</h1>
-            <p class="text-sm text-slate-500 mt-1">Tienes <span class="font-bold text-blue-600">8 actividades</span> organizadas para hoy y <span class="font-bold text-amber-600">3 pendientes</span>.</p>
+            <h3 class="text-base font-black text-slate-900">Quien maneja todo</h3>
+            <p class="text-xs font-bold text-indigo-600 mt-0.5">Super Administrador</p>
+            <p class="text-xs text-slate-500 mt-2 leading-relaxed">
+              Control global de la plataforma, métricas del sistema, licencias y gestión de clientes que adquirieron la app.
+            </p>
           </div>
-          <div class="flex items-center gap-3">
-            <button onclick="window.timeplusNavigate('agenda')" class="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold rounded-2xl transition-all">
-              🧭 Ver Línea de Tiempo
-            </button>
-            <button onclick="window.openCreateModal()" class="px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-2xl shadow-md shadow-blue-500/20 transition-all">
-              ＋ Nueva Actividad
-            </button>
+          <button class="mt-4 w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-xl shadow-sm transition-all flex items-center justify-center gap-1.5">
+            <span>Ingresar como Admin</span> <span>→</span>
+          </button>
+        </div>
+
+        <!-- ROL 2: QUIEN ADQUIERE LA APLICACIÓN (CLIENTE / USUARIO) -->
+        <div class="role-card p-5 rounded-2xl border-2 border-slate-200 hover:border-blue-600 bg-slate-50/60 hover:bg-blue-50/40 cursor-pointer transition-all flex flex-col justify-between"
+             onclick="window.quickLogin('client')">
+          <div>
+            <div class="flex items-center justify-between mb-3">
+              <span class="w-10 h-10 rounded-xl bg-blue-100 text-blue-700 flex items-center justify-center text-xl font-bold">
+                👤
+              </span>
+              <span class="text-[10px] font-extrabold uppercase px-2.5 py-1 bg-blue-100 text-blue-800 rounded-full">
+                Rol 2
+              </span>
+            </div>
+            <h3 class="text-base font-black text-slate-900">Quien adquiere la app</h3>
+            <p class="text-xs font-bold text-blue-600 mt-0.5">Cliente / Usuario (Rafael)</p>
+            <p class="text-xs text-slate-500 mt-2 leading-relaxed">
+              Tu agenda personal conectada: Lista de HOY, Mis Lugares con historial de visitas, Entregas, Estadísticas y Asistente IA.
+            </p>
+          </div>
+          <button class="mt-4 w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl shadow-sm transition-all flex items-center justify-center gap-1.5">
+            <span>Ingresar como Cliente</span> <span>→</span>
+          </button>
+        </div>
+
+      </div>
+
+      <!-- Traditional Credentials Box (Optional) -->
+      <div class="pt-4 border-t border-slate-100 text-center">
+        <p class="text-[11px] text-slate-400">
+          Haz clic directamente en cualquiera de las 2 tarjetas para acceder con 1 solo clic. Puedes cambiar de cuenta en cualquier momento dentro de la aplicación.
+        </p>
+      </div>
+
+    </div>
+  </div>
+
+
+  <!-- ========================================================= -->
+  <!-- APP MAIN SHELL (VISIBLE AFTER LOGIN)                     -->
+  <!-- ========================================================= -->
+  <div id="app-shell" class="hidden min-h-screen flex flex-col">
+
+    <!-- TOP WEB NAVIGATION BAR -->
+    <header class="sticky top-0 z-40 w-full bg-white/95 backdrop-blur border-b border-slate-200 px-4 lg:px-8 py-3 flex items-center justify-between shadow-sm">
+      <div class="flex items-center gap-3">
+        <!-- Mobile menu toggle -->
+        <button id="mobile-menu-toggle" class="lg:hidden p-2 text-slate-600 hover:bg-slate-100 rounded-xl">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+        </button>
+
+        <!-- App Logo -->
+        <div class="flex items-center gap-2.5 cursor-pointer" onclick="window.timeplusNavigate('home')">
+          <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center text-white text-xl shadow-md shadow-blue-500/20 font-black">
+            T+
+          </div>
+          <div>
+            <span class="text-lg font-black tracking-tight text-slate-900 flex items-center gap-1.5">
+              TIMEPLUS
+              <span id="header-role-badge" class="text-[10px] font-bold px-2 py-0.5 bg-blue-100 text-blue-700 rounded-full">Cliente</span>
+            </span>
+            <p id="header-role-desc" class="text-[10px] text-slate-500 font-medium hidden sm:block">Agenda Conectada con Inteligencia Artificial</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- AI Voice & Natural Search Bar (Center, shown in client workspace) -->
+      <div id="header-search-container" class="flex-1 max-w-xl mx-4 hidden md:block">
+        <div id="ai-search-trigger" class="flex items-center justify-between bg-slate-50 border border-slate-200 hover:border-blue-400 focus-within:border-blue-500 rounded-2xl px-4 py-2 transition-all cursor-pointer shadow-inner">
+          <div class="flex items-center gap-3 text-slate-500 text-xs w-full">
+            <span class="text-base">🔍</span>
+            <span class="truncate">¿Qué necesitas organizar? 🎙️ Escribe o habla...</span>
+          </div>
+          <button id="btn-voice-mic" class="flex items-center gap-1.5 px-3 py-1 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-xl text-xs font-semibold transition-colors flex-shrink-0" title="Hablar con TIMEPLUS IA">
+            <span>🎙️</span> Hablar
+          </button>
+        </div>
+      </div>
+
+      <!-- Right Controls -->
+      <div class="flex items-center gap-3">
+        
+        <!-- Button Asistente IA -->
+        <button id="btn-open-ai" class="hidden sm:flex items-center gap-1.5 px-3.5 py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-xs font-bold rounded-xl transition-all">
+          <span>🧠</span> Asistente IA
+        </button>
+
+        <!-- Button Nueva Actividad (Client mode) -->
+        <button id="btn-new-activity-top" class="flex items-center gap-1.5 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl shadow-md shadow-blue-500/20 active:scale-95 transition-all">
+          <span>＋</span> Nueva Actividad
+        </button>
+
+        <!-- Switch Role Quick Button -->
+        <button id="btn-switch-account" onclick="window.timeplusSwitchAccountModal()" class="px-2.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl transition-all flex items-center gap-1" title="Cambiar entre Quien maneja todo y Quien adquiere la app">
+          <span>⇄</span> <span class="hidden md:inline">Cambiar Rol</span>
+        </button>
+
+        <!-- Profile & Logout Dropdown -->
+        <div class="flex items-center gap-2.5 pl-2 border-l border-slate-200">
+          <div id="user-avatar-pill" class="w-9 h-9 rounded-full bg-slate-900 text-white font-bold text-xs flex items-center justify-center">
+            RC
+          </div>
+          <div class="hidden xl:block text-left">
+            <span id="user-name-display" class="block text-xs font-bold text-slate-800">Rafael Carvajal</span>
+            <span id="user-plan-display" class="block text-[10px] text-slate-400">Plan Adquirido Pro</span>
+          </div>
+          <button onclick="window.timeplusLogout()" class="text-xs text-red-500 hover:text-red-700 font-bold p-1 rounded-lg" title="Cerrar sesión">
+            ⎋
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <!-- ========================================================= -->
+    <!-- MAIN CONTAINER (SIDEBAR + CONTENT)                        -->
+    <!-- ========================================================= -->
+    <div class="flex-1 flex w-full max-w-7xl mx-auto px-4 lg:px-8 py-6 gap-6">
+
+      <!-- SIDEBAR DESKTOP -->
+      <aside id="app-sidebar" class="hidden lg:flex flex-col w-64 flex-shrink-0 space-y-6">
+        
+        <!-- User Info Card -->
+        <div class="bg-white rounded-3xl p-5 border border-slate-200 shadow-sm">
+          <div class="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-blue-600">
+            <span id="sidebar-greeting-icon">☀️</span> <span id="sidebar-role-indicator">Buenos días</span>
+          </div>
+          <h2 id="sidebar-user-name" class="text-base font-extrabold text-slate-900 mt-1">Rafael Carvajal</h2>
+          <p id="sidebar-user-plan" class="text-xs text-slate-500 mt-0.5">Viernes, 4 de septiembre</p>
+
+          <div id="sidebar-kpi-container" class="grid grid-cols-2 gap-2 mt-4 pt-4 border-t border-slate-100 text-center">
+            <div class="p-2 bg-slate-50 rounded-2xl">
+              <span id="kpi-total" class="text-xl font-black text-slate-900 block font-mono">8</span>
+              <span class="text-[10px] font-bold text-slate-500 uppercase">Actividades</span>
+            </div>
+            <div class="p-2 bg-blue-50 rounded-2xl">
+              <span id="kpi-pending" class="text-xl font-black text-blue-600 block font-mono">3</span>
+              <span class="text-[10px] font-bold text-blue-600 uppercase">Pendientes</span>
+            </div>
           </div>
         </div>
 
-        <!-- 4 KPI Metrics Row -->
-        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          <div class="bg-white p-4 rounded-3xl border border-slate-200 shadow-sm">
-            <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Actividades Hoy</span>
-            <span id="kpi-total-dash" class="text-3xl font-black text-slate-900 block font-mono mt-1">8</span>
-            <span class="text-[11px] text-emerald-600 font-semibold mt-1 block">✓ 5 completadas</span>
-          </div>
-
-          <div class="bg-white p-4 rounded-3xl border border-slate-200 shadow-sm">
-            <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Pendientes Hoy</span>
-            <span id="kpi-pending-dash" class="text-3xl font-black text-amber-500 block font-mono mt-1">3</span>
-            <span class="text-[11px] text-slate-400 font-medium mt-1 block">Próxima a las 09:30</span>
-          </div>
-
-          <div class="bg-white p-4 rounded-3xl border border-slate-200 shadow-sm cursor-pointer hover:border-blue-300 transition-all" onclick="window.timeplusNavigate('places')">
-            <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Lugares Favoritos</span>
-            <span class="text-3xl font-black text-blue-600 block font-mono mt-1">4</span>
-            <span class="text-[11px] text-blue-500 font-medium mt-1 block">157 visitas registradas →</span>
-          </div>
-
-          <div class="bg-white p-4 rounded-3xl border border-slate-200 shadow-sm cursor-pointer hover:border-blue-300 transition-all" onclick="window.timeplusNavigate('stats')">
-            <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Actividad Septiembre</span>
-            <span class="text-3xl font-black text-indigo-600 block font-mono mt-1">147</span>
-            <span class="text-[11px] text-indigo-500 font-medium mt-1 block">Ver estadísticas →</span>
-          </div>
-        </div>
-
-        <!-- 2-Column Dashboard Split -->
-        <div class="grid grid-cols-1 xl:grid-cols-12 gap-6">
+        <!-- Navigation Menu Links -->
+        <nav id="sidebar-nav-menu" class="bg-white rounded-3xl p-3 border border-slate-200 shadow-sm space-y-1">
           
-          <!-- Column 1: Hoy Actividades List (7 Cols) -->
-          <div class="xl:col-span-7 space-y-4">
-            <div class="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm space-y-4">
-              <div class="flex items-center justify-between pb-3 border-b border-slate-100">
-                <div>
-                  <h2 class="text-base font-black text-slate-900 flex items-center gap-2">
-                    <span>📅</span> HOY — Lista de Actividades
-                  </h2>
-                  <p class="text-xs text-slate-500 mt-0.5">Marca como completada o haz clic para ver su detalle.</p>
-                </div>
-                <button onclick="window.timeplusNavigate('agenda')" class="text-xs font-bold text-blue-600 hover:text-blue-700">
-                  Ver cronología completa →
-                </button>
+          <!-- Admin View Link (Shown when Admin is active) -->
+          <div id="admin-nav-group" class="space-y-1 hidden">
+            <button class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-2xl font-bold text-xs transition-all text-indigo-700 bg-indigo-50" data-view="admin-dashboard">
+              <span class="text-lg">👑</span>
+              <span class="text-sm">Panel Admin General</span>
+            </button>
+            <button class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-2xl font-semibold text-xs transition-all text-slate-600 hover:bg-slate-50" data-view="admin-clients">
+              <span class="text-lg">👥</span>
+              <span class="text-sm">Clientes / Adquirentes</span>
+              <span class="ml-auto text-[10px] bg-indigo-100 text-indigo-700 font-bold px-2 py-0.5 rounded-full">1,420</span>
+            </button>
+            <button class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-2xl font-semibold text-xs transition-all text-slate-600 hover:bg-slate-50" data-view="admin-licenses">
+              <span class="text-lg">💳</span>
+              <span class="text-sm">Licencias & Pagos</span>
+            </button>
+          </div>
+
+          <!-- Client View Links (Shown when Client is active) -->
+          <div id="client-nav-group" class="space-y-1">
+            <button class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-2xl font-bold text-xs transition-all text-blue-600 bg-blue-50" data-view="home">
+              <span class="text-lg">🏠</span>
+              <span class="text-sm">Inicio (Dashboard)</span>
+            </button>
+
+            <button class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-2xl font-semibold text-xs transition-all text-slate-600 hover:bg-slate-50 hover:text-slate-900" data-view="agenda">
+              <span class="text-lg">📅</span>
+              <span class="text-sm">Agenda & Línea de Tiempo</span>
+            </button>
+
+            <button class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-2xl font-semibold text-xs transition-all text-slate-600 hover:bg-slate-50 hover:text-slate-900" data-view="places">
+              <span class="text-lg">📍</span>
+              <span class="text-sm">Mis Lugares</span>
+              <span class="ml-auto text-[10px] bg-slate-100 text-slate-600 font-bold px-2 py-0.5 rounded-full">4</span>
+            </button>
+
+            <button class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-2xl font-semibold text-xs transition-all text-slate-600 hover:bg-slate-50 hover:text-slate-900" data-view="stats">
+              <span class="text-lg">📊</span>
+              <span class="text-sm">Mi Actividad (Métricas)</span>
+            </button>
+
+            <button class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-2xl font-semibold text-xs transition-all text-slate-600 hover:bg-slate-50 hover:text-slate-900" data-view="activity-detail-list">
+              <span class="text-lg">📄</span>
+              <span class="text-sm">Entregas de Trabajo</span>
+            </button>
+          </div>
+        </nav>
+
+        <!-- Role Switcher Card in Sidebar -->
+        <div class="bg-gradient-to-br from-slate-900 to-indigo-950 text-white p-5 rounded-3xl shadow-sm text-xs space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="font-bold text-indigo-300">Modo de Vista</span>
+            <span id="role-pill-indicator" class="text-[10px] font-bold px-2 py-0.5 bg-blue-500/30 text-blue-300 rounded-md">Cliente</span>
+          </div>
+          <p class="text-slate-300 text-[11px] leading-relaxed">
+            Puedes alternar en cualquier momento entre Quien maneja todo (Admin) y Quien adquiere la app (Cliente).
+          </p>
+          <button onclick="window.timeplusToggleRoleDirect()" class="w-full mt-2 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-[11px] font-bold rounded-xl transition-colors">
+            ⇄ Alternar Rol (Admin / Cliente)
+          </button>
+        </div>
+      </aside>
+
+      <!-- CONTENT VIEWPORT -->
+      <main class="flex-1 flex flex-col min-w-0">
+
+        <!-- ========================================================= -->
+        <!-- VIEW: ADMIN DASHBOARD (QUIEN MANEJA TODO)                 -->
+        <!-- ========================================================= -->
+        <section id="view-admin-dashboard" class="space-y-6 hidden">
+          
+          <div class="bg-gradient-to-r from-indigo-900 via-slate-900 to-blue-950 rounded-3xl p-6 lg:p-8 text-white shadow-xl flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+            <div>
+              <div class="inline-flex items-center gap-2 px-3 py-1 bg-indigo-500/30 rounded-full text-indigo-300 font-bold text-xs uppercase tracking-wider mb-2">
+                <span>👑</span> Perfil 1: Quien Maneja Todo
               </div>
+              <h1 class="text-2xl lg:text-3xl font-black">Panel de Control Maestro</h1>
+              <p class="text-sm text-slate-300 mt-1">Supervisión en tiempo real de clientes, licencias, lugares conectados y motor de IA.</p>
+            </div>
+            <button onclick="window.timeplusSwitchRole('client')" class="px-5 py-3 bg-white text-indigo-900 font-extrabold text-xs rounded-2xl shadow-lg hover:bg-slate-100 transition-all flex items-center gap-2">
+              <span>👤</span> Ver como Cliente Adquiriente →
+            </button>
+          </div>
 
-              <!-- List rendered by app.js -->
-              <div id="home-activities-list" class="space-y-2.5"></div>
+          <!-- Admin 4 Global KPIs -->
+          <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            <div class="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm">
+              <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Clientes Adquirentes</span>
+              <span class="text-3xl font-black text-indigo-600 block font-mono mt-1">1,420</span>
+              <span class="text-[11px] text-emerald-600 font-semibold mt-1 block">↑ +18% este mes</span>
+            </div>
 
-              <button onclick="window.openCreateModal()" class="w-full py-3 border-2 border-dashed border-slate-200 hover:border-blue-400 text-slate-600 hover:text-blue-600 font-bold text-xs rounded-2xl flex items-center justify-center gap-2 transition-all">
-                <span>＋</span> Agregar otra actividad a la agenda de hoy
+            <div class="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm">
+              <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Tasa de Licencias Activas</span>
+              <span class="text-3xl font-black text-emerald-600 block font-mono mt-1">98.4%</span>
+              <span class="text-[11px] text-slate-400 font-medium mt-1 block">Renovación automática</span>
+            </div>
+
+            <div class="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm">
+              <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Lugares Conectados Globales</span>
+              <span class="text-3xl font-black text-blue-600 block font-mono mt-1">8,650</span>
+              <span class="text-[11px] text-blue-500 font-medium mt-1 block">Oficinas, clínicas, sedes</span>
+            </div>
+
+            <div class="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm">
+              <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Consultas IA Procesadas Hoy</span>
+              <span class="text-3xl font-black text-purple-600 block font-mono mt-1">3,840</span>
+              <span class="text-[11px] text-purple-500 font-medium mt-1 block">Voz y lenguaje natural</span>
+            </div>
+          </div>
+
+          <!-- Clients Table: Quienes adquieren la aplicación -->
+          <div class="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm space-y-4">
+            <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+              <div>
+                <h2 class="text-base font-black text-slate-900 flex items-center gap-2">
+                  <span>👥</span> Clientes que han Adquirido la Aplicación
+                </h2>
+                <p class="text-xs text-slate-500 mt-0.5">Listado de suscriptores con licencias activas y métricas de uso.</p>
+              </div>
+              <span class="text-xs font-bold text-indigo-600 bg-indigo-50 px-3 py-1 rounded-full">
+                4 clientes destacados
+              </span>
+            </div>
+
+            <!-- Responsive Table -->
+            <div class="overflow-x-auto">
+              <table class="w-full text-left text-xs">
+                <thead>
+                  <tr class="text-slate-400 uppercase tracking-wider border-b border-slate-100 pb-2">
+                    <th class="py-3 font-bold">Cliente / Titular</th>
+                    <th class="py-3 font-bold">Plan Adquirido</th>
+                    <th class="py-3 font-bold">Estado</th>
+                    <th class="py-3 font-bold">Actividades</th>
+                    <th class="py-3 font-bold">Lugares</th>
+                    <th class="py-3 font-bold">Acción</th>
+                  </tr>
+                </thead>
+                <tbody id="admin-clients-table-body" class="divide-y divide-slate-100">
+                  <!-- Rendered dynamically -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+        </section>
+
+
+        <!-- ========================================================= -->
+        <!-- VIEW 1: CLIENT HOME (QUIEN ADQUIERE LA APLICACIÓN)        -->
+        <!-- ========================================================= -->
+        <section id="view-home" class="space-y-6">
+          
+          <!-- Welcome Banner -->
+          <div class="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+            <div>
+              <div class="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-blue-600">
+                <span>☀️</span> Viernes, 4 de septiembre de 2026
+              </div>
+              <h1 class="text-2xl lg:text-3xl font-black text-slate-900 mt-1">¡Buenos días, Rafael!</h1>
+              <p class="text-sm text-slate-500 mt-1">Tienes <span class="font-bold text-blue-600">8 actividades</span> organizadas para hoy y <span class="font-bold text-amber-600">3 pendientes</span>.</p>
+            </div>
+            <div class="flex items-center gap-3">
+              <button onclick="window.timeplusNavigate('agenda')" class="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold rounded-2xl transition-all">
+                🧭 Ver Línea de Tiempo
+              </button>
+              <button onclick="window.openCreateModal()" class="px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-2xl shadow-md shadow-blue-500/20 transition-all">
+                ＋ Nueva Actividad
               </button>
             </div>
           </div>
 
-          <!-- Column 2: Connected Places & Deliveries (5 Cols) -->
-          <div class="xl:col-span-5 space-y-6">
+          <!-- 4 KPI Metrics Row -->
+          <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            <div class="bg-white p-4 rounded-3xl border border-slate-200 shadow-sm">
+              <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Actividades Hoy</span>
+              <span id="kpi-total-dash" class="text-3xl font-black text-slate-900 block font-mono mt-1">8</span>
+              <span class="text-[11px] text-emerald-600 font-semibold mt-1 block">✓ 5 completadas</span>
+            </div>
+
+            <div class="bg-white p-4 rounded-3xl border border-slate-200 shadow-sm">
+              <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Pendientes Hoy</span>
+              <span id="kpi-pending-dash" class="text-3xl font-black text-amber-500 block font-mono mt-1">3</span>
+              <span class="text-[11px] text-slate-400 font-medium mt-1 block">Próxima a las 09:30</span>
+            </div>
+
+            <div class="bg-white p-4 rounded-3xl border border-slate-200 shadow-sm cursor-pointer hover:border-blue-300 transition-all" onclick="window.timeplusNavigate('places')">
+              <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Lugares Favoritos</span>
+              <span class="text-3xl font-black text-blue-600 block font-mono mt-1">4</span>
+              <span class="text-[11px] text-blue-500 font-medium mt-1 block">157 visitas registradas →</span>
+            </div>
+
+            <div class="bg-white p-4 rounded-3xl border border-slate-200 shadow-sm cursor-pointer hover:border-blue-300 transition-all" onclick="window.timeplusNavigate('stats')">
+              <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Actividad Septiembre</span>
+              <span class="text-3xl font-black text-indigo-600 block font-mono mt-1">147</span>
+              <span class="text-[11px] text-indigo-500 font-medium mt-1 block">Ver estadísticas →</span>
+            </div>
+          </div>
+
+          <!-- 2-Column Dashboard Split -->
+          <div class="grid grid-cols-1 xl:grid-cols-12 gap-6">
             
-            <!-- Quick Places Card -->
-            <div class="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm space-y-4">
-              <div class="flex items-center justify-between">
-                <h3 class="text-sm font-black text-slate-900 flex items-center gap-2">
-                  <span>📍</span> Mis Lugares Frecuentes
-                </h3>
-                <button onclick="window.timeplusNavigate('places')" class="text-xs font-bold text-blue-600 hover:underline">
-                  Ver todos →
+            <!-- Column 1: Hoy Actividades List (7 Cols) -->
+            <div class="xl:col-span-7 space-y-4">
+              <div class="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm space-y-4">
+                <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+                  <div>
+                    <h2 class="text-base font-black text-slate-900 flex items-center gap-2">
+                      <span>📅</span> HOY — Lista de Actividades
+                    </h2>
+                    <p class="text-xs text-slate-500 mt-0.5">Marca como completada o haz clic para ver su detalle.</p>
+                  </div>
+                  <button onclick="window.timeplusNavigate('agenda')" class="text-xs font-bold text-blue-600 hover:text-blue-700">
+                    Ver cronología completa →
+                  </button>
+                </div>
+
+                <!-- List rendered by app.js -->
+                <div id="home-activities-list" class="space-y-2.5"></div>
+
+                <button onclick="window.openCreateModal()" class="w-full py-3 border-2 border-dashed border-slate-200 hover:border-blue-400 text-slate-600 hover:text-blue-600 font-bold text-xs rounded-2xl flex items-center justify-center gap-2 transition-all">
+                  <span>＋</span> Agregar otra actividad a la agenda de hoy
                 </button>
               </div>
-
-              <div class="grid grid-cols-2 gap-3">
-                <div class="p-3.5 rounded-2xl bg-slate-50 hover:bg-blue-50/60 border border-slate-100 hover:border-blue-200 cursor-pointer transition-all" onclick="window.timeplusNavigate('place-detail', 'place-oficina')">
-                  <div class="flex items-center justify-between">
-                    <span class="text-2xl">🏢</span>
-                    <span class="text-[10px] font-bold text-blue-600 bg-blue-100 px-2 py-0.5 rounded-full">43 visitas</span>
-                  </div>
-                  <h4 class="font-bold text-xs text-slate-800 mt-2">Oficina</h4>
-                  <p class="text-[11px] text-slate-400 mt-0.5">31 reuniones · 5 entregas</p>
-                </div>
-
-                <div class="p-3.5 rounded-2xl bg-slate-50 hover:bg-blue-50/60 border border-slate-100 hover:border-blue-200 cursor-pointer transition-all" onclick="window.timeplusNavigate('place-detail', 'place-clinica')">
-                  <div class="flex items-center justify-between">
-                    <span class="text-2xl">🏥</span>
-                    <span class="text-[10px] font-bold text-blue-600 bg-blue-100 px-2 py-0.5 rounded-full">18 visitas</span>
-                  </div>
-                  <h4 class="font-bold text-xs text-slate-800 mt-2">Clínica</h4>
-                  <p class="text-[11px] text-slate-400 mt-0.5">12 citas · 4 reuniones</p>
-                </div>
-
-                <div class="p-3.5 rounded-2xl bg-slate-50 hover:bg-blue-50/60 border border-slate-100 hover:border-blue-200 cursor-pointer transition-all" onclick="window.timeplusNavigate('place-detail', 'place-universidad')">
-                  <div class="flex items-center justify-between">
-                    <span class="text-2xl">🎓</span>
-                    <span class="text-[10px] font-bold text-blue-600 bg-blue-100 px-2 py-0.5 rounded-full">86 visitas</span>
-                  </div>
-                  <h4 class="font-bold text-xs text-slate-800 mt-2">Universidad</h4>
-                  <p class="text-[11px] text-slate-400 mt-0.5">72 clases · 8 exámenes</p>
-                </div>
-
-                <div class="p-3.5 rounded-2xl bg-slate-50 hover:bg-blue-50/60 border border-slate-100 hover:border-blue-200 cursor-pointer transition-all" onclick="window.timeplusNavigate('place-detail', 'place-restaurante')">
-                  <div class="flex items-center justify-between">
-                    <span class="text-2xl">🍽️</span>
-                    <span class="text-[10px] font-bold text-blue-600 bg-blue-100 px-2 py-0.5 rounded-full">12 visitas</span>
-                  </div>
-                  <h4 class="font-bold text-xs text-slate-800 mt-2">Restaurante</h4>
-                  <p class="text-[11px] text-slate-400 mt-0.5">8 salidas · 4 reuniones</p>
-                </div>
-              </div>
             </div>
 
-            <!-- Urgent Delivery / Job Tracking Card -->
-            <div class="bg-gradient-to-br from-amber-500/10 to-orange-500/10 border border-amber-200 rounded-3xl p-6 shadow-sm space-y-3 cursor-pointer hover:border-amber-400 transition-all" onclick="window.timeplusNavigate('activity-detail', 'act-5')">
-              <div class="flex items-center justify-between">
-                <span class="text-xs font-black text-amber-800 uppercase tracking-wider flex items-center gap-1.5">
-                  <span>📄</span> ENTREGA DE TRABAJO DESTACADA
-                </span>
-                <span class="text-[11px] font-bold px-2.5 py-0.5 bg-amber-200 text-amber-900 rounded-full">En proceso</span>
-              </div>
-              <h3 class="text-base font-extrabold text-slate-900">Informe de auditoría</h3>
-              <div class="text-xs text-slate-600 space-y-1">
-                <p>📅 10 septiembre · ⏰ 5:00 p. m. · 📍 Oficina Central</p>
-                <p>👤 Responsable: Yo · 🔔 3 recordatorios activos</p>
-              </div>
-              <div class="pt-2">
-                <div class="flex justify-between text-xs font-bold text-slate-700 mb-1">
-                  <span>Progreso del Checklist</span>
-                  <span>2 de 4 (50%)</span>
+            <!-- Column 2: Connected Places & Deliveries (5 Cols) -->
+            <div class="xl:col-span-5 space-y-6">
+              
+              <!-- Quick Places Card -->
+              <div class="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm space-y-4">
+                <div class="flex items-center justify-between">
+                  <h3 class="text-sm font-black text-slate-900 flex items-center gap-2">
+                    <span>📍</span> Mis Lugares Frecuentes
+                  </h3>
+                  <button onclick="window.timeplusNavigate('places')" class="text-xs font-bold text-blue-600 hover:underline">
+                    Ver todos →
+                  </button>
                 </div>
-                <div class="w-full bg-slate-200 rounded-full h-2 overflow-hidden">
-                  <div class="bg-amber-500 h-2 rounded-full w-1/2"></div>
+
+                <div class="grid grid-cols-2 gap-3">
+                  <div class="p-3.5 rounded-2xl bg-slate-50 hover:bg-blue-50/60 border border-slate-100 hover:border-blue-200 cursor-pointer transition-all" onclick="window.timeplusNavigate('place-detail', 'place-oficina')">
+                    <div class="flex items-center justify-between">
+                      <span class="text-2xl">🏢</span>
+                      <span class="text-[10px] font-bold text-blue-600 bg-blue-100 px-2 py-0.5 rounded-full">43 visitas</span>
+                    </div>
+                    <h4 class="font-bold text-xs text-slate-800 mt-2">Oficina</h4>
+                    <p class="text-[11px] text-slate-400 mt-0.5">31 reuniones · 5 entregas</p>
+                  </div>
+
+                  <div class="p-3.5 rounded-2xl bg-slate-50 hover:bg-blue-50/60 border border-slate-100 hover:border-blue-200 cursor-pointer transition-all" onclick="window.timeplusNavigate('place-detail', 'place-clinica')">
+                    <div class="flex items-center justify-between">
+                      <span class="text-2xl">🏥</span>
+                      <span class="text-[10px] font-bold text-blue-600 bg-blue-100 px-2 py-0.5 rounded-full">18 visitas</span>
+                    </div>
+                    <h4 class="font-bold text-xs text-slate-800 mt-2">Clínica</h4>
+                    <p class="text-[11px] text-slate-400 mt-0.5">12 citas · 4 reuniones</p>
+                  </div>
+
+                  <div class="p-3.5 rounded-2xl bg-slate-50 hover:bg-blue-50/60 border border-slate-100 hover:border-blue-200 cursor-pointer transition-all" onclick="window.timeplusNavigate('place-detail', 'place-universidad')">
+                    <div class="flex items-center justify-between">
+                      <span class="text-2xl">🎓</span>
+                      <span class="text-[10px] font-bold text-blue-600 bg-blue-100 px-2 py-0.5 rounded-full">86 visitas</span>
+                    </div>
+                    <h4 class="font-bold text-xs text-slate-800 mt-2">Universidad</h4>
+                    <p class="text-[11px] text-slate-400 mt-0.5">72 clases · 8 exámenes</p>
+                  </div>
+
+                  <div class="p-3.5 rounded-2xl bg-slate-50 hover:bg-blue-50/60 border border-slate-100 hover:border-blue-200 cursor-pointer transition-all" onclick="window.timeplusNavigate('place-detail', 'place-restaurante')">
+                    <div class="flex items-center justify-between">
+                      <span class="text-2xl">🍽️</span>
+                      <span class="text-[10px] font-bold text-blue-600 bg-blue-100 px-2 py-0.5 rounded-full">12 visitas</span>
+                    </div>
+                    <h4 class="font-bold text-xs text-slate-800 mt-2">Restaurante</h4>
+                    <p class="text-[11px] text-slate-400 mt-0.5">8 salidas · 4 reuniones</p>
+                  </div>
                 </div>
               </div>
+
+              <!-- Urgent Delivery Tracking Card -->
+              <div class="bg-gradient-to-br from-amber-500/10 to-orange-500/10 border border-amber-200 rounded-3xl p-6 shadow-sm space-y-3 cursor-pointer hover:border-amber-400 transition-all" onclick="window.timeplusNavigate('activity-detail', 'act-5')">
+                <div class="flex items-center justify-between">
+                  <span class="text-xs font-black text-amber-800 uppercase tracking-wider flex items-center gap-1.5">
+                    <span>📄</span> ENTREGA DE TRABAJO DESTACADA
+                  </span>
+                  <span class="text-[11px] font-bold px-2.5 py-0.5 bg-amber-200 text-amber-900 rounded-full">En proceso</span>
+                </div>
+                <h3 class="text-base font-extrabold text-slate-900">Informe de auditoría</h3>
+                <div class="text-xs text-slate-600 space-y-1">
+                  <p>📅 10 septiembre · ⏰ 5:00 p. m. · 📍 Oficina Central</p>
+                  <p>👤 Responsable: Yo · 🔔 3 recordatorios activos</p>
+                </div>
+                <div class="pt-2">
+                  <div class="flex justify-between text-xs font-bold text-slate-700 mb-1">
+                    <span>Progreso del Checklist</span>
+                    <span>2 de 4 (50%)</span>
+                  </div>
+                  <div class="w-full bg-slate-200 rounded-full h-2 overflow-hidden">
+                    <div class="bg-amber-500 h-2 rounded-full w-1/2"></div>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+        </section>
+
+        <!-- ========================================================= -->
+        <!-- VIEW 2: AGENDA (CLÁSICA + LÍNEA DE TIEMPO)               -->
+        <!-- ========================================================= -->
+        <section id="view-agenda" class="space-y-6 hidden">
+          <div class="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div>
+              <h2 class="text-2xl font-black text-slate-900 flex items-center gap-2">
+                <span>🗓️</span> Agenda & Planificación
+              </h2>
+              <p class="text-xs text-slate-500 mt-1">Explora tu tiempo en formato clásico o con la innovadora línea de tiempo continua.</p>
             </div>
 
+            <!-- Tabs: DÍA | SEMANA | MES | AÑO | 🧭 LÍNEA DE TIEMPO -->
+            <div class="flex items-center gap-1.5 p-1 bg-slate-100 rounded-2xl">
+              <button class="agenda-tab-btn px-4 py-2 rounded-xl text-xs font-bold bg-blue-600 text-white transition-all" data-tab="timeline">
+                🧭 Línea de tiempo
+              </button>
+              <button class="agenda-tab-btn px-3 py-2 rounded-xl text-xs font-medium text-slate-600 hover:text-slate-900 transition-all" data-tab="dia">
+                Día
+              </button>
+              <button class="agenda-tab-btn px-3 py-2 rounded-xl text-xs font-medium text-slate-600 hover:text-slate-900 transition-all" data-tab="semana">
+                Semana
+              </button>
+              <button class="agenda-tab-btn px-3 py-2 rounded-xl text-xs font-medium text-slate-600 hover:text-slate-900 transition-all" data-tab="mes">
+                Mes
+              </button>
+              <button class="agenda-tab-btn px-3 py-2 rounded-xl text-xs font-medium text-slate-600 hover:text-slate-900 transition-all" data-tab="año">
+                Año
+              </button>
+            </div>
           </div>
-        </div>
 
-      </section>
+          <div id="agenda-content" class="space-y-4">
+            <!-- Rendered by app.js -->
+          </div>
+        </section>
 
-      <!-- ========================================================= -->
-      <!-- VIEW 2: AGENDA (CLÁSICA + LÍNEA DE TIEMPO)               -->
-      <!-- ========================================================= -->
-      <section id="view-agenda" class="space-y-6 hidden">
-        <div class="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-          <div>
-            <h2 class="text-2xl font-black text-slate-900 flex items-center gap-2">
-              <span>🗓️</span> Agenda & Planificación
-            </h2>
-            <p class="text-xs text-slate-500 mt-1">Explora tu tiempo en formato clásico o con la innovadora línea de tiempo continua.</p>
+        <!-- ========================================================= -->
+        <!-- VIEW 3: MIS LUGARES (EL MÓDULO DIFERENCIAL)              -->
+        <!-- ========================================================= -->
+        <section id="view-places" class="space-y-6 hidden">
+          <div class="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div>
+              <h2 class="text-2xl font-black text-slate-900 flex items-center gap-2">
+                <span>📍</span> MIS LUGARES
+              </h2>
+              <p class="text-xs text-slate-500 mt-1">Cada lugar acumula visitas, citas, reuniones e historial de actividad.</p>
+            </div>
+            <div class="w-full sm:w-72">
+              <input type="text" placeholder="🔍 Buscar lugar..." class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-2 text-xs focus:outline-none focus:border-blue-500">
+            </div>
           </div>
 
-          <!-- Tabs: DÍA | SEMANA | MES | AÑO | 🧭 LÍNEA DE TIEMPO -->
-          <div class="flex items-center gap-1.5 p-1 bg-slate-100 rounded-2xl">
-            <button class="agenda-tab-btn px-4 py-2 rounded-xl text-xs font-bold bg-blue-600 text-white transition-all" data-tab="timeline">
-              🧭 Línea de tiempo
-            </button>
-            <button class="agenda-tab-btn px-3 py-2 rounded-xl text-xs font-medium text-slate-600 hover:text-slate-900 transition-all" data-tab="dia">
-              Día
-            </button>
-            <button class="agenda-tab-btn px-3 py-2 rounded-xl text-xs font-medium text-slate-600 hover:text-slate-900 transition-all" data-tab="semana">
-              Semana
-            </button>
-            <button class="agenda-tab-btn px-3 py-2 rounded-xl text-xs font-medium text-slate-600 hover:text-slate-900 transition-all" data-tab="mes">
-              Mes
-            </button>
-            <button class="agenda-tab-btn px-3 py-2 rounded-xl text-xs font-medium text-slate-600 hover:text-slate-900 transition-all" data-tab="año">
-              Año
-            </button>
+          <div class="flex items-center gap-2 text-xs font-bold text-slate-600 uppercase tracking-wider">
+            <span>⭐</span> Lugares Favoritos y Registrados
           </div>
-        </div>
 
-        <div id="agenda-content" class="space-y-4">
-          <!-- Rendered by app.js -->
-        </div>
-      </section>
-
-      <!-- ========================================================= -->
-      <!-- VIEW 3: MIS LUGARES (EL MÓDULO DIFERENCIAL)              -->
-      <!-- ========================================================= -->
-      <section id="view-places" class="space-y-6 hidden">
-        <div class="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-          <div>
-            <h2 class="text-2xl font-black text-slate-900 flex items-center gap-2">
-              <span>📍</span> MIS LUGARES
-            </h2>
-            <p class="text-xs text-slate-500 mt-1">Cada lugar acumula visitas, citas, reuniones e historial de actividad.</p>
+          <div id="places-list" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <!-- Rendered by app.js -->
           </div>
-          <div class="w-full sm:w-72">
-            <input type="text" placeholder="🔍 Buscar lugar..." class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-2 text-xs focus:outline-none focus:border-blue-500">
+        </section>
+
+        <!-- ========================================================= -->
+        <!-- VIEW 3.1: DETALLE DE LUGAR                                -->
+        <!-- ========================================================= -->
+        <section id="view-place-detail" class="space-y-6 hidden">
+          <button onclick="window.timeplusNavigate('places')" class="inline-flex items-center gap-2 text-xs font-bold text-blue-600 hover:text-blue-800 transition-colors">
+            <span>←</span> Volver a la lista de Lugares
+          </button>
+          <div id="place-detail-content">
+            <!-- Rendered by app.js -->
           </div>
-        </div>
+        </section>
 
-        <div class="flex items-center gap-2 text-xs font-bold text-slate-600 uppercase tracking-wider">
-          <span>⭐</span> Lugares Favoritos y Registrados
-        </div>
+        <!-- ========================================================= -->
+        <!-- VIEW 4: MI ACTIVIDAD (ESTADÍSTICAS & ANALÍTICA)          -->
+        <!-- ========================================================= -->
+        <section id="view-stats" class="space-y-6 hidden">
+          <div id="stats-content">
+            <!-- Rendered by app.js -->
+          </div>
+        </section>
 
-        <div id="places-list" class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <!-- Rendered by app.js -->
-        </div>
-      </section>
+        <!-- ========================================================= -->
+        <!-- VIEW 5: DETALLE DE ACTIVIDAD / ENTREGA DE TRABAJO         -->
+        <!-- ========================================================= -->
+        <section id="view-activity-detail" class="space-y-6 hidden">
+          <button onclick="window.timeplusNavigate('home')" class="inline-flex items-center gap-2 text-xs font-bold text-blue-600 hover:text-blue-800 transition-colors">
+            <span>←</span> Volver al Dashboard
+          </button>
+          <div id="activity-detail-content">
+            <!-- Rendered by app.js -->
+          </div>
+        </section>
 
-      <!-- ========================================================= -->
-      <!-- VIEW 3.1: DETALLE DE LUGAR                                -->
-      <!-- ========================================================= -->
-      <section id="view-place-detail" class="space-y-6 hidden">
-        <button onclick="window.timeplusNavigate('places')" class="inline-flex items-center gap-2 text-xs font-bold text-blue-600 hover:text-blue-800 transition-colors">
-          <span>←</span> Volver a la lista de Lugares
-        </button>
-        <div id="place-detail-content">
-          <!-- Rendered by app.js -->
-        </div>
-      </section>
+      </main>
+    </div>
 
-      <!-- ========================================================= -->
-      <!-- VIEW 4: MI ACTIVIDAD (ESTADÍSTICAS & ANALÍTICA)          -->
-      <!-- ========================================================= -->
-      <section id="view-stats" class="space-y-6 hidden">
-        <div id="stats-content">
-          <!-- Rendered by app.js -->
-        </div>
-      </section>
-
-      <!-- ========================================================= -->
-      <!-- VIEW 5: DETALLE DE ACTIVIDAD / ENTREGA DE TRABAJO         -->
-      <!-- ========================================================= -->
-      <section id="view-activity-detail" class="space-y-6 hidden">
-        <button onclick="window.timeplusNavigate('home')" class="inline-flex items-center gap-2 text-xs font-bold text-blue-600 hover:text-blue-800 transition-colors">
-          <span>←</span> Volver al Dashboard
-        </button>
-        <div id="activity-detail-content">
-          <!-- Rendered by app.js -->
-        </div>
-      </section>
-
-    </main>
   </div>
 
 
@@ -568,7 +767,7 @@
   </div>
 
   <!-- ========================================================= -->
-  <!-- MODAL 3: ASISTENTE DE VOZ & IA (MODAL FLOTANTE MODERNO)   -->
+  <!-- MODAL 3: ASISTENTE DE VOZ & IA                           -->
   <!-- ========================================================= -->
   <div id="modal-ai" class="fixed inset-0 bg-slate-950/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
     <div class="w-full max-w-xl bg-slate-900 text-white rounded-3xl max-h-[85vh] flex flex-col overflow-hidden shadow-2xl border border-slate-800">
@@ -588,7 +787,7 @@
       <!-- Chat Transcript Area -->
       <div id="ai-chat-transcript" class="flex-1 p-5 overflow-y-auto custom-scroll space-y-3 min-h-[260px]">
         <div class="bg-slate-800/80 p-4 rounded-2xl text-xs text-slate-300 border border-slate-700 leading-relaxed">
-          <p class="font-bold text-blue-400 mb-1">¡Hola, Rafael! Soy el motor de IA de TIMEPLUS.</p>
+          <p class="font-bold text-blue-400 mb-1">¡Hola! Soy el motor de IA de TIMEPLUS.</p>
           <p>Puedes hablarme o escribir órdenes complejas. Conecto lugares, creo múltiples actividades encadenadas y respondo sobre tu historial.</p>
         </div>
       </div>
