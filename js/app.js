@@ -12,6 +12,7 @@ document.addEventListener('DOMContentLoaded', () => {
   let selectedActivityId = null;
 
   // DOM Containers
+  const viewLanding = document.getElementById('view-landing');
   const viewLogin = document.getElementById('view-login');
   const appShell = document.getElementById('app-shell');
   const viewHome = document.getElementById('view-home');
@@ -158,14 +159,16 @@ document.addEventListener('DOMContentLoaded', () => {
   function renderCurrentView() {
     const currentUser = store.getCurrentUser();
 
-    // If no user is logged in, show Login Screen first!
+    // If no user is logged in, show Landing Page and keep Shell hidden
     if (!currentUser) {
-      if (viewLogin) viewLogin.classList.remove('hidden');
+      if (viewLanding) viewLanding.classList.remove('hidden');
+      if (viewLogin) viewLogin.classList.add('hidden'); // Modal is closed by default
       if (appShell) appShell.classList.add('hidden');
       return;
     }
 
-    // User is logged in: show app shell
+    // User is logged in: show app shell, hide landing and login modal
+    if (viewLanding) viewLanding.classList.add('hidden');
     if (viewLogin) viewLogin.classList.add('hidden');
     if (appShell) appShell.classList.remove('hidden');
     updateAuthHeaderUI(currentUser);
@@ -900,6 +903,15 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     });
 
+    // Escape key listener to close login modal
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        if (viewLogin && !viewLogin.classList.contains('hidden') && !store.getCurrentUser()) {
+          window.timeplusCloseLoginModal();
+        }
+      }
+    });
+
     // Agenda Subview Tabs (Día, Semana, Mes, Año, 🧭 Línea de tiempo)
     document.querySelectorAll('.agenda-tab-btn').forEach(btn => {
       btn.addEventListener('click', () => {
@@ -1174,8 +1186,22 @@ document.addEventListener('DOMContentLoaded', () => {
     currentView = 'home';
     renderCurrentView();
   };
-  window.timeplusSwitchAccountModal = () => {
-    window.timeplusToggleRoleDirect();
+  // --- Modal de Inicio de Sesión (Landing Page -> Modal Login) ---
+  window.timeplusOpenLoginModal = (tab = 'auto') => {
+    if (viewLogin) {
+      viewLogin.classList.remove('hidden');
+    }
+    if (tab === 'admin') {
+      window.timeplusSwitchLoginTab('admin');
+    } else if (tab === 'client') {
+      window.timeplusSwitchLoginTab('client');
+    }
+  };
+
+  window.timeplusCloseLoginModal = () => {
+    if (viewLogin) {
+      viewLogin.classList.add('hidden');
+    }
   };
 
   // --- Multi-Role Switcher & Login Tab Handlers ---
