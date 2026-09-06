@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>TIMEPLUS — La Agenda Conectada Definitiva</title>
+  <title>TIMEPLUS — Plataforma Web de Agenda Conectada con IA</title>
   <meta name="description" content="Agenda + calendario + recordatorios + tareas + reuniones + citas + clases + eventos + lugares + historial + estadísticas + IA. Todo queda conectado.">
   
   <!-- Tailwind CSS CDN -->
@@ -12,206 +12,392 @@
   <!-- Custom Styles -->
   <link rel="stylesheet" href="css/styles.css">
 </head>
-<body class="bg-slate-950 flex flex-col items-center justify-center min-h-screen p-0 sm:p-4 selection:bg-blue-500 selection:text-white">
+<body class="bg-slate-100 text-slate-900 min-h-screen flex flex-col antialiased selection:bg-blue-600 selection:text-white">
 
-  <!-- Desktop Top Bar Control (Simulator Utilities) -->
-  <header class="w-full max-w-lg mb-3 flex items-center justify-between px-4 py-2 bg-slate-900/80 backdrop-blur border border-slate-800 rounded-2xl text-xs text-slate-300">
-    <div class="flex items-center gap-2">
-      <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
-      <span class="font-bold text-white tracking-wide">TIMEPLUS</span>
-      <span class="text-[11px] bg-blue-500/20 text-blue-400 px-2 py-0.5 rounded-md font-mono">v1.0-connected</span>
-    </div>
-    <div class="flex items-center gap-2">
-      <button id="toggle-device-btn" class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-white rounded-lg transition-colors flex items-center gap-1">
-        🖥️ Pantalla Completa
+  <!-- ========================================================= -->
+  <!-- TOP WEB NAVIGATION BAR                                    -->
+  <!-- ========================================================= -->
+  <header class="sticky top-0 z-40 w-full bg-white/95 backdrop-blur border-b border-slate-200 px-4 lg:px-8 py-3 flex items-center justify-between shadow-sm">
+    <div class="flex items-center gap-3">
+      <!-- Mobile menu button -->
+      <button id="mobile-menu-toggle" class="lg:hidden p-2 text-slate-600 hover:bg-slate-100 rounded-xl">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
       </button>
-      <button id="reset-demo-btn" class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-amber-300 rounded-lg transition-colors flex items-center gap-1" title="Restablecer datos originales">
-        🔄 Reiniciar
-      </button>
-    </div>
-  </header>
 
-  <!-- Smartphone Mockup Wrapper -->
-  <div class="phone-mockup">
-    
-    <!-- iPhone Dynamic Island -->
-    <div class="dynamic-island">
-      <div class="sensor"></div>
-      <div class="camera"></div>
-    </div>
-
-    <!-- Status Bar -->
-    <div class="absolute top-0 left-0 right-0 h-10 px-6 flex items-center justify-between text-xs font-semibold text-slate-900 z-50 pointer-events-none select-none">
-      <span id="status-bar-time" class="font-mono text-xs">08:00</span>
-      <div class="flex items-center gap-1.5 text-[11px]">
-        <span>5G</span>
-        <span>📶</span>
-        <span>🔋 94%</span>
+      <!-- App Logo -->
+      <div class="flex items-center gap-2.5 cursor-pointer" onclick="window.timeplusNavigate('home')">
+        <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center text-white text-xl shadow-md shadow-blue-500/20 font-black">
+          T+
+        </div>
+        <div>
+          <span class="text-lg font-black tracking-tight text-slate-900 flex items-center gap-1.5">
+            TIMEPLUS
+            <span class="text-[11px] font-bold px-2 py-0.5 bg-blue-100 text-blue-700 rounded-full">Web</span>
+          </span>
+          <p class="text-[10px] text-slate-500 font-medium hidden sm:block">Agenda Conectada con Inteligencia Artificial</p>
+        </div>
       </div>
     </div>
 
-    <!-- App Viewport (Scrollable Content Container) -->
-    <main class="app-viewport custom-scroll overflow-y-auto">
+    <!-- AI Voice & Natural Search Bar (Center) -->
+    <div class="flex-1 max-w-xl mx-4 hidden md:block">
+      <div id="ai-search-trigger" class="flex items-center justify-between bg-slate-50 border border-slate-200 hover:border-blue-400 focus-within:border-blue-500 rounded-2xl px-4 py-2 transition-all cursor-pointer shadow-inner">
+        <div class="flex items-center gap-3 text-slate-500 text-xs w-full">
+          <span class="text-base">🔍</span>
+          <span class="truncate">¿Qué necesitas organizar? 🎙️ Escribe o habla...</span>
+        </div>
+        <button id="btn-voice-mic" class="flex items-center gap-1.5 px-3 py-1 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-xl text-xs font-semibold transition-colors flex-shrink-0" title="Hablar con TIMEPLUS IA">
+          <span>🎙️</span> Hablar
+        </button>
+      </div>
+    </div>
+
+    <!-- Right Controls -->
+    <div class="flex items-center gap-3">
+      <button id="btn-open-ai" class="hidden sm:flex items-center gap-1.5 px-3.5 py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-xs font-bold rounded-xl transition-all">
+        <span>🧠</span> Asistente IA
+      </button>
+
+      <button id="btn-new-activity-top" class="flex items-center gap-1.5 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl shadow-md shadow-blue-500/20 active:scale-95 transition-all">
+        <span>＋</span> Nueva Actividad
+      </button>
+
+      <!-- Profile Avatar -->
+      <div class="flex items-center gap-2.5 pl-2 border-l border-slate-200">
+        <div class="w-9 h-9 rounded-full bg-slate-900 text-white font-bold text-xs flex items-center justify-center">
+          RC
+        </div>
+        <div class="hidden xl:block text-left">
+          <span class="block text-xs font-bold text-slate-800">Rafael Carvajal</span>
+          <span class="block text-[10px] text-slate-400">Plan Premium</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ========================================================= -->
+  <!-- MAIN LAYOUT: SIDEBAR + CONTENT AREA                      -->
+  <!-- ========================================================= -->
+  <div class="flex-1 flex w-full max-w-7xl mx-auto px-4 lg:px-8 py-6 gap-6">
+
+    <!-- SIDEBAR (Navigation Desktop) -->
+    <aside id="app-sidebar" class="hidden lg:flex flex-col w-64 flex-shrink-0 space-y-6">
+      
+      <!-- User Greeting Card -->
+      <div class="bg-white rounded-3xl p-5 border border-slate-200 shadow-sm">
+        <div class="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-blue-600">
+          <span>☀️</span> Buenos días
+        </div>
+        <h2 class="text-base font-extrabold text-slate-900 mt-1">Rafael Carvajal</h2>
+        <p class="text-xs text-slate-500 mt-0.5">Viernes, 4 de septiembre</p>
+
+        <div class="grid grid-cols-2 gap-2 mt-4 pt-4 border-t border-slate-100 text-center">
+          <div class="p-2 bg-slate-50 rounded-2xl">
+            <span id="kpi-total" class="text-xl font-black text-slate-900 block font-mono">8</span>
+            <span class="text-[10px] font-bold text-slate-500 uppercase">Actividades</span>
+          </div>
+          <div class="p-2 bg-blue-50 rounded-2xl">
+            <span id="kpi-pending" class="text-xl font-black text-blue-600 block font-mono">3</span>
+            <span class="text-[10px] font-bold text-blue-600 uppercase">Pendientes</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Navigation Menu Links -->
+      <nav class="bg-white rounded-3xl p-3 border border-slate-200 shadow-sm space-y-1">
+        <button class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-2xl font-bold text-xs transition-all text-blue-600 bg-blue-50" data-view="home">
+          <span class="text-lg">🏠</span>
+          <span class="text-sm">Inicio (Dashboard)</span>
+        </button>
+
+        <button class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-2xl font-semibold text-xs transition-all text-slate-600 hover:bg-slate-50 hover:text-slate-900" data-view="agenda">
+          <span class="text-lg">📅</span>
+          <span class="text-sm">Agenda & Línea de Tiempo</span>
+        </button>
+
+        <button class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-2xl font-semibold text-xs transition-all text-slate-600 hover:bg-slate-50 hover:text-slate-900" data-view="places">
+          <span class="text-lg">📍</span>
+          <span class="text-sm">Mis Lugares</span>
+          <span class="ml-auto text-[10px] bg-slate-100 text-slate-600 font-bold px-2 py-0.5 rounded-full">4</span>
+        </button>
+
+        <button class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-2xl font-semibold text-xs transition-all text-slate-600 hover:bg-slate-50 hover:text-slate-900" data-view="stats">
+          <span class="text-lg">📊</span>
+          <span class="text-sm">Mi Actividad (Métricas)</span>
+        </button>
+
+        <button class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-2xl font-semibold text-xs transition-all text-slate-600 hover:bg-slate-50 hover:text-slate-900" data-view="activity-detail-list">
+          <span class="text-lg">📄</span>
+          <span class="text-sm">Entregas de Trabajo</span>
+        </button>
+      </nav>
+
+      <!-- Connected Philosophy Callout -->
+      <div class="bg-gradient-to-br from-indigo-900 to-slate-900 text-white p-5 rounded-3xl shadow-sm text-xs space-y-2">
+        <div class="flex items-center gap-1.5 font-bold text-indigo-300">
+          <span>✨</span> Todo queda conectado
+        </div>
+        <p class="text-slate-300 leading-relaxed text-[11px]">
+          Una cita vincula un lugar. El lugar acumula visitas. La entrega genera checklist y recordatorios automáticos.
+        </p>
+        <button id="reset-demo-btn" class="w-full mt-2 py-2 bg-slate-800 hover:bg-slate-700 text-amber-300 text-[11px] font-bold rounded-xl transition-colors">
+          🔄 Reiniciar Datos Demo
+        </button>
+      </div>
+    </aside>
+
+    <!-- CONTENT VIEWPORT -->
+    <main class="flex-1 flex flex-col min-w-0">
 
       <!-- ========================================================= -->
-      <!-- VIEW 1: INICIO / PANTALLA PRINCIPAL                       -->
+      <!-- VIEW 1: INICIO (DASHBOARD COMPLETO DE ESCRITORIO)         -->
       <!-- ========================================================= -->
-      <section id="view-home" class="p-5 pb-24 space-y-4">
+      <section id="view-home" class="space-y-6">
         
-        <!-- Header: Saludo y Fecha -->
-        <div class="space-y-0.5">
-          <h1 class="text-xl font-bold text-slate-900 flex items-center gap-1.5">
-            <span>☀️</span> Buenos días
-          </h1>
-          <p class="text-xs font-semibold text-slate-500">Viernes, 4 de septiembre</p>
-        </div>
-
-        <!-- AI Assistant / Natural Search Input Bar -->
-        <div class="space-y-1.5">
-          <label class="text-[11px] font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1">
-            <span>🔍</span> ¿Qué necesitas organizar?
-          </label>
-          <div id="ai-search-trigger" class="flex items-center justify-between bg-white border border-slate-200 hover:border-blue-400 p-3 rounded-2xl shadow-sm cursor-pointer transition-all">
-            <div class="flex items-center gap-2.5 text-slate-400 text-xs">
-              <span class="text-base">🎙️</span>
-              <span class="truncate">Escribe o habla... ej. "Reunión en la oficina"</span>
+        <!-- Welcome Banner -->
+        <div class="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+          <div>
+            <div class="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-blue-600">
+              <span>☀️</span> Viernes, 4 de septiembre de 2026
             </div>
-            <button id="btn-voice-mic" class="w-8 h-8 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center text-sm hover:bg-blue-100 transition-colors" title="Hablar con TIMEPLUS IA">
-              🎤
+            <h1 class="text-2xl lg:text-3xl font-black text-slate-900 mt-1">¡Buenos días, Rafael!</h1>
+            <p class="text-sm text-slate-500 mt-1">Tienes <span class="font-bold text-blue-600">8 actividades</span> organizadas para hoy y <span class="font-bold text-amber-600">3 pendientes</span>.</p>
+          </div>
+          <div class="flex items-center gap-3">
+            <button onclick="window.timeplusNavigate('agenda')" class="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold rounded-2xl transition-all">
+              🧭 Ver Línea de Tiempo
+            </button>
+            <button onclick="window.openCreateModal()" class="px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-2xl shadow-md shadow-blue-500/20 transition-all">
+              ＋ Nueva Actividad
             </button>
           </div>
         </div>
 
-        <!-- Metric KPI Cards: [ 8 Actividad ] [ 3 Pendiente ] -->
-        <div class="grid grid-cols-2 gap-3">
-          <div class="bg-white p-3.5 rounded-2xl border border-slate-100 shadow-sm text-center pressable">
-            <span id="kpi-total" class="text-2xl font-black text-slate-900 block font-mono">8</span>
-            <span class="text-xs font-bold text-slate-500">Actividad</span>
+        <!-- 4 KPI Metrics Row -->
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          <div class="bg-white p-4 rounded-3xl border border-slate-200 shadow-sm">
+            <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Actividades Hoy</span>
+            <span id="kpi-total-dash" class="text-3xl font-black text-slate-900 block font-mono mt-1">8</span>
+            <span class="text-[11px] text-emerald-600 font-semibold mt-1 block">✓ 5 completadas</span>
           </div>
-          <div class="bg-white p-3.5 rounded-2xl border border-slate-100 shadow-sm text-center pressable">
-            <span id="kpi-pending" class="text-2xl font-black text-blue-600 block font-mono">3</span>
-            <span class="text-xs font-bold text-slate-500">Pendiente</span>
+
+          <div class="bg-white p-4 rounded-3xl border border-slate-200 shadow-sm">
+            <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Pendientes Hoy</span>
+            <span id="kpi-pending-dash" class="text-3xl font-black text-amber-500 block font-mono mt-1">3</span>
+            <span class="text-[11px] text-slate-400 font-medium mt-1 block">Próxima a las 09:30</span>
+          </div>
+
+          <div class="bg-white p-4 rounded-3xl border border-slate-200 shadow-sm cursor-pointer hover:border-blue-300 transition-all" onclick="window.timeplusNavigate('places')">
+            <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Lugares Favoritos</span>
+            <span class="text-3xl font-black text-blue-600 block font-mono mt-1">4</span>
+            <span class="text-[11px] text-blue-500 font-medium mt-1 block">157 visitas registradas →</span>
+          </div>
+
+          <div class="bg-white p-4 rounded-3xl border border-slate-200 shadow-sm cursor-pointer hover:border-blue-300 transition-all" onclick="window.timeplusNavigate('stats')">
+            <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Actividad Septiembre</span>
+            <span class="text-3xl font-black text-indigo-600 block font-mono mt-1">147</span>
+            <span class="text-[11px] text-indigo-500 font-medium mt-1 block">Ver estadísticas →</span>
           </div>
         </div>
 
-        <!-- Section: HOY -->
-        <div class="space-y-2.5 pt-1">
-          <div class="flex items-center justify-between">
-            <h2 class="text-xs font-black tracking-wider text-slate-900 uppercase flex items-center gap-1.5">
-              <span>📅</span> HOY
-            </h2>
-            <button onclick="window.timeplusNavigate('agenda')" class="text-xs text-blue-600 font-bold hover:underline">
-              Ver cronología →
-            </button>
+        <!-- 2-Column Dashboard Split -->
+        <div class="grid grid-cols-1 xl:grid-cols-12 gap-6">
+          
+          <!-- Column 1: Hoy Actividades List (7 Cols) -->
+          <div class="xl:col-span-7 space-y-4">
+            <div class="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm space-y-4">
+              <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+                <div>
+                  <h2 class="text-base font-black text-slate-900 flex items-center gap-2">
+                    <span>📅</span> HOY — Lista de Actividades
+                  </h2>
+                  <p class="text-xs text-slate-500 mt-0.5">Marca como completada o haz clic para ver su detalle.</p>
+                </div>
+                <button onclick="window.timeplusNavigate('agenda')" class="text-xs font-bold text-blue-600 hover:text-blue-700">
+                  Ver cronología completa →
+                </button>
+              </div>
+
+              <!-- List rendered by app.js -->
+              <div id="home-activities-list" class="space-y-2.5"></div>
+
+              <button onclick="window.openCreateModal()" class="w-full py-3 border-2 border-dashed border-slate-200 hover:border-blue-400 text-slate-600 hover:text-blue-600 font-bold text-xs rounded-2xl flex items-center justify-center gap-2 transition-all">
+                <span>＋</span> Agregar otra actividad a la agenda de hoy
+              </button>
+            </div>
           </div>
 
-          <!-- Dynamic List of Activities -->
-          <div id="home-activities-list" class="space-y-2">
-            <!-- Rendered by app.js -->
+          <!-- Column 2: Connected Places & Deliveries (5 Cols) -->
+          <div class="xl:col-span-5 space-y-6">
+            
+            <!-- Quick Places Card -->
+            <div class="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm space-y-4">
+              <div class="flex items-center justify-between">
+                <h3 class="text-sm font-black text-slate-900 flex items-center gap-2">
+                  <span>📍</span> Mis Lugares Frecuentes
+                </h3>
+                <button onclick="window.timeplusNavigate('places')" class="text-xs font-bold text-blue-600 hover:underline">
+                  Ver todos →
+                </button>
+              </div>
+
+              <div class="grid grid-cols-2 gap-3">
+                <div class="p-3.5 rounded-2xl bg-slate-50 hover:bg-blue-50/60 border border-slate-100 hover:border-blue-200 cursor-pointer transition-all" onclick="window.timeplusNavigate('place-detail', 'place-oficina')">
+                  <div class="flex items-center justify-between">
+                    <span class="text-2xl">🏢</span>
+                    <span class="text-[10px] font-bold text-blue-600 bg-blue-100 px-2 py-0.5 rounded-full">43 visitas</span>
+                  </div>
+                  <h4 class="font-bold text-xs text-slate-800 mt-2">Oficina</h4>
+                  <p class="text-[11px] text-slate-400 mt-0.5">31 reuniones · 5 entregas</p>
+                </div>
+
+                <div class="p-3.5 rounded-2xl bg-slate-50 hover:bg-blue-50/60 border border-slate-100 hover:border-blue-200 cursor-pointer transition-all" onclick="window.timeplusNavigate('place-detail', 'place-clinica')">
+                  <div class="flex items-center justify-between">
+                    <span class="text-2xl">🏥</span>
+                    <span class="text-[10px] font-bold text-blue-600 bg-blue-100 px-2 py-0.5 rounded-full">18 visitas</span>
+                  </div>
+                  <h4 class="font-bold text-xs text-slate-800 mt-2">Clínica</h4>
+                  <p class="text-[11px] text-slate-400 mt-0.5">12 citas · 4 reuniones</p>
+                </div>
+
+                <div class="p-3.5 rounded-2xl bg-slate-50 hover:bg-blue-50/60 border border-slate-100 hover:border-blue-200 cursor-pointer transition-all" onclick="window.timeplusNavigate('place-detail', 'place-universidad')">
+                  <div class="flex items-center justify-between">
+                    <span class="text-2xl">🎓</span>
+                    <span class="text-[10px] font-bold text-blue-600 bg-blue-100 px-2 py-0.5 rounded-full">86 visitas</span>
+                  </div>
+                  <h4 class="font-bold text-xs text-slate-800 mt-2">Universidad</h4>
+                  <p class="text-[11px] text-slate-400 mt-0.5">72 clases · 8 exámenes</p>
+                </div>
+
+                <div class="p-3.5 rounded-2xl bg-slate-50 hover:bg-blue-50/60 border border-slate-100 hover:border-blue-200 cursor-pointer transition-all" onclick="window.timeplusNavigate('place-detail', 'place-restaurante')">
+                  <div class="flex items-center justify-between">
+                    <span class="text-2xl">🍽️</span>
+                    <span class="text-[10px] font-bold text-blue-600 bg-blue-100 px-2 py-0.5 rounded-full">12 visitas</span>
+                  </div>
+                  <h4 class="font-bold text-xs text-slate-800 mt-2">Restaurante</h4>
+                  <p class="text-[11px] text-slate-400 mt-0.5">8 salidas · 4 reuniones</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Urgent Delivery / Job Tracking Card -->
+            <div class="bg-gradient-to-br from-amber-500/10 to-orange-500/10 border border-amber-200 rounded-3xl p-6 shadow-sm space-y-3 cursor-pointer hover:border-amber-400 transition-all" onclick="window.timeplusNavigate('activity-detail', 'act-5')">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-black text-amber-800 uppercase tracking-wider flex items-center gap-1.5">
+                  <span>📄</span> ENTREGA DE TRABAJO DESTACADA
+                </span>
+                <span class="text-[11px] font-bold px-2.5 py-0.5 bg-amber-200 text-amber-900 rounded-full">En proceso</span>
+              </div>
+              <h3 class="text-base font-extrabold text-slate-900">Informe de auditoría</h3>
+              <div class="text-xs text-slate-600 space-y-1">
+                <p>📅 10 septiembre · ⏰ 5:00 p. m. · 📍 Oficina Central</p>
+                <p>👤 Responsable: Yo · 🔔 3 recordatorios activos</p>
+              </div>
+              <div class="pt-2">
+                <div class="flex justify-between text-xs font-bold text-slate-700 mb-1">
+                  <span>Progreso del Checklist</span>
+                  <span>2 de 4 (50%)</span>
+                </div>
+                <div class="w-full bg-slate-200 rounded-full h-2 overflow-hidden">
+                  <div class="bg-amber-500 h-2 rounded-full w-1/2"></div>
+                </div>
+              </div>
+            </div>
+
           </div>
         </div>
 
-        <!-- Button: ＋ NUEVA ACTIVIDAD -->
-        <div class="pt-2">
-          <button id="btn-new-activity" class="w-full py-3.5 bg-blue-600 hover:bg-blue-700 active:scale-[0.98] text-white font-bold text-sm rounded-2xl shadow-md shadow-blue-500/20 flex items-center justify-center gap-2 transition-all">
-            <span class="text-base">＋</span> NUEVA ACTIVIDAD
-          </button>
-        </div>
       </section>
-
 
       <!-- ========================================================= -->
       <!-- VIEW 2: AGENDA (CLÁSICA + LÍNEA DE TIEMPO)               -->
       <!-- ========================================================= -->
-      <section id="view-agenda" class="p-5 pb-24 space-y-4 hidden">
-        <div class="flex items-center justify-between">
-          <h2 class="text-lg font-extrabold text-slate-900">🗓️ Agenda</h2>
-          <span class="text-xs text-slate-400 font-medium">4 Septiembre 2026</span>
+      <section id="view-agenda" class="space-y-6 hidden">
+        <div class="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div>
+            <h2 class="text-2xl font-black text-slate-900 flex items-center gap-2">
+              <span>🗓️</span> Agenda & Planificación
+            </h2>
+            <p class="text-xs text-slate-500 mt-1">Explora tu tiempo en formato clásico o con la innovadora línea de tiempo continua.</p>
+          </div>
+
+          <!-- Tabs: DÍA | SEMANA | MES | AÑO | 🧭 LÍNEA DE TIEMPO -->
+          <div class="flex items-center gap-1.5 p-1 bg-slate-100 rounded-2xl">
+            <button class="agenda-tab-btn px-4 py-2 rounded-xl text-xs font-bold bg-blue-600 text-white transition-all" data-tab="timeline">
+              🧭 Línea de tiempo
+            </button>
+            <button class="agenda-tab-btn px-3 py-2 rounded-xl text-xs font-medium text-slate-600 hover:text-slate-900 transition-all" data-tab="dia">
+              Día
+            </button>
+            <button class="agenda-tab-btn px-3 py-2 rounded-xl text-xs font-medium text-slate-600 hover:text-slate-900 transition-all" data-tab="semana">
+              Semana
+            </button>
+            <button class="agenda-tab-btn px-3 py-2 rounded-xl text-xs font-medium text-slate-600 hover:text-slate-900 transition-all" data-tab="mes">
+              Mes
+            </button>
+            <button class="agenda-tab-btn px-3 py-2 rounded-xl text-xs font-medium text-slate-600 hover:text-slate-900 transition-all" data-tab="año">
+              Año
+            </button>
+          </div>
         </div>
 
-        <!-- Tab Selector: DÍA | SEMANA | MES | AÑO | 🧭 LÍNEA DE TIEMPO -->
-        <div class="flex items-center gap-1 overflow-x-auto pb-1 custom-scroll text-xs">
-          <button class="agenda-tab-btn px-3 py-1.5 rounded-xl font-bold bg-blue-600 text-white flex-shrink-0 transition-colors" data-tab="timeline">
-            🧭 Línea de tiempo
-          </button>
-          <button class="agenda-tab-btn px-3 py-1.5 rounded-xl font-medium bg-slate-100 text-slate-600 flex-shrink-0 hover:bg-slate-200 transition-colors" data-tab="dia">
-            Día
-          </button>
-          <button class="agenda-tab-btn px-3 py-1.5 rounded-xl font-medium bg-slate-100 text-slate-600 flex-shrink-0 hover:bg-slate-200 transition-colors" data-tab="semana">
-            Semana
-          </button>
-          <button class="agenda-tab-btn px-3 py-1.5 rounded-xl font-medium bg-slate-100 text-slate-600 flex-shrink-0 hover:bg-slate-200 transition-colors" data-tab="mes">
-            Mes
-          </button>
-          <button class="agenda-tab-btn px-3 py-1.5 rounded-xl font-medium bg-slate-100 text-slate-600 flex-shrink-0 hover:bg-slate-200 transition-colors" data-tab="año">
-            Año
-          </button>
-        </div>
-
-        <!-- Agenda Dynamic Content Area -->
-        <div id="agenda-content">
+        <div id="agenda-content" class="space-y-4">
           <!-- Rendered by app.js -->
         </div>
       </section>
-
 
       <!-- ========================================================= -->
       <!-- VIEW 3: MIS LUGARES (EL MÓDULO DIFERENCIAL)              -->
       <!-- ========================================================= -->
-      <section id="view-places" class="p-5 pb-24 space-y-4 hidden">
-        <div class="space-y-1">
-          <h2 class="text-lg font-extrabold text-slate-900 flex items-center gap-2">
-            <span>📍</span> MIS LUGARES
-          </h2>
-          <p class="text-xs text-slate-500">Lugares conectados a tus citas, clases, reuniones e historial.</p>
+      <section id="view-places" class="space-y-6 hidden">
+        <div class="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div>
+            <h2 class="text-2xl font-black text-slate-900 flex items-center gap-2">
+              <span>📍</span> MIS LUGARES
+            </h2>
+            <p class="text-xs text-slate-500 mt-1">Cada lugar acumula visitas, citas, reuniones e historial de actividad.</p>
+          </div>
+          <div class="w-full sm:w-72">
+            <input type="text" placeholder="🔍 Buscar lugar..." class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-2 text-xs focus:outline-none focus:border-blue-500">
+          </div>
         </div>
 
-        <!-- Search Places -->
-        <div class="relative">
-          <input type="text" placeholder="🔍 Buscar lugar..." class="w-full bg-white border border-slate-200 rounded-2xl px-4 py-2.5 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-500 shadow-sm">
+        <div class="flex items-center gap-2 text-xs font-bold text-slate-600 uppercase tracking-wider">
+          <span>⭐</span> Lugares Favoritos y Registrados
         </div>
 
-        <!-- Favoritos Header -->
-        <div class="flex items-center gap-1.5 text-xs font-bold text-slate-700 uppercase tracking-wider pt-1">
-          <span>⭐</span> Favoritos
-        </div>
-
-        <!-- Places List Container -->
-        <div id="places-list" class="space-y-3">
+        <div id="places-list" class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <!-- Rendered by app.js -->
         </div>
       </section>
 
-
       <!-- ========================================================= -->
       <!-- VIEW 3.1: DETALLE DE LUGAR                                -->
       <!-- ========================================================= -->
-      <section id="view-place-detail" class="p-5 pb-24 space-y-4 hidden">
-        <button onclick="window.timeplusNavigate('places')" class="inline-flex items-center gap-1.5 text-xs font-bold text-blue-600 hover:text-blue-800 transition-colors">
-          <span>←</span> Volver a Mis Lugares
+      <section id="view-place-detail" class="space-y-6 hidden">
+        <button onclick="window.timeplusNavigate('places')" class="inline-flex items-center gap-2 text-xs font-bold text-blue-600 hover:text-blue-800 transition-colors">
+          <span>←</span> Volver a la lista de Lugares
         </button>
         <div id="place-detail-content">
           <!-- Rendered by app.js -->
         </div>
       </section>
 
-
       <!-- ========================================================= -->
       <!-- VIEW 4: MI ACTIVIDAD (ESTADÍSTICAS & ANALÍTICA)          -->
       <!-- ========================================================= -->
-      <section id="view-stats" class="p-5 pb-24 space-y-4 hidden">
+      <section id="view-stats" class="space-y-6 hidden">
         <div id="stats-content">
           <!-- Rendered by app.js -->
         </div>
       </section>
 
-
       <!-- ========================================================= -->
       <!-- VIEW 5: DETALLE DE ACTIVIDAD / ENTREGA DE TRABAJO         -->
       <!-- ========================================================= -->
-      <section id="view-activity-detail" class="p-5 pb-24 space-y-4 hidden">
-        <button onclick="window.timeplusNavigate('home')" class="inline-flex items-center gap-1.5 text-xs font-bold text-blue-600 hover:text-blue-800 transition-colors">
-          <span>←</span> Volver
+      <section id="view-activity-detail" class="space-y-6 hidden">
+        <button onclick="window.timeplusNavigate('home')" class="inline-flex items-center gap-2 text-xs font-bold text-blue-600 hover:text-blue-800 transition-colors">
+          <span>←</span> Volver al Dashboard
         </button>
         <div id="activity-detail-content">
           <!-- Rendered by app.js -->
@@ -219,255 +405,221 @@
       </section>
 
     </main>
+  </div>
 
 
-    <!-- ========================================================= -->
-    <!-- BOTTOM NAVIGATION BAR (FIXED DOCK)                        -->
-    <!-- ========================================================= -->
-    <nav class="bottom-nav-glass absolute bottom-0 left-0 right-0 h-18 px-3 py-2 flex items-center justify-around z-40">
-      <button class="nav-btn flex flex-col items-center gap-1 text-blue-600 font-semibold pressable" data-view="home">
-        <span class="nav-icon text-lg">🏠</span>
-        <span class="nav-label text-[10px]">Inicio</span>
-      </button>
-
-      <button class="nav-btn flex flex-col items-center gap-1 text-slate-400 hover:text-slate-600 pressable" data-view="agenda">
-        <span class="nav-icon text-lg">📅</span>
-        <span class="nav-label text-[10px]">Agenda</span>
-      </button>
-
-      <!-- Central FAB (+) Button -->
-      <button class="nav-btn flex flex-col items-center -mt-5 pressable" data-view="create">
-        <div class="w-12 h-12 rounded-full bg-blue-600 text-white text-2xl flex items-center justify-center shadow-lg shadow-blue-500/30 active:scale-95 transition-transform">
-          ➕
+  <!-- ========================================================= -->
+  <!-- MODAL 1: SELECTOR "¿QUÉ VAS A HACER?" (14 CATEGORÍAS)    -->
+  <!-- ========================================================= -->
+  <div id="modal-create-activity" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+    <div class="w-full max-w-2xl bg-white rounded-3xl max-h-[90vh] flex flex-col overflow-hidden shadow-2xl animate-in zoom-in-95 duration-200">
+      
+      <!-- Modal Header -->
+      <div class="p-6 border-b border-slate-100 flex items-center justify-between">
+        <div>
+          <span class="text-xs uppercase font-bold text-blue-600 tracking-wider">Nueva Actividad Conectada</span>
+          <h3 class="text-xl font-black text-slate-900 mt-0.5">¿Qué vas a hacer?</h3>
         </div>
-        <span class="nav-label text-[10px] text-slate-600 font-semibold mt-1">Crear</span>
-      </button>
+        <button data-close-modal class="w-9 h-9 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-500 text-sm transition-colors">
+          ✕
+        </button>
+      </div>
 
-      <button class="nav-btn flex flex-col items-center gap-1 text-slate-400 hover:text-slate-600 pressable" data-view="places">
-        <span class="nav-icon text-lg">📍</span>
-        <span class="nav-label text-[10px]">Lugares</span>
-      </button>
-
-      <button class="nav-btn flex flex-col items-center gap-1 text-slate-400 hover:text-slate-600 pressable" data-view="stats">
-        <span class="nav-icon text-lg">📊</span>
-        <span class="nav-label text-[10px]">Actividad</span>
-      </button>
-    </nav>
-
-
-    <!-- ========================================================= -->
-    <!-- MODAL 1: SELECTOR "¿QUÉ VAS A HACER?" (14 CATEGORÍAS)    -->
-    <!-- ========================================================= -->
-    <div id="modal-create-activity" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-end justify-center hidden">
-      <div class="w-full max-w-[412px] bg-white rounded-t-3xl max-h-[85vh] flex flex-col overflow-hidden shadow-2xl animate-in slide-in-from-bottom duration-200">
+      <!-- 14 Activities Web Grid -->
+      <div class="p-6 overflow-y-auto custom-scroll grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 text-xs">
         
-        <!-- Modal Header -->
-        <div class="p-4 border-b border-slate-100 flex items-center justify-between">
-          <div>
-            <span class="text-xs uppercase font-bold text-blue-600 tracking-wider">Nueva Actividad</span>
-            <h3 class="text-base font-extrabold text-slate-900">¿Qué vas a hacer?</h3>
-          </div>
-          <button data-close-modal class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-500 text-sm">
-            ✕
-          </button>
-        </div>
+        <button class="cat-item-btn p-4 rounded-2xl border border-slate-200 bg-slate-50 text-left flex flex-col gap-2"
+                data-category="reunion_virtual" data-icon="💻" data-label="Reunión virtual">
+          <span class="text-3xl">💻</span>
+          <span class="font-bold text-slate-800">Reunión virtual</span>
+        </button>
 
-        <!-- 14 Activities Grid Selector -->
-        <div class="p-4 overflow-y-auto custom-scroll grid grid-cols-2 gap-2.5 text-xs">
-          
-          <button class="cat-item-btn p-3 rounded-2xl border border-slate-100 bg-slate-50/50 hover:bg-blue-50 hover:border-blue-200 text-left flex items-center gap-3"
-                  data-category="reunion_virtual" data-icon="💻" data-label="Reunión virtual">
-            <span class="text-2xl">💻</span>
-            <span class="font-bold text-slate-800">Reunión virtual</span>
-          </button>
+        <button class="cat-item-btn p-4 rounded-2xl border border-slate-200 bg-slate-50 text-left flex flex-col gap-2"
+                data-category="reunion_presencial" data-icon="🤝" data-label="Reunión presencial">
+          <span class="text-3xl">🤝</span>
+          <span class="font-bold text-slate-800">Reunión presencial</span>
+        </button>
 
-          <button class="cat-item-btn p-3 rounded-2xl border border-slate-100 bg-slate-50/50 hover:bg-blue-50 hover:border-blue-200 text-left flex items-center gap-3"
-                  data-category="reunion_presencial" data-icon="🤝" data-label="Reunión presencial">
-            <span class="text-2xl">🤝</span>
-            <span class="font-bold text-slate-800">Reunión presencial</span>
-          </button>
+        <button class="cat-item-btn p-4 rounded-2xl border border-slate-200 bg-slate-50 text-left flex flex-col gap-2"
+                data-category="cita_medica" data-icon="🩺" data-label="Cita médica">
+          <span class="text-3xl">🩺</span>
+          <span class="font-bold text-slate-800">Cita médica</span>
+        </button>
 
-          <button class="cat-item-btn p-3 rounded-2xl border border-slate-100 bg-slate-50/50 hover:bg-blue-50 hover:border-blue-200 text-left flex items-center gap-3"
-                  data-category="cita_medica" data-icon="🩺" data-label="Cita médica">
-            <span class="text-2xl">🩺</span>
-            <span class="font-bold text-slate-800">Cita médica</span>
-          </button>
+        <button class="cat-item-btn p-4 rounded-2xl border border-slate-200 bg-slate-50 text-left flex flex-col gap-2"
+                data-category="medicamento" data-icon="💊" data-label="Medicamento">
+          <span class="text-3xl">💊</span>
+          <span class="font-bold text-slate-800">Medicamento</span>
+        </button>
 
-          <button class="cat-item-btn p-3 rounded-2xl border border-slate-100 bg-slate-50/50 hover:bg-blue-50 hover:border-blue-200 text-left flex items-center gap-3"
-                  data-category="medicamento" data-icon="💊" data-label="Medicamento">
-            <span class="text-2xl">💊</span>
-            <span class="font-bold text-slate-800">Medicamento</span>
-          </button>
+        <button class="cat-item-btn p-4 rounded-2xl border border-slate-200 bg-slate-50 text-left flex flex-col gap-2"
+                data-category="clase" data-icon="🎓" data-label="Clase">
+          <span class="text-3xl">🎓</span>
+          <span class="font-bold text-slate-800">Clase</span>
+        </button>
 
-          <button class="cat-item-btn p-3 rounded-2xl border border-slate-100 bg-slate-50/50 hover:bg-blue-50 hover:border-blue-200 text-left flex items-center gap-3"
-                  data-category="clase" data-icon="🎓" data-label="Clase">
-            <span class="text-2xl">🎓</span>
-            <span class="font-bold text-slate-800">Clase</span>
-          </button>
+        <button class="cat-item-btn p-4 rounded-2xl border border-slate-200 bg-slate-50 text-left flex flex-col gap-2"
+                data-category="entrega_trabajo" data-icon="📄" data-label="Entrega de trabajo">
+          <span class="text-3xl">📄</span>
+          <span class="font-bold text-slate-800">Entrega de trabajo</span>
+        </button>
 
-          <button class="cat-item-btn p-3 rounded-2xl border border-slate-100 bg-slate-50/50 hover:bg-blue-50 hover:border-blue-200 text-left flex items-center gap-3"
-                  data-category="entrega_trabajo" data-icon="📄" data-label="Entrega de trabajo">
-            <span class="text-2xl">📄</span>
-            <span class="font-bold text-slate-800">Entrega de trabajo</span>
-          </button>
+        <button class="cat-item-btn p-4 rounded-2xl border border-slate-200 bg-slate-50 text-left flex flex-col gap-2"
+                data-category="informe" data-icon="📑" data-label="Informe">
+          <span class="text-3xl">📑</span>
+          <span class="font-bold text-slate-800">Informe</span>
+        </button>
 
-          <button class="cat-item-btn p-3 rounded-2xl border border-slate-100 bg-slate-50/50 hover:bg-blue-50 hover:border-blue-200 text-left flex items-center gap-3"
-                  data-category="informe" data-icon="📑" data-label="Informe">
-            <span class="text-2xl">📑</span>
-            <span class="font-bold text-slate-800">Informe</span>
-          </button>
+        <button class="cat-item-btn p-4 rounded-2xl border border-slate-200 bg-slate-50 text-left flex flex-col gap-2"
+                data-category="evento" data-icon="🎉" data-label="Evento">
+          <span class="text-3xl">🎉</span>
+          <span class="font-bold text-slate-800">Evento</span>
+        </button>
 
-          <button class="cat-item-btn p-3 rounded-2xl border border-slate-100 bg-slate-50/50 hover:bg-blue-50 hover:border-blue-200 text-left flex items-center gap-3"
-                  data-category="evento" data-icon="🎉" data-label="Evento">
-            <span class="text-2xl">🎉</span>
-            <span class="font-bold text-slate-800">Evento</span>
-          </button>
+        <button class="cat-item-btn p-4 rounded-2xl border border-slate-200 bg-slate-50 text-left flex flex-col gap-2"
+                data-category="salida" data-icon="🍽️" data-label="Salida">
+          <span class="text-3xl">🍽️</span>
+          <span class="font-bold text-slate-800">Salida</span>
+        </button>
 
-          <button class="cat-item-btn p-3 rounded-2xl border border-slate-100 bg-slate-50/50 hover:bg-blue-50 hover:border-blue-200 text-left flex items-center gap-3"
-                  data-category="salida" data-icon="🍽️" data-label="Salida">
-            <span class="text-2xl">🍽️</span>
-            <span class="font-bold text-slate-800">Salida</span>
-          </button>
+        <button class="cat-item-btn p-4 rounded-2xl border border-slate-200 bg-slate-50 text-left flex flex-col gap-2"
+                data-category="viaje" data-icon="✈️" data-label="Viaje">
+          <span class="text-3xl">✈️</span>
+          <span class="font-bold text-slate-800">Viaje</span>
+        </button>
 
-          <button class="cat-item-btn p-3 rounded-2xl border border-slate-100 bg-slate-50/50 hover:bg-blue-50 hover:border-blue-200 text-left flex items-center gap-3"
-                  data-category="viaje" data-icon="✈️" data-label="Viaje">
-            <span class="text-2xl">✈️</span>
-            <span class="font-bold text-slate-800">Viaje</span>
-          </button>
+        <button class="cat-item-btn p-4 rounded-2xl border border-slate-200 bg-slate-50 text-left flex flex-col gap-2"
+                data-category="tarea" data-icon="✅" data-label="Tarea">
+          <span class="text-3xl">✅</span>
+          <span class="font-bold text-slate-800">Tarea</span>
+        </button>
 
-          <button class="cat-item-btn p-3 rounded-2xl border border-slate-100 bg-slate-50/50 hover:bg-blue-50 hover:border-blue-200 text-left flex items-center gap-3"
-                  data-category="tarea" data-icon="✅" data-label="Tarea">
-            <span class="text-2xl">✅</span>
-            <span class="font-bold text-slate-800">Tarea</span>
-          </button>
+        <button class="cat-item-btn p-4 rounded-2xl border border-slate-200 bg-slate-50 text-left flex flex-col gap-2"
+                data-category="recordatorio" data-icon="📌" data-label="Recordatorio">
+          <span class="text-3xl">📌</span>
+          <span class="font-bold text-slate-800">Recordatorio</span>
+        </button>
 
-          <button class="cat-item-btn p-3 rounded-2xl border border-slate-100 bg-slate-50/50 hover:bg-blue-50 hover:border-blue-200 text-left flex items-center gap-3"
-                  data-category="recordatorio" data-icon="📌" data-label="Recordatorio">
-            <span class="text-2xl">📌</span>
-            <span class="font-bold text-slate-800">Recordatorio</span>
-          </button>
+        <button class="cat-item-btn p-4 rounded-2xl border border-slate-200 bg-slate-50 text-left flex flex-col gap-2"
+                data-category="visita_lugar" data-icon="📍" data-label="Visita a lugar">
+          <span class="text-3xl">📍</span>
+          <span class="font-bold text-slate-800">Visita a lugar</span>
+        </button>
 
-          <button class="cat-item-btn p-3 rounded-2xl border border-slate-100 bg-slate-50/50 hover:bg-blue-50 hover:border-blue-200 text-left flex items-center gap-3"
-                  data-category="visita_lugar" data-icon="📍" data-label="Visita a lugar">
-            <span class="text-2xl">📍</span>
-            <span class="font-bold text-slate-800">Visita a lugar</span>
-          </button>
+        <button class="cat-item-btn p-4 rounded-2xl border border-slate-200 bg-slate-50 text-left flex flex-col gap-2"
+                data-category="otro" data-icon="➕" data-label="Otro">
+          <span class="text-3xl">➕</span>
+          <span class="font-bold text-slate-800">Otro</span>
+        </button>
 
-          <button class="cat-item-btn p-3 rounded-2xl border border-slate-100 bg-slate-50/50 hover:bg-blue-50 hover:border-blue-200 text-left flex items-center gap-3"
-                  data-category="otro" data-icon="➕" data-label="Otro">
-            <span class="text-2xl">➕</span>
-            <span class="font-bold text-slate-800">Otro</span>
-          </button>
-
-        </div>
       </div>
     </div>
+  </div>
 
-
-    <!-- ========================================================= -->
-    <!-- MODAL 2: FORMULARIO DINÁMICO DE CREACIÓN                  -->
-    <!-- ========================================================= -->
-    <div id="modal-create-form" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-end justify-center hidden">
-      <div class="w-full max-w-[412px] bg-white rounded-t-3xl max-h-[90vh] flex flex-col overflow-hidden shadow-2xl">
-        
-        <div class="p-4 border-b border-slate-100 flex items-center justify-between">
-          <h3 id="form-cat-title" class="text-base font-extrabold text-slate-900">Nueva Actividad</h3>
-          <button data-close-modal class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-500 text-sm">✕</button>
-        </div>
-
-        <form id="form-new-activity" class="p-5 overflow-y-auto custom-scroll space-y-4 text-xs">
-          <input type="hidden" id="input-act-category">
-          <input type="hidden" id="input-act-category-label">
-          <input type="hidden" id="input-act-icon">
-
-          <div>
-            <label class="block font-bold text-slate-700 mb-1">Título de la actividad *</label>
-            <input type="text" id="input-act-title" required placeholder="ej. Reunión con equipo de producto" class="w-full border border-slate-200 rounded-xl p-2.5 text-xs focus:border-blue-500 focus:outline-none">
-          </div>
-
-          <div class="grid grid-cols-2 gap-3">
-            <div>
-              <label class="block font-bold text-slate-700 mb-1">📅 Fecha</label>
-              <input type="date" id="input-act-date" value="2026-09-04" class="w-full border border-slate-200 rounded-xl p-2.5 text-xs focus:border-blue-500 focus:outline-none">
-            </div>
-            <div>
-              <label class="block font-bold text-slate-700 mb-1">⏰ Hora</label>
-              <input type="time" id="input-act-time" value="10:00" class="w-full border border-slate-200 rounded-xl p-2.5 text-xs focus:border-blue-500 focus:outline-none">
-            </div>
-          </div>
-
-          <div>
-            <label class="block font-bold text-slate-700 mb-1">📍 Lugar Asociado (Mis Lugares)</label>
-            <select id="input-act-place" class="w-full border border-slate-200 rounded-xl p-2.5 text-xs focus:border-blue-500 focus:outline-none bg-white">
-              <!-- Options populated dynamically -->
-            </select>
-          </div>
-
-          <div>
-            <label class="block font-bold text-slate-700 mb-1">Notas / Detalles</label>
-            <textarea id="input-act-details" rows="2" placeholder="Agrega objetivos, recordatorios o participantes..." class="w-full border border-slate-200 rounded-xl p-2.5 text-xs focus:border-blue-500 focus:outline-none"></textarea>
-          </div>
-
-          <button type="submit" class="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm rounded-xl shadow-md transition-colors">
-            Guardar y Conectar en Agenda
-          </button>
-        </form>
+  <!-- ========================================================= -->
+  <!-- MODAL 2: FORMULARIO DINÁMICO DE CREACIÓN                  -->
+  <!-- ========================================================= -->
+  <div id="modal-create-form" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+    <div class="w-full max-w-xl bg-white rounded-3xl max-h-[90vh] flex flex-col overflow-hidden shadow-2xl">
+      
+      <div class="p-6 border-b border-slate-100 flex items-center justify-between">
+        <h3 id="form-cat-title" class="text-lg font-black text-slate-900">Nueva Actividad</h3>
+        <button data-close-modal class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-500 text-sm">✕</button>
       </div>
+
+      <form id="form-new-activity" class="p-6 overflow-y-auto custom-scroll space-y-4 text-xs">
+        <input type="hidden" id="input-act-category">
+        <input type="hidden" id="input-act-category-label">
+        <input type="hidden" id="input-act-icon">
+
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">Título de la actividad *</label>
+          <input type="text" id="input-act-title" required placeholder="ej. Reunión con equipo de producto" class="w-full border border-slate-200 rounded-xl p-3 text-xs focus:border-blue-500 focus:outline-none">
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">📅 Fecha</label>
+            <input type="date" id="input-act-date" value="2026-09-04" class="w-full border border-slate-200 rounded-xl p-3 text-xs focus:border-blue-500 focus:outline-none">
+          </div>
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">⏰ Hora</label>
+            <input type="time" id="input-act-time" value="10:00" class="w-full border border-slate-200 rounded-xl p-3 text-xs focus:border-blue-500 focus:outline-none">
+          </div>
+        </div>
+
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">📍 Lugar Asociado (Mis Lugares)</label>
+          <select id="input-act-place" class="w-full border border-slate-200 rounded-xl p-3 text-xs focus:border-blue-500 focus:outline-none bg-white">
+            <!-- Populated dynamically -->
+          </select>
+        </div>
+
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">Notas / Participantes / Objetivos</label>
+          <textarea id="input-act-details" rows="3" placeholder="Agrega objetivos, notas o participantes..." class="w-full border border-slate-200 rounded-xl p-3 text-xs focus:border-blue-500 focus:outline-none"></textarea>
+        </div>
+
+        <button type="submit" class="w-full py-3.5 bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm rounded-xl shadow-md transition-colors">
+          Guardar y Conectar en Agenda
+        </button>
+      </form>
     </div>
+  </div>
 
-
-    <!-- ========================================================= -->
-    <!-- MODAL 3: ASISTENTE DE VOZ & IA (EL DIFERENCIAL)          -->
-    <!-- ========================================================= -->
-    <div id="modal-ai" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-end justify-center hidden">
-      <div class="w-full max-w-[412px] bg-slate-900 text-white rounded-t-3xl max-h-[92vh] flex flex-col overflow-hidden shadow-2xl border-t border-slate-800">
-        
-        <!-- Header IA -->
-        <div class="p-4 border-b border-slate-800 flex items-center justify-between">
-          <div class="flex items-center gap-2">
-            <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
-            <span class="font-extrabold text-sm tracking-wide">🧠 TIMEPLUS IA</span>
-          </div>
-          <button data-close-modal class="w-8 h-8 rounded-full bg-slate-800 hover:bg-slate-700 flex items-center justify-center text-slate-400 text-sm">✕</button>
-        </div>
-
-        <!-- Chat Transcript Area -->
-        <div id="ai-chat-transcript" class="flex-1 p-4 overflow-y-auto custom-scroll space-y-3 min-h-[220px]">
-          <div class="bg-slate-800/80 p-3 rounded-2xl text-xs text-slate-300 border border-slate-700">
-            <p class="font-semibold text-blue-400 mb-1">¡Hola! Soy el asistente inteligente de TIMEPLUS.</p>
-            <p>Puedes dictarme o escribir en lenguaje natural. Entiendo actividades complejas e historial de lugares.</p>
+  <!-- ========================================================= -->
+  <!-- MODAL 3: ASISTENTE DE VOZ & IA (MODAL FLOTANTE MODERNO)   -->
+  <!-- ========================================================= -->
+  <div id="modal-ai" class="fixed inset-0 bg-slate-950/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+    <div class="w-full max-w-xl bg-slate-900 text-white rounded-3xl max-h-[85vh] flex flex-col overflow-hidden shadow-2xl border border-slate-800">
+      
+      <!-- Header IA -->
+      <div class="p-5 border-b border-slate-800 flex items-center justify-between">
+        <div class="flex items-center gap-2.5">
+          <span class="w-3 h-3 rounded-full bg-emerald-400 animate-pulse"></span>
+          <div>
+            <h3 class="font-extrabold text-sm tracking-wide text-white">🧠 TIMEPLUS IA</h3>
+            <p class="text-[11px] text-slate-400">Comprensión de lenguaje natural y consultas en español</p>
           </div>
         </div>
+        <button data-close-modal class="w-8 h-8 rounded-full bg-slate-800 hover:bg-slate-700 flex items-center justify-center text-slate-400 text-sm">✕</button>
+      </div>
 
-        <!-- Prompt Suggestions Chips -->
-        <div class="px-4 py-2 flex items-center gap-2 overflow-x-auto custom-scroll border-t border-slate-800/60 bg-slate-950/40">
-          <button class="ai-chip-prompt text-[11px] px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-full flex-shrink-0"
-                  data-prompt="Mañana tengo reunión con Carlos a las 10 en la oficina y después debo entregar el informe.">
-            🗣️ "Reunión con Carlos y entregar informe..."
-          </button>
-          <button class="ai-chip-prompt text-[11px] px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-full flex-shrink-0"
-                  data-prompt="Muéstrame todas las veces que fui a la clínica este año.">
-            🏥 "Veces que fui a la clínica..."
-          </button>
-          <button class="ai-chip-prompt text-[11px] px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-full flex-shrink-0"
-                  data-prompt="¿Qué tengo hoy?">
-            📅 "¿Qué tengo hoy?"
-          </button>
-        </div>
-
-        <!-- Input Bar with Mic and Send -->
-        <div class="p-3 border-t border-slate-800 flex items-center gap-2 bg-slate-900">
-          <button id="ai-modal-mic" class="w-10 h-10 rounded-full bg-blue-600 hover:bg-blue-500 text-white flex items-center justify-center text-lg shadow-md transition-all" title="Hablar con micrófono">
-            🎙️
-          </button>
-          <input type="text" id="ai-modal-input" placeholder="Escribe o pulsa el micrófono..." class="flex-1 bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white placeholder-slate-400 focus:outline-none focus:border-blue-500">
-          <button id="ai-modal-send" class="w-10 h-10 rounded-xl bg-slate-800 hover:bg-slate-700 text-blue-400 flex items-center justify-center text-sm font-bold">
-            ➤
-          </button>
+      <!-- Chat Transcript Area -->
+      <div id="ai-chat-transcript" class="flex-1 p-5 overflow-y-auto custom-scroll space-y-3 min-h-[260px]">
+        <div class="bg-slate-800/80 p-4 rounded-2xl text-xs text-slate-300 border border-slate-700 leading-relaxed">
+          <p class="font-bold text-blue-400 mb-1">¡Hola, Rafael! Soy el motor de IA de TIMEPLUS.</p>
+          <p>Puedes hablarme o escribir órdenes complejas. Conecto lugares, creo múltiples actividades encadenadas y respondo sobre tu historial.</p>
         </div>
       </div>
-    </div>
 
+      <!-- Quick Prompt Suggestions -->
+      <div class="px-5 py-2.5 flex items-center gap-2 overflow-x-auto custom-scroll border-t border-slate-800 bg-slate-950/50">
+        <button class="ai-chip-prompt text-[11px] px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl flex-shrink-0 transition-colors"
+                data-prompt="Mañana tengo reunión con Carlos a las 10 en la oficina y después debo entregar el informe.">
+          🗣️ "Reunión con Carlos y entregar informe..."
+        </button>
+        <button class="ai-chip-prompt text-[11px] px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl flex-shrink-0 transition-colors"
+                data-prompt="Muéstrame todas las veces que fui a la clínica este año.">
+          🏥 "Veces que fui a la clínica..."
+        </button>
+        <button class="ai-chip-prompt text-[11px] px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl flex-shrink-0 transition-colors"
+                data-prompt="¿Qué tengo hoy?">
+          📅 "¿Qué tengo hoy?"
+        </button>
+      </div>
+
+      <!-- Input Bar -->
+      <div class="p-4 border-t border-slate-800 flex items-center gap-2.5 bg-slate-900">
+        <button id="ai-modal-mic" class="w-11 h-11 rounded-2xl bg-blue-600 hover:bg-blue-500 text-white flex items-center justify-center text-xl shadow-md transition-all flex-shrink-0" title="Activar micrófono">
+          🎙️
+        </button>
+        <input type="text" id="ai-modal-input" placeholder="Escribe o pulsa el micrófono para hablar..." class="flex-1 bg-slate-800 border border-slate-700 rounded-2xl px-4 py-3 text-xs text-white placeholder-slate-400 focus:outline-none focus:border-blue-500">
+        <button id="ai-modal-send" class="w-11 h-11 rounded-2xl bg-slate-800 hover:bg-slate-700 text-blue-400 flex items-center justify-center text-sm font-bold flex-shrink-0">
+          ➤
+        </button>
+      </div>
+    </div>
   </div>
 
   <!-- Application Logic Scripts -->

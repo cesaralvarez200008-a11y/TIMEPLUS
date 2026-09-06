@@ -61,25 +61,26 @@ document.addEventListener('DOMContentLoaded', () => {
     if (viewName === 'activity-detail' && param) {
       selectedActivityId = param;
     }
+    if (viewName === 'activity-detail-list') {
+      currentView = 'activity-detail';
+      selectedActivityId = param || 'act-5';
+    }
 
     // Hide all views
     [viewHome, viewAgenda, viewPlaces, viewStats, viewPlaceDetail, viewActivityDetail].forEach(v => {
       if (v) v.classList.add('hidden');
     });
 
-    // Update Bottom Nav Active State
+    // Update Nav Buttons Active State (Desktop & Mobile)
     navButtons.forEach(btn => {
       const target = btn.getAttribute('data-view');
-      const icon = btn.querySelector('.nav-icon');
-      const label = btn.querySelector('.nav-label');
-      if (target === viewName) {
-        btn.classList.add('text-blue-600', 'font-semibold');
-        btn.classList.remove('text-gray-400');
-        if (icon) icon.classList.add('scale-110');
+      const isMatch = target === viewName || (viewName === 'activity-detail' && target === 'activity-detail-list');
+      if (isMatch) {
+        btn.classList.add('text-blue-600', 'bg-blue-50', 'font-bold');
+        btn.classList.remove('text-slate-600');
       } else {
-        btn.classList.remove('text-blue-600', 'font-semibold');
-        btn.classList.add('text-gray-400');
-        if (icon) icon.classList.remove('scale-110');
+        btn.classList.remove('text-blue-600', 'bg-blue-50', 'font-bold');
+        btn.classList.add('text-slate-600');
       }
     });
 
@@ -138,8 +139,13 @@ document.addEventListener('DOMContentLoaded', () => {
     // Counters
     const countTotalEl = document.getElementById('kpi-total');
     const countPendingEl = document.getElementById('kpi-pending');
+    const countTotalDash = document.getElementById('kpi-total-dash');
+    const countPendingDash = document.getElementById('kpi-pending-dash');
+
     if (countTotalEl) countTotalEl.textContent = totalCount;
     if (countPendingEl) countPendingEl.textContent = pendingCount;
+    if (countTotalDash) countTotalDash.textContent = totalCount;
+    if (countPendingDash) countPendingDash.textContent = pendingCount;
 
     // Today list container
     const listContainer = document.getElementById('home-activities-list');
@@ -616,17 +622,24 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     });
 
-    // "＋ NUEVA ACTIVIDAD" button on Home
+    // "＋ NUEVA ACTIVIDAD" button on Home and Header
     const btnNewActivity = document.getElementById('btn-new-activity');
-    if (btnNewActivity) {
-      btnNewActivity.addEventListener('click', openCreateModal);
-    }
+    const btnNewActivityTop = document.getElementById('btn-new-activity-top');
+    if (btnNewActivity) btnNewActivity.addEventListener('click', openCreateModal);
+    if (btnNewActivityTop) btnNewActivityTop.addEventListener('click', openCreateModal);
 
-    // AI Trigger Bar click on Home
+    // AI Trigger Bar and Header button
     const aiSearchTrigger = document.getElementById('ai-search-trigger');
-    if (aiSearchTrigger) {
-      aiSearchTrigger.addEventListener('click', () => {
-        openAIModal();
+    const btnOpenAI = document.getElementById('btn-open-ai');
+    if (aiSearchTrigger) aiSearchTrigger.addEventListener('click', () => openAIModal());
+    if (btnOpenAI) btnOpenAI.addEventListener('click', () => openAIModal());
+
+    // Mobile menu toggle
+    const mobileToggle = document.getElementById('mobile-menu-toggle');
+    const sidebar = document.getElementById('app-sidebar');
+    if (mobileToggle && sidebar) {
+      mobileToggle.addEventListener('click', () => {
+        sidebar.classList.toggle('hidden');
       });
     }
 
@@ -868,6 +881,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Global window helpers for inline HTML event handlers
   window.timeplusNavigate = (view, param) => navigateTo(view, param);
+  window.openCreateModal = () => openCreateModal();
+  window.openAIModal = (startMic = false) => openAIModal(startMic);
   window.setTimeplusStatsFilter = (filter) => {
     statsFilter = filter;
     renderStats();
