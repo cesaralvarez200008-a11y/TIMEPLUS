@@ -903,9 +903,14 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     });
 
-    // Escape key listener to close login modal
+    // Escape key listener to close modals
     window.addEventListener('keydown', (e) => {
       if (e.key === 'Escape') {
+        const explainer = document.getElementById('modal-features-explainer');
+        if (explainer && !explainer.classList.contains('hidden')) {
+          window.timeplusCloseExplainerModal();
+          return;
+        }
         if (viewLogin && !viewLogin.classList.contains('hidden') && !store.getCurrentUser()) {
           window.timeplusCloseLoginModal();
         }
@@ -1186,6 +1191,47 @@ document.addEventListener('DOMContentLoaded', () => {
     currentView = 'home';
     renderCurrentView();
   };
+
+  // --- Modal Explicativo ("¿Para qué sirve TIMEPLUS?") ---
+  window.timeplusOpenExplainerModal = (topic = 'timeline') => {
+    const modal = document.getElementById('modal-features-explainer');
+    if (modal) {
+      modal.classList.remove('hidden');
+      window.timeplusSwitchExplainerTab(topic);
+    }
+  };
+
+  window.timeplusCloseExplainerModal = () => {
+    const modal = document.getElementById('modal-features-explainer');
+    if (modal) {
+      modal.classList.add('hidden');
+    }
+  };
+
+  window.timeplusSwitchExplainerTab = (topic) => {
+    const topics = ['timeline', 'places', 'ai', 'admin', 'cases'];
+    const active = topics.includes(topic) ? topic : 'timeline';
+
+    topics.forEach(t => {
+      const btn = document.getElementById(`explainer-tab-btn-${t}`);
+      const content = document.getElementById(`explainer-content-${t}`);
+      if (btn) {
+        if (t === active) {
+          btn.className = 'px-3.5 py-2 rounded-xl text-xs font-black bg-blue-600 text-white shadow-sm transition-all flex items-center gap-1.5';
+        } else {
+          btn.className = 'px-3.5 py-2 rounded-xl text-xs font-bold text-slate-600 hover:text-slate-900 hover:bg-slate-200 transition-all flex items-center gap-1.5';
+        }
+      }
+      if (content) {
+        if (t === active) {
+          content.classList.remove('hidden');
+        } else {
+          content.classList.add('hidden');
+        }
+      }
+    });
+  };
+
   // --- Modal de Inicio de Sesión (Landing Page -> Modal Login) ---
   window.timeplusOpenLoginModal = (tab = 'auto') => {
     if (viewLogin) {
