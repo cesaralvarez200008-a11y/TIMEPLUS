@@ -89,5 +89,84 @@ window.timeplusSupabase = {
     } catch (e) {
       return null;
     }
+  },
+
+  // Operaciones con la tabla client_requests en Supabase Cloud
+  async getClientRequests() {
+    if (!supabaseClient) return [];
+    try {
+      const { data, error } = await supabaseClient
+        .from('client_requests')
+        .select('*')
+        .order('created_at', { ascending: false });
+      if (error) {
+        console.warn('Info Supabase getClientRequests:', error.message);
+        return [];
+      }
+      return data || [];
+    } catch (e) {
+      console.warn('Exception fetching client_requests from Supabase:', e);
+      return [];
+    }
+  },
+
+  async addClientRequest(req) {
+    if (!supabaseClient) return null;
+    try {
+      const { data, error } = await supabaseClient
+        .from('client_requests')
+        .upsert({
+          name: req.name,
+          email: req.email,
+          password: req.password,
+          provider: req.provider || 'Google Workspace',
+          plan: req.plan || 'TIMEPLUS Connect Pro',
+          status: 'Pendiente'
+        }, { onConflict: 'email' })
+        .select();
+      if (error) {
+        console.warn('Error insertando client_request en Supabase:', error.message);
+        return null;
+      }
+      console.log('✅ Solicitud guardada en Supabase Cloud:', req.email);
+      return data?.[0] || null;
+    } catch (e) {
+      console.warn('Exception insertando client_request en Supabase:', e);
+      return null;
+    }
+  },
+
+  async updateClientRequestStatus(emailOrId, status) {
+    if (!supabaseClient) return false;
+    try {
+      let query = supabaseClient.from('client_requests').update({ status, updated_at: new Date().toISOString() });
+      if (emailOrId.includes('@')) {
+        query = query.eq('email', emailOrId);
+      } else {
+        query = query.eq('id', emailOrId);
+      }
+      const { error } = await query;
+      return !error;
+    } catch (e) {
+      return false;
+    }
+  },
+
+  // Escuchar cambios en vivo con Supabase Realtime
+  subscribeClientRequests(onUpdate) {
+    if (!supabaseClient) return null;
+    try {
+      const channel = supabaseClient
+        .channel('public:client_requests')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'client_requests' }, payload => {
+          console.log('⚡ Supabase Realtime: cambio en solicitudes de clientes:', payload);
+          if (typeof onUpdate === 'function') onUpdate(payload);
+        })
+        .subscribe();
+      return channel;
+    } catch (e) {
+      console.warn('Error suscribiendo a Supabase Realtime:', e);
+      return null;
+    }
   }
 };

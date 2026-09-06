@@ -38,8 +38,21 @@ document.addEventListener('DOMContentLoaded', () => {
     renderCurrentView();
     setupEventListeners();
     setupStoreSubscription();
+    setupSupabaseRealtime();
     updateClock();
     setInterval(updateClock, 30000);
+  }
+
+  function setupSupabaseRealtime() {
+    if (window.timeplusSupabase && typeof window.timeplusSupabase.subscribeClientRequests === 'function') {
+      window.timeplusSupabase.subscribeClientRequests(() => {
+        const user = store.getCurrentUser();
+        if (user && user.role === 'admin') {
+          renderAdminDashboard._fetchingCloud = false;
+          renderAdminDashboard();
+        }
+      });
+    }
   }
 
   function setupStoreSubscription() {
@@ -53,6 +66,10 @@ document.addEventListener('DOMContentLoaded', () => {
       const user = store.getCurrentUser();
       if (user && user.role === 'admin') {
         store.reloadFromStorage();
+        if (typeof renderAdminDashboard === 'function') {
+          renderAdminDashboard._fetchingCloud = false;
+          renderAdminDashboard();
+        }
       }
     }, 5000);
   }
@@ -308,22 +325,22 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     }
 
-    // Sincronizar solicitudes pendientes desde Supabase Cloud (si el cliente se registró en otro dispositivo/navegador)
-    if (window.timeplusSupabase && window.timeplusSupabase.client && !renderAdminDashboard._fetchingCloud) {
+    // Sincronizar solicitudes desde Supabase Cloud (tabla client_requests)
+    if (window.timeplusSupabase && typeof window.timeplusSupabase.getClientRequests === 'function' && !renderAdminDashboard._fetchingCloud) {
       renderAdminDashboard._fetchingCloud = true;
-      window.timeplusSupabase.client.from('profiles')
-        .select('*')
-        .eq('plan_status', 'pendiente')
-        .then(({ data, error }) => {
+      window.timeplusSupabase.getClientRequests()
+        .then(data => {
           renderAdminDashboard._fetchingCloud = false;
-          if (!error && Array.isArray(data) && data.length > 0) {
+          if (Array.isArray(data) && data.length > 0) {
             let hasNew = false;
             data.forEach(p => {
-              const allReqs = store.getClientRequests();
-              const found = allReqs.some(r => r.email && r.email.toLowerCase() === (p.email || '').toLowerCase());
-              if (!found) {
-                store.addClientRequest(p.full_name || p.email.split('@')[0], p.email, 'Registro Web Cloud', p.plan || 'TIMEPLUS Connect Pro', '123456');
-                hasNew = true;
+              if (p.status && p.status.toLowerCase() === 'pendiente') {
+                const allReqs = store.getClientRequests();
+                const found = allReqs.some(r => r.email && r.email.toLowerCase() === (p.email || '').toLowerCase());
+                if (!found) {
+                  store.addClientRequest(p.name, p.email, p.provider || 'Google Workspace', p.plan || 'TIMEPLUS Connect Pro', p.password || '');
+                  hasNew = true;
+                }
               }
             });
             if (hasNew) {
@@ -333,7 +350,6 @@ document.addEventListener('DOMContentLoaded', () => {
         })
         .catch(err => {
           renderAdminDashboard._fetchingCloud = false;
-          console.warn('Nota: Consulta Supabase perfiles pendientes:', err);
         });
     }
 
@@ -1554,18 +1570,16 @@ document.addEventListener('DOMContentLoaded', () => {
     const provider = email.includes('gmail') ? 'Google Workspace' : (email.includes('outlook') || email.includes('hotmail') ? 'Microsoft Outlook' : 'Correo Corporativo');
     store.addClientRequest(name, email, provider, plan, pass);
 
-    // Sincronizar de inmediato en Supabase Cloud para que se vea en cualquier navegador o dispositivo
-    if (window.timeplusSupabase && window.timeplusSupabase.client) {
+    // Sincronizar de inmediato en Supabase Cloud (tabla client_requests)
+    if (window.timeplusSupabase && typeof window.timeplusSupabase.addClientRequest === 'function') {
       try {
-        await window.timeplusSupabase.client.from('profiles').upsert({
-          email: email,
-          full_name: name,
-          role: 'client',
-          plan: plan,
-          plan_status: 'pendiente',
-          acquired_date: new Date().toISOString().split('T')[0]
-        }, { onConflict: 'email' });
-        console.log('✅ Solicitud sincronizada en Supabase Cloud:', email);
+        await window.timeplusSupabase.addClientRequest({
+          name,
+          email,
+          password: pass,
+          provider,
+          plan
+        });
       } catch (e) {
         console.warn('Nota Supabase registration sync:', e);
       }
@@ -1594,20 +1608,13 @@ document.addEventListener('DOMContentLoaded', () => {
     store.approveClientRequest(reqId);
     renderAdminDashboard();
 
-    // Sincronizar en vivo con la tabla profiles de Supabase
-    if (req && window.timeplusSupabase && window.timeplusSupabase.client) {
+    // Actualizar estado en Supabase Cloud
+    if (req && window.timeplusSupabase && typeof window.timeplusSupabase.updateClientRequestStatus === 'function') {
       try {
-        await window.timeplusSupabase.client.from('profiles').upsert({
-          email: req.email,
-          full_name: req.name,
-          role: 'client',
-          plan: req.plan,
-          plan_status: 'activo',
-          acquired_date: new Date().toISOString().split('T')[0]
-        }, { onConflict: 'email' });
-        console.log('✅ Cliente aprobado y sincronizado en Supabase Cloud:', req.email);
+        await window.timeplusSupabase.updateClientRequestStatus(req.email, 'Aprobado');
+        console.log('✅ Solicitud aprobada en Supabase Cloud:', req.email);
       } catch (err) {
-        console.warn('Error al sincronizar cliente en Supabase:', err);
+        console.warn('Error al aprobar cliente en Supabase:', err);
       }
     }
   };
@@ -1619,11 +1626,9 @@ document.addEventListener('DOMContentLoaded', () => {
       store.rejectClientRequest(reqId);
       renderAdminDashboard();
 
-      if (req && window.timeplusSupabase && window.timeplusSupabase.client) {
+      if (req && window.timeplusSupabase && typeof window.timeplusSupabase.updateClientRequestStatus === 'function') {
         try {
-          await window.timeplusSupabase.client.from('profiles').update({
-            plan_status: 'inactivo'
-          }).eq('email', req.email);
+          await window.timeplusSupabase.updateClientRequestStatus(req.email, 'Rechazado');
         } catch (err) {
           console.warn('Error al actualizar rechazo en Supabase:', err);
         }
