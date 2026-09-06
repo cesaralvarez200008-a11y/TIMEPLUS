@@ -20,6 +20,8 @@ const INITIAL_DATA = {
       }
     ],
     clientsList: [],
+    clientRequests: [],
+    clientRequestsPurgedV4: true,
     adminStats: {
       totalClients: 1420,
       activeLicenses: '98.4%',
@@ -309,21 +311,26 @@ class TimeplusStore {
     // Sincronización en tiempo real entre pestañas: cuando otra pestaña
     // escribe al localStorage, recargar datos y notificar a todos los listeners.
     window.addEventListener('storage', (e) => {
-      if (e.key === STORAGE_KEY && e.newValue) {
+      if ((e.key === STORAGE_KEY || e.key === 'TIMEPLUS_CLIENT_REQUESTS_BACKUP') && e.newValue) {
         try {
-          const fresh = JSON.parse(e.newValue);
-          // Preservar currentUser de la sesión actual
-          const currentUser = this.data.auth ? this.data.auth.currentUser : null;
-          this.data = fresh;
-          if (currentUser && this.data.auth) {
-            this.data.auth.currentUser = currentUser;
-          }
-          this.notify();
+          this.reloadFromStorage();
         } catch (err) {
           console.warn('Error al sincronizar datos entre pestañas:', err);
         }
       }
     });
+
+    // BroadcastChannel instantáneo entre pestañas
+    try {
+      if (window.BroadcastChannel) {
+        this.bc = new BroadcastChannel('timeplus_requests_channel');
+        this.bc.onmessage = (ev) => {
+          if (ev.data && (ev.data.type === 'NEW_CLIENT_REQUEST' || ev.data.type === 'REQUEST_UPDATED')) {
+            this.reloadFromStorage();
+          }
+        };
+      }
+    } catch (e) {}
   }
 
   loadData() {
@@ -618,9 +625,30 @@ class TimeplusStore {
 
   login(emailOrRole, password = '') {
     if (!this.data.auth) return null;
-    const account = this.data.auth.accounts.find(
-      a => a.role === emailOrRole || a.email.toLowerCase() === emailOrRole.toLowerCase()
-    );
+    // 1. Buscar en accounts (SuperAdmin)
+    let account = this.data.auth.accounts ? this.data.auth.accounts.find(
+      a => a.role === emailOrRole || (a.email && a.email.toLowerCase() === emailOrRole.toLowerCase())
+    ) : null;
+
+    // 2. Si no se encuentra en accounts, buscar en clientes aprobados
+    if (!account && this.data.auth.clientsList) {
+      const client = this.data.auth.clientsList.find(
+        c => (c.email && c.email.toLowerCase() === emailOrRole.toLowerCase()) || emailOrRole === 'client'
+      );
+      if (client) {
+        account = {
+          id: client.id,
+          email: client.email,
+          role: 'client',
+          roleTitle: '2. Quien adquiere la app',
+          roleLabel: 'Cliente / Suscriptor Activo',
+          name: client.name,
+          plan: client.plan,
+          avatar: '👤'
+        };
+      }
+    }
+
     if (account) {
       this.data.auth.currentUser = { ...account };
       this.saveData();
@@ -640,17 +668,47 @@ class TimeplusStore {
     return this.login(targetRole);
   }
 
+  _syncRequestsBackup() {
+    try {
+      localStorage.setItem('TIMEPLUS_CLIENT_REQUESTS_BACKUP', JSON.stringify(this.data.auth.clientRequests || []));
+    } catch (e) {
+      console.warn('Error syncing backup:', e);
+    }
+  }
+
   // Solicitudes de nuevos clientes (Google / Outlook / Email) pendientes de aprobación
   getClientRequests() {
+    if (!this.data.auth) this.data.auth = {};
     if (!this.data.auth.clientRequests) {
       this.data.auth.clientRequests = [];
-      this.saveData();
     }
+
+    // Recuperar e integrar cualquier solicitud guardada en el backup redundante
+    try {
+      const rawBackup = localStorage.getItem('TIMEPLUS_CLIENT_REQUESTS_BACKUP');
+      if (rawBackup) {
+        const backup = JSON.parse(rawBackup);
+        if (Array.isArray(backup) && backup.length > 0) {
+          backup.forEach(bReq => {
+            const index = this.data.auth.clientRequests.findIndex(r => r.id === bReq.id || (r.email && r.email.toLowerCase() === bReq.email.toLowerCase()));
+            if (index === -1) {
+              this.data.auth.clientRequests.unshift(bReq);
+            }
+          });
+        }
+      }
+    } catch (e) {
+      console.warn('Error leyendo backup de solicitudes:', e);
+    }
+
     return this.data.auth.clientRequests;
   }
 
   addClientRequest(name, email, provider, plan, password = '') {
     const requests = this.getClientRequests();
+    
+    // Evitar duplicados pendientes exactos
+    const existingIdx = requests.findIndex(r => r.email && r.email.toLowerCase() === (email || '').toLowerCase());
     const newReq = {
       id: 'req-' + Date.now(),
       name: name || email.split('@')[0],
@@ -661,8 +719,25 @@ class TimeplusStore {
       status: 'Pendiente',
       requestedAt: 'Hoy, ' + new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
     };
-    requests.unshift(newReq);
+
+    if (existingIdx !== -1) {
+      requests[existingIdx] = newReq;
+    } else {
+      requests.unshift(newReq);
+    }
+
     this.saveData();
+    this._syncRequestsBackup();
+
+    // Notificar instantáneamente a todas las pestañas vía BroadcastChannel
+    try {
+      if (window.BroadcastChannel) {
+        const bc = new BroadcastChannel('timeplus_requests_channel');
+        bc.postMessage({ type: 'NEW_CLIENT_REQUEST', request: newReq });
+        bc.close();
+      }
+    } catch (e) {}
+
     return newReq;
   }
 
@@ -672,7 +747,9 @@ class TimeplusStore {
     req.status = 'Aprobado';
 
     // Agregar a la lista de clientes activos con su contraseña
-    this.data.auth.clientsList.unshift({
+    if (!this.data.auth.clientsList) this.data.auth.clientsList = [];
+    const clientIdx = this.data.auth.clientsList.findIndex(c => c.email && c.email.toLowerCase() === req.email.toLowerCase());
+    const clientData = {
       id: 'cli-' + Date.now(),
       name: req.name,
       email: req.email,
@@ -683,9 +760,25 @@ class TimeplusStore {
       activitiesCount: 0,
       placesCount: 0,
       iaQueriesCount: 0
-    });
+    };
+
+    if (clientIdx !== -1) {
+      this.data.auth.clientsList[clientIdx] = clientData;
+    } else {
+      this.data.auth.clientsList.unshift(clientData);
+    }
 
     this.saveData();
+    this._syncRequestsBackup();
+
+    try {
+      if (window.BroadcastChannel) {
+        const bc = new BroadcastChannel('timeplus_requests_channel');
+        bc.postMessage({ type: 'REQUEST_UPDATED' });
+        bc.close();
+      }
+    } catch (e) {}
+
     this.notify();
   }
 
@@ -694,6 +787,16 @@ class TimeplusStore {
     if (req) {
       req.status = 'Rechazado';
       this.saveData();
+      this._syncRequestsBackup();
+
+      try {
+        if (window.BroadcastChannel) {
+          const bc = new BroadcastChannel('timeplus_requests_channel');
+          bc.postMessage({ type: 'REQUEST_UPDATED' });
+          bc.close();
+        }
+      } catch (e) {}
+
       this.notify();
     }
   }

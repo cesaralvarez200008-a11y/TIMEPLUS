@@ -308,6 +308,35 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     }
 
+    // Sincronizar solicitudes pendientes desde Supabase Cloud (si el cliente se registró en otro dispositivo/navegador)
+    if (window.timeplusSupabase && window.timeplusSupabase.client && !renderAdminDashboard._fetchingCloud) {
+      renderAdminDashboard._fetchingCloud = true;
+      window.timeplusSupabase.client.from('profiles')
+        .select('*')
+        .eq('plan_status', 'pendiente')
+        .then(({ data, error }) => {
+          renderAdminDashboard._fetchingCloud = false;
+          if (!error && Array.isArray(data) && data.length > 0) {
+            let hasNew = false;
+            data.forEach(p => {
+              const allReqs = store.getClientRequests();
+              const found = allReqs.some(r => r.email && r.email.toLowerCase() === (p.email || '').toLowerCase());
+              if (!found) {
+                store.addClientRequest(p.full_name || p.email.split('@')[0], p.email, 'Registro Web Cloud', p.plan || 'TIMEPLUS Connect Pro', '123456');
+                hasNew = true;
+              }
+            });
+            if (hasNew) {
+              renderAdminDashboard();
+            }
+          }
+        })
+        .catch(err => {
+          renderAdminDashboard._fetchingCloud = false;
+          console.warn('Nota: Consulta Supabase perfiles pendientes:', err);
+        });
+    }
+
     // 2. Renderizar clientes aprobados con licencias activas
     const tbody = document.getElementById('admin-clients-table-body');
     const badgeActive = document.getElementById('badge-active-clients-count');
@@ -1207,7 +1236,10 @@ document.addEventListener('DOMContentLoaded', () => {
   // Botón 🔄 Actualizar del panel de solicitudes admin
   window.timeplusRefreshAdminRequests = () => {
     store.reloadFromStorage();
-    renderAdminDashboard();
+    if (typeof renderAdminDashboard === 'function') {
+      renderAdminDashboard._fetchingCloud = false;
+      renderAdminDashboard();
+    }
     // Feedback visual en el botón
     const btn = document.querySelector('[onclick="window.timeplusRefreshAdminRequests()"]');
     if (btn) {
@@ -1219,7 +1251,7 @@ document.addEventListener('DOMContentLoaded', () => {
         btn.innerHTML = original;
         btn.disabled = false;
         btn.classList.remove('opacity-60');
-      }, 1500);
+      }, 1200);
     }
   };
 
@@ -1473,7 +1505,7 @@ document.addEventListener('DOMContentLoaded', () => {
   };
 
   // Formulario manual de registro de cliente (con creación de contraseña)
-  window.timeplusHandleClientRegistration = () => {
+  window.timeplusHandleClientRegistration = async () => {
     const nameInput = document.getElementById('client-reg-name');
     const emailInput = document.getElementById('client-reg-email');
     const passInput = document.getElementById('client-reg-pass');
@@ -1507,6 +1539,23 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const provider = email.includes('gmail') ? 'Google Workspace' : (email.includes('outlook') || email.includes('hotmail') ? 'Microsoft Outlook' : 'Correo Corporativo');
     store.addClientRequest(name, email, provider, plan, pass);
+
+    // Sincronizar de inmediato en Supabase Cloud para que se vea en cualquier navegador o dispositivo
+    if (window.timeplusSupabase && window.timeplusSupabase.client) {
+      try {
+        await window.timeplusSupabase.client.from('profiles').upsert({
+          email: email,
+          full_name: name,
+          role: 'client',
+          plan: plan,
+          plan_status: 'pendiente',
+          acquired_date: new Date().toISOString().split('T')[0]
+        }, { onConflict: 'email' });
+        console.log('✅ Solicitud sincronizada en Supabase Cloud:', email);
+      } catch (e) {
+        console.warn('Nota Supabase registration sync:', e);
+      }
+    }
 
     // Si el SuperAdmin ya está logueado en esta sesión, actualizar su dashboard en tiempo real
     const currentUser = store.getCurrentUser();
