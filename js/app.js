@@ -1044,7 +1044,14 @@ document.addEventListener('DOMContentLoaded', () => {
     store.login(role);
     renderCurrentView();
   };
-  window.timeplusLogout = () => {
+  window.timeplusLogout = async () => {
+    try {
+      if (window.timeplusSupabase && window.timeplusSupabase.client) {
+        await window.timeplusSupabase.client.auth.signOut();
+      }
+    } catch (e) {
+      console.warn('Error signOut supabase:', e);
+    }
     store.logout();
     renderCurrentView();
   };
@@ -1068,5 +1075,120 @@ document.addEventListener('DOMContentLoaded', () => {
   };
   window.timeplusSwitchAccountModal = () => {
     window.timeplusToggleRoleDirect();
+  };
+
+  // Form Login Handler (Supabase Auth + Local)
+  window.timeplusHandleFormLogin = async () => {
+    const emailInput = document.getElementById('login-input-email');
+    const passInput = document.getElementById('login-input-password');
+    const errEl = document.getElementById('login-error-msg');
+    const succEl = document.getElementById('login-success-msg');
+
+    if (errEl) errEl.classList.add('hidden');
+    if (succEl) succEl.classList.add('hidden');
+
+    const email = emailInput ? emailInput.value.trim() : '';
+    const pass = passInput ? passInput.value : '';
+
+    if (!email || !pass) {
+      if (errEl) {
+        errEl.textContent = 'Por favor ingresa correo y contraseña.';
+        errEl.classList.remove('hidden');
+      }
+      return;
+    }
+
+    // 1. Intentar inicio de sesión con Supabase Auth si está disponible
+    if (window.timeplusSupabase && window.timeplusSupabase.client) {
+      try {
+        const { data, error } = await window.timeplusSupabase.client.auth.signInWithPassword({
+          email: email,
+          password: pass
+        });
+
+        if (!error && data && data.user) {
+          const isAdmin = email.toLowerCase() === 'ces.rodriguez200@gmail.com';
+          store.login(isAdmin ? 'admin' : 'client');
+          renderCurrentView();
+          return;
+        }
+      } catch (err) {
+        console.warn('Fallo Supabase Auth, verificando local:', err);
+      }
+    }
+
+    // 2. Verificación local (credenciales fijas)
+    const loggedUser = store.login(email, pass);
+    if (loggedUser) {
+      renderCurrentView();
+    } else {
+      if (errEl) {
+        errEl.textContent = 'Credenciales no coinciden. Para el SuperAdmin usa ces.rodriguez200@gmail.com con su clave o presiona Registrar en Supabase.';
+        errEl.classList.remove('hidden');
+      }
+    }
+  };
+
+  // Form Register Handler con Supabase Auth
+  window.timeplusHandleRegisterSupabase = async () => {
+    const emailInput = document.getElementById('login-input-email');
+    const passInput = document.getElementById('login-input-password');
+    const errEl = document.getElementById('login-error-msg');
+    const succEl = document.getElementById('login-success-msg');
+
+    if (errEl) errEl.classList.add('hidden');
+    if (succEl) succEl.classList.add('hidden');
+
+    const email = emailInput ? emailInput.value.trim() : '';
+    const pass = passInput ? passInput.value : '';
+
+    if (!email || !pass) {
+      if (errEl) {
+        errEl.textContent = 'Ingresa el correo y la contraseña que deseas registrar.';
+        errEl.classList.remove('hidden');
+      }
+      return;
+    }
+
+    if (!window.timeplusSupabase || !window.timeplusSupabase.client) {
+      if (errEl) {
+        errEl.textContent = 'El cliente de Supabase no está listo.';
+        errEl.classList.remove('hidden');
+      }
+      return;
+    }
+
+    try {
+      const { data, error } = await window.timeplusSupabase.client.auth.signUp({
+        email: email,
+        password: pass,
+        options: {
+          data: {
+            full_name: email.toLowerCase() === 'ces.rodriguez200@gmail.com' ? 'César Rodríguez' : 'Usuario TIMEPLUS'
+          }
+        }
+      });
+
+      if (error) {
+        if (errEl) {
+          errEl.textContent = `Error al registrar: ${error.message}`;
+          errEl.classList.remove('hidden');
+        }
+      } else {
+        if (succEl) {
+          succEl.textContent = '¡Usuario registrado en Supabase! Ya puedes iniciar sesión.';
+          succEl.classList.remove('hidden');
+        }
+        // Iniciar sesión directamente
+        const isAdmin = email.toLowerCase() === 'ces.rodriguez200@gmail.com';
+        store.login(isAdmin ? 'admin' : 'client');
+        setTimeout(() => renderCurrentView(), 800);
+      }
+    } catch (err) {
+      if (errEl) {
+        errEl.textContent = `Excepción al conectar con Supabase: ${err.message}`;
+        errEl.classList.remove('hidden');
+      }
+    }
   };
 });
