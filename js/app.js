@@ -255,7 +255,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const requestsTbody = document.getElementById('admin-requests-table-body');
     const badgePending = document.getElementById('badge-pending-count');
     const requests = store.getClientRequests ? store.getClientRequests() : [];
-    const pendingList = requests.filter(r => r.status === 'Pendiente');
+    const pendingList = requests.filter(r => !r.status || r.status.toLowerCase() === 'pendiente');
 
     if (badgePending) {
       badgePending.textContent = `${pendingList.length} pendientes`;
@@ -1253,6 +1253,20 @@ document.addEventListener('DOMContentLoaded', () => {
         btn.classList.remove('opacity-60');
       }, 1200);
     }
+  };
+
+  // Botón ➕ Simular Solicitud instantánea para pruebas del SuperAdmin
+  window.timeplusSimulateRequest = () => {
+    const randomNum = Math.floor(Math.random() * 900) + 100;
+    const names = ['Dr. Alejandro Morales', 'Dra. Sofía Restrepo', 'Arq. Carlos Mendoza', 'Lic. Valentina Ortiz'];
+    const plans = ['TIMEPLUS Connect Pro', 'TIMEPLUS Médico & Citas', 'TIMEPLUS Corporativo'];
+    const chosenName = names[Math.floor(Math.random() * names.length)];
+    const chosenPlan = plans[Math.floor(Math.random() * plans.length)];
+    const fakeEmail = `cliente.${randomNum}@gmail.com`;
+
+    store.addClientRequest(chosenName, fakeEmail, 'Google Workspace', chosenPlan, '123456');
+    renderAdminDashboard();
+    alert(`✨ Solicitud simulada creada con éxito:\n\nNombre: ${chosenName}\nCorreo: ${fakeEmail}\nPlan: ${chosenPlan}\n\nYa está visible en tu tabla para Aprobar o Rechazar.`);
   };
 
   // --- Modal Explicativo ("¿Para qué sirve TIMEPLUS?") ---
