@@ -331,6 +331,15 @@ class TimeplusStore {
             }
             parsed.auth.clientsPurgedV3 = true;
           }
+          // Purga V4: eliminar solicitudes de prueba hardcodeadas (req-1, req-2) de localStorage
+          if (parsed.auth.clientRequestsPurgedV4 !== true) {
+            if (parsed.auth.clientRequests) {
+              parsed.auth.clientRequests = parsed.auth.clientRequests.filter(
+                r => r.id !== 'req-1' && r.id !== 'req-2'
+              );
+            }
+            parsed.auth.clientRequestsPurgedV4 = true;
+          }
         }
         return parsed;
       }
@@ -597,26 +606,7 @@ class TimeplusStore {
   // Solicitudes de nuevos clientes (Google / Outlook / Email) pendientes de aprobación
   getClientRequests() {
     if (!this.data.auth.clientRequests) {
-      this.data.auth.clientRequests = [
-        {
-          id: 'req-1',
-          name: 'Dra. Camila Vargas',
-          email: 'camila.vargas@medplus.org',
-          provider: 'Google Workspace',
-          plan: 'TIMEPLUS Médico & Citas',
-          status: 'Pendiente',
-          requestedAt: '05 Sep 2026, 18:30'
-        },
-        {
-          id: 'req-2',
-          name: 'Ing. Fernando Rios',
-          email: 'fernando.rios@outlook.com',
-          provider: 'Microsoft Outlook',
-          plan: 'TIMEPLUS Connect Pro',
-          status: 'Pendiente',
-          requestedAt: '05 Sep 2026, 20:15'
-        }
-      ];
+      this.data.auth.clientRequests = [];
       this.saveData();
     }
     return this.data.auth.clientRequests;

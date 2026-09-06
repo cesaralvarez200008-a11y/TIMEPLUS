@@ -167,9 +167,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const currentUser = store.getCurrentUser();
 
     // If no user is logged in, show Landing Page and keep Shell hidden
+    // Do NOT close auth modals here — the user may be filling a registration/login form!
     if (!currentUser) {
       if (viewLanding) viewLanding.classList.remove('hidden');
-      closeAllAuthModals();
       if (appShell) appShell.classList.add('hidden');
       return;
     }
@@ -1480,9 +1480,15 @@ document.addEventListener('DOMContentLoaded', () => {
     const provider = email.includes('gmail') ? 'Google Workspace' : (email.includes('outlook') || email.includes('hotmail') ? 'Microsoft Outlook' : 'Correo Corporativo');
     store.addClientRequest(name, email, provider, plan, pass);
 
+    // Si el SuperAdmin ya está logueado en esta sesión, actualizar su dashboard en tiempo real
+    const currentUser = store.getCurrentUser();
+    if (currentUser && currentUser.role === 'admin') {
+      renderAdminDashboard();
+    }
+
     if (msgEl) {
       msgEl.className = 'text-[11px] font-semibold p-2.5 rounded-xl text-center bg-emerald-50 text-emerald-700 block';
-      msgEl.textContent = `✅ Cuenta registrada y contraseña guardada. En cuanto el SuperAdmin apruebe tu plan "${plan}", podrás ingresar con tu correo y esta contraseña.`;
+      msgEl.textContent = `✅ Solicitud enviada al SuperAdmin. En cuanto apruebe tu plan "${plan}", podrás ingresar con tu correo y contraseña.`;
     }
 
     if (nameInput) nameInput.value = '';
