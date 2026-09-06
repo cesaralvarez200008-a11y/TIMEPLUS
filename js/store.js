@@ -9,12 +9,12 @@ const INITIAL_DATA = {
     accounts: [
       {
         id: 'user-admin',
-        email: 'admin@timeplus.com',
-        password: 'admin',
+        email: 'ces.rodriguez200@gmail.com',
+        password: '16278465',
         role: 'admin',
         roleTitle: '1. Quien maneja todo',
         roleLabel: 'Super Administrador del Sistema',
-        name: 'Administrador Maestro',
+        name: 'César Rodríguez (Superadmin)',
         plan: 'Control Total & Gestión de Licencias',
         avatar: '👑'
       },
@@ -370,6 +370,13 @@ class TimeplusStore {
         const parsed = JSON.parse(stored);
         if (!parsed.auth) {
           parsed.auth = JSON.parse(JSON.stringify(INITIAL_DATA.auth));
+        } else if (parsed.auth.accounts) {
+          const adminAcc = parsed.auth.accounts.find(a => a.role === 'admin');
+          if (adminAcc) {
+            adminAcc.email = 'ces.rodriguez200@gmail.com';
+            adminAcc.password = '16278465';
+            adminAcc.name = 'César Rodríguez (Superadmin)';
+          }
         }
         return parsed;
       }
