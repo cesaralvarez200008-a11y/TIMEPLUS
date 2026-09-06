@@ -1,0 +1,12 @@
+# Operating System files
+.DS_Store
+Thumbs.db
+
+# Node / Development caches
+node_modules/
+.vscode/
+.idea/
+*.log
+
+# Temp probe
+test_probe.txt
