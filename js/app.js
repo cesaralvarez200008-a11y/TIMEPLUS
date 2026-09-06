@@ -1217,19 +1217,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Autenticación Social (Google Workspace / Microsoft Outlook)
   window.timeplusSocialAuth = (provider) => {
-    const promptEmail = prompt(`[${provider}] Ingresa el correo de tu cuenta:`, provider.includes('Google') ? 'usuario@gmail.com' : 'usuario@outlook.com');
+    const promptEmail = prompt(`[${provider}] Ingresa tu correo de usuario:`, provider.includes('Google') ? 'usuario@gmail.com' : 'usuario@outlook.com');
     if (!promptEmail || !promptEmail.includes('@')) return;
 
     const name = prompt('Ingresa tu nombre o empresa: ', promptEmail.split('@')[0]);
     const plan = prompt('Plan que deseas adquirir (ej: TIMEPLUS Connect Pro / TIMEPLUS Médico & Citas / TIMEPLUS Corporativo):', 'TIMEPLUS Connect Pro') || 'TIMEPLUS Connect Pro';
 
-    // Registrar solicitud pendiente para que el SuperAdmin la apruebe
+    // Registrar solicitud pendiente directa en el aplicativo para que el SuperAdmin la apruebe en su panel
     store.addClientRequest(name, promptEmail, provider, plan);
 
-    alert(`¡Solicitud enviada con éxito mediante ${provider}!\n\nTu cuenta (${promptEmail}) y el plan "${plan}" fueron remitidos al SuperAdmin (ces.rodriguez200@gmail.com) para su aprobación.\n\nTe notificaremos en cuanto el acceso sea habilitado.`);
+    alert(`¡Solicitud enviada directamente al aplicativo!\n\nUsuario: ${promptEmail}\nPlan: ${plan}\n\nLa solicitud ya está en la bandeja del Panel del SuperAdmin. El administrador la aceptará directamente desde su pantalla.`);
   };
 
-  // Formulario manual de registro de cliente (para aprobación)
+  // Formulario manual de registro de cliente (directo al aplicativo)
   window.timeplusHandleClientRegistration = () => {
     const nameInput = document.getElementById('client-reg-name');
     const emailInput = document.getElementById('client-reg-email');
@@ -1247,7 +1247,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (msgEl) {
       msgEl.className = 'text-[11px] font-semibold p-2.5 rounded-xl text-center bg-emerald-50 text-emerald-700 block';
-      msgEl.textContent = `✅ Solicitud enviada al SuperAdmin para aprobación. En cuanto apruebe tu plan "${plan}", tu cuenta quedará activa.`;
+      msgEl.textContent = `✅ Solicitud enviada directamente al aplicativo del SuperAdmin. En cuanto el administrador acepte tu plan "${plan}" en su panel, tu cuenta quedará lista.`;
     }
 
     if (nameInput) nameInput.value = '';
