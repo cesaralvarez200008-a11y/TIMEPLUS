@@ -635,12 +635,13 @@ class TimeplusStore {
     return this.data.auth.clientRequests;
   }
 
-  addClientRequest(name, email, provider, plan) {
+  addClientRequest(name, email, provider, plan, password = '') {
     const requests = this.getClientRequests();
     const newReq = {
       id: 'req-' + Date.now(),
       name: name || email.split('@')[0],
       email: email,
+      password: password,
       provider: provider || 'Google Workspace',
       plan: plan || 'TIMEPLUS Connect Pro',
       status: 'Pendiente',
@@ -656,11 +657,12 @@ class TimeplusStore {
     if (!req) return;
     req.status = 'Aprobado';
 
-    // Agregar a la lista de clientes activos
+    // Agregar a la lista de clientes activos con su contraseña
     this.data.auth.clientsList.unshift({
       id: 'cli-' + Date.now(),
       name: req.name,
       email: req.email,
+      password: req.password || '123456',
       plan: req.plan,
       status: 'Activo',
       acquiredDate: 'Hoy',

@@ -1294,21 +1294,33 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   };
 
-  // Formulario de login para cliente aprobado
+  // Formulario de login para cliente aprobado (Valida Correo + Contraseña)
   window.timeplusHandleClientApprovedLogin = () => {
     const emailInput = document.getElementById('client-login-email');
+    const passInput = document.getElementById('client-login-password');
     const msgEl = document.getElementById('client-login-msg');
-    const email = emailInput ? emailInput.value.trim() : '';
 
-    if (!email) return;
+    const email = emailInput ? emailInput.value.trim() : '';
+    const pass = passInput ? passInput.value : '';
+
+    if (!email || !pass) return;
 
     const clients = store.getClientsList();
     const approved = clients.find(c => c.email.toLowerCase() === email.toLowerCase());
 
     if (approved) {
+      // Si el cliente tiene contraseña guardada, validarla (o permitir clave por defecto)
+      if (approved.password && approved.password !== pass) {
+        if (msgEl) {
+          msgEl.className = 'text-[11px] font-semibold p-2.5 rounded-xl text-center bg-red-50 text-red-700 border border-red-200 block';
+          msgEl.textContent = '❌ La contraseña ingresada es incorrecta.';
+        }
+        return;
+      }
+
       if (msgEl) {
         msgEl.className = 'text-[11px] font-semibold p-2.5 rounded-xl text-center bg-emerald-50 text-emerald-700 block';
-        msgEl.textContent = `✓ Cuenta aprobada encontrada (${approved.name} - ${approved.plan}). Iniciando agenda...`;
+        msgEl.textContent = `✓ ¡Acceso autorizado! Bienvenido ${approved.name} (${approved.plan}). Iniciando tu agenda...`;
       }
       setTimeout(() => {
         store.login('client');
@@ -1317,7 +1329,7 @@ document.addEventListener('DOMContentLoaded', () => {
     } else {
       if (msgEl) {
         msgEl.className = 'text-[11px] font-semibold p-2.5 rounded-xl text-center bg-amber-50 text-amber-800 border border-amber-200 block';
-        msgEl.textContent = `El correo "${email}" aún no tiene aprobación activa del SuperAdmin. Si ya enviaste la solicitud, espera a que sea aceptada.`;
+        msgEl.textContent = `El correo "${email}" aún no tiene aprobación activa del SuperAdmin. Si ya enviaste la solicitud, espera a que sea aprobada.`;
       }
     }
   };
@@ -1328,37 +1340,60 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!promptEmail || !promptEmail.includes('@')) return;
 
     const name = prompt('Ingresa tu nombre o empresa: ', promptEmail.split('@')[0]);
+    const pass = prompt('Crea tu contraseña para esta cuenta (mínimo 6 caracteres):', '123456') || '123456';
     const plan = prompt('Plan que deseas adquirir (ej: TIMEPLUS Connect Pro / TIMEPLUS Médico & Citas / TIMEPLUS Corporativo):', 'TIMEPLUS Connect Pro') || 'TIMEPLUS Connect Pro';
 
-    // Registrar solicitud pendiente directa en el aplicativo para que el SuperAdmin la apruebe en su panel
-    store.addClientRequest(name, promptEmail, provider, plan);
+    // Registrar solicitud pendiente directa en el aplicativo con contraseña
+    store.addClientRequest(name, promptEmail, provider, plan, pass);
 
-    alert(`¡Solicitud enviada directamente al aplicativo!\n\nUsuario: ${promptEmail}\nPlan: ${plan}\n\nLa solicitud ya está en la bandeja del Panel del SuperAdmin. El administrador la aceptará directamente desde su pantalla.`);
+    alert(`¡Solicitud enviada directamente al aplicativo!\n\nUsuario: ${promptEmail}\nPlan: ${plan}\nContraseña configurada.\n\nLa solicitud ya está en la bandeja del SuperAdmin para su aprobación.`);
   };
 
-  // Formulario manual de registro de cliente (directo al aplicativo)
+  // Formulario manual de registro de cliente (con creación de contraseña)
   window.timeplusHandleClientRegistration = () => {
     const nameInput = document.getElementById('client-reg-name');
     const emailInput = document.getElementById('client-reg-email');
+    const passInput = document.getElementById('client-reg-pass');
+    const passConfirmInput = document.getElementById('client-reg-pass-confirm');
     const planSelect = document.getElementById('client-reg-plan');
     const msgEl = document.getElementById('client-reg-msg');
 
     const name = nameInput ? nameInput.value.trim() : '';
     const email = emailInput ? emailInput.value.trim() : '';
+    const pass = passInput ? passInput.value : '';
+    const passConfirm = passConfirmInput ? passConfirmInput.value : '';
     const plan = planSelect ? planSelect.value : 'TIMEPLUS Connect Pro';
 
-    if (!email || !name) return;
+    if (!email || !name || !pass) return;
+
+    if (pass !== passConfirm) {
+      if (msgEl) {
+        msgEl.className = 'text-[11px] font-semibold p-2.5 rounded-xl text-center bg-red-50 text-red-700 border border-red-200 block';
+        msgEl.textContent = '❌ Las contraseñas no coinciden. Por favor verifícalas.';
+      }
+      return;
+    }
+
+    if (pass.length < 6) {
+      if (msgEl) {
+        msgEl.className = 'text-[11px] font-semibold p-2.5 rounded-xl text-center bg-red-50 text-red-700 border border-red-200 block';
+        msgEl.textContent = '❌ La contraseña debe tener al menos 6 caracteres.';
+      }
+      return;
+    }
 
     const provider = email.includes('gmail') ? 'Google Workspace' : (email.includes('outlook') || email.includes('hotmail') ? 'Microsoft Outlook' : 'Correo Corporativo');
-    store.addClientRequest(name, email, provider, plan);
+    store.addClientRequest(name, email, provider, plan, pass);
 
     if (msgEl) {
       msgEl.className = 'text-[11px] font-semibold p-2.5 rounded-xl text-center bg-emerald-50 text-emerald-700 block';
-      msgEl.textContent = `✅ Solicitud enviada directamente al aplicativo del SuperAdmin. En cuanto el administrador acepte tu plan "${plan}" en su panel, tu cuenta quedará lista.`;
+      msgEl.textContent = `✅ Cuenta registrada y contraseña guardada. En cuanto el SuperAdmin apruebe tu plan "${plan}", podrás ingresar con tu correo y esta contraseña.`;
     }
 
     if (nameInput) nameInput.value = '';
     if (emailInput) emailInput.value = '';
+    if (passInput) passInput.value = '';
+    if (passConfirmInput) passConfirmInput.value = '';
   };
 
   // SuperAdmin Aprueba un cliente (Sincronizado con Supabase Cloud)
