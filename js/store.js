@@ -17,32 +17,9 @@ const INITIAL_DATA = {
         name: 'César Rodríguez (Superadmin)',
         plan: 'Control Total & Gestión de Licencias',
         avatar: '👑'
-      },
-      {
-        id: 'user-client',
-        email: 'rafael@timeplus.com',
-        password: '123',
-        role: 'client',
-        roleTitle: '2. Quien adquiere la aplicación',
-        roleLabel: 'Cliente / Suscriptor Activo',
-        name: 'Rafael Carvajal',
-        plan: 'TIMEPLUS Connect Pro',
-        avatar: 'RC'
       }
     ],
-    clientsList: [
-      {
-        id: 'cli-1',
-        name: 'Rafael Carvajal',
-        email: 'rafael@timeplus.com',
-        plan: 'TIMEPLUS Connect Pro',
-        status: 'Activo',
-        acquiredDate: 'Hoy',
-        activitiesCount: 6,
-        placesCount: 4,
-        iaQueriesCount: 12
-      }
-    ],
+    clientsList: [],
     adminStats: {
       totalClients: 1420,
       activeLicenses: '98.4%',
@@ -337,12 +314,22 @@ class TimeplusStore {
         const parsed = JSON.parse(stored);
         if (!parsed.auth) {
           parsed.auth = JSON.parse(JSON.stringify(INITIAL_DATA.auth));
-        } else if (parsed.auth.accounts) {
-          const adminAcc = parsed.auth.accounts.find(a => a.role === 'admin');
-          if (adminAcc) {
-            adminAcc.email = 'ces.rodriguez200@gmail.com';
-            adminAcc.password = '16278465';
-            adminAcc.name = 'César Rodríguez (Superadmin)';
+        } else {
+          if (parsed.auth.accounts) {
+            const adminAcc = parsed.auth.accounts.find(a => a.role === 'admin');
+            if (adminAcc) {
+              adminAcc.email = 'ces.rodriguez200@gmail.com';
+              adminAcc.password = '16278465';
+              adminAcc.name = 'César Rodríguez (Superadmin)';
+            }
+          }
+          // Purga automática solicitada por el usuario para dejar la lista de clientes en blanco
+          if (parsed.auth.clientsPurgedV3 !== true) {
+            parsed.auth.clientsList = [];
+            if (parsed.auth.accounts) {
+              parsed.auth.accounts = parsed.auth.accounts.filter(a => a.role === 'admin');
+            }
+            parsed.auth.clientsPurgedV3 = true;
           }
         }
         return parsed;
@@ -682,6 +669,31 @@ class TimeplusStore {
       this.saveData();
       this.notify();
     }
+  }
+
+  deleteClient(emailOrId) {
+    if (!this.data.auth || !this.data.auth.clientsList) return;
+    const lower = (emailOrId || '').toLowerCase().trim();
+    this.data.auth.clientsList = this.data.auth.clientsList.filter(
+      c => c.id !== emailOrId && (c.email || '').toLowerCase().trim() !== lower
+    );
+    if (this.data.auth.accounts) {
+      this.data.auth.accounts = this.data.auth.accounts.filter(
+        a => (a.email || '').toLowerCase().trim() !== lower || a.role === 'admin'
+      );
+    }
+    this.saveData();
+    this.notify();
+  }
+
+  clearAllClients() {
+    if (!this.data.auth) return;
+    this.data.auth.clientsList = [];
+    if (this.data.auth.accounts) {
+      this.data.auth.accounts = this.data.auth.accounts.filter(a => a.role === 'admin');
+    }
+    this.saveData();
+    this.notify();
   }
 }
 

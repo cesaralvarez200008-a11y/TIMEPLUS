@@ -903,16 +903,21 @@
 
           <!-- Clients Table: Quienes adquieren la aplicación -->
           <div class="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm space-y-4">
-            <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b border-slate-100 gap-3">
               <div>
                 <h2 class="text-base font-black text-slate-900 flex items-center gap-2">
                   <span>👥</span> Clientes con Acceso Aprobado y Licencia Activa
                 </h2>
                 <p class="text-xs text-slate-500 mt-0.5">Listado de suscriptores con licencias activas y métricas de uso.</p>
               </div>
-              <span id="badge-active-clients-count" class="text-xs font-bold text-indigo-600 bg-indigo-50 px-3 py-1 rounded-full">
-                4 clientes activos
-              </span>
+              <div class="flex items-center gap-2">
+                <span id="badge-active-clients-count" class="text-xs font-bold text-indigo-600 bg-indigo-50 px-3 py-1 rounded-full">
+                  0 clientes activos
+                </span>
+                <button onclick="window.timeplusClearAllClients()" class="text-xs font-bold text-red-600 hover:text-red-700 bg-red-50 hover:bg-red-100 border border-red-200 px-3 py-1 rounded-full transition-all flex items-center gap-1 shadow-2xs" title="Eliminar todos los clientes">
+                  <span>🗑️</span> <span>Vaciar Todos</span>
+                </button>
+              </div>
             </div>
 
             <!-- Responsive Table -->

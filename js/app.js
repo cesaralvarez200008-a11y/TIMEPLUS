@@ -306,30 +306,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let clients = store.getClientsList();
 
-    // Consultar clientes reales registrados en la nube de Supabase si está disponible
-    if (window.timeplusSupabase && window.timeplusSupabase.client) {
-      window.timeplusSupabase.getProfiles().then(profiles => {
-        if (profiles && profiles.length > 0) {
-          const cloudClients = profiles.filter(p => p.role === 'client');
-          cloudClients.forEach(cp => {
-            if (!clients.some(c => c.email.toLowerCase() === cp.email.toLowerCase())) {
-              clients.unshift({
-                id: cp.id,
-                name: cp.full_name || cp.email.split('@')[0],
-                email: cp.email,
-                plan: cp.plan || 'TIMEPLUS Connect Pro',
-                status: cp.plan_status === 'activo' ? 'Activo' : 'Inactivo',
-                acquiredDate: cp.acquired_date || 'Reciente',
-                activitiesCount: 0,
-                placesCount: 0,
-                iaQueriesCount: 0
-              });
-            }
-          });
-        }
-      }).catch(e => console.warn('Supabase profiles fetch:', e));
-    }
-
     if (badgeActive) badgeActive.textContent = `${clients.length} clientes activos`;
     tbody.innerHTML = '';
 
@@ -342,41 +318,61 @@ document.addEventListener('DOMContentLoaded', () => {
     const totalPlacesReal = clients.reduce((acc, c) => acc + (c.placesCount || 0), 0);
     const totalQueriesReal = clients.reduce((acc, c) => acc + (c.iaQueriesCount || 0), 0);
     const activeClientsCount = clients.filter(c => c.status === 'Activo').length;
-    const licenseRate = clients.length > 0 ? Math.round((activeClientsCount / clients.length) * 100) : 100;
+    const licenseRate = clients.length > 0 ? Math.round((activeClientsCount / clients.length) * 100) : 0;
 
     if (kpiClientsEl) kpiClientsEl.textContent = clients.length;
     if (kpiLicensesEl) kpiLicensesEl.textContent = `${licenseRate}%`;
     if (kpiPlacesEl) kpiPlacesEl.textContent = totalPlacesReal;
     if (kpiQueriesEl) kpiQueriesEl.textContent = totalQueriesReal;
 
-    clients.forEach(client => {
-      const tr = document.createElement('tr');
-      tr.className = 'hover:bg-slate-50 transition-colors';
-      tr.innerHTML = `
-        <td class="py-3.5">
-          <div class="font-bold text-slate-800">${client.name}</div>
-          <div class="text-[11px] text-slate-400 font-mono">${client.email}</div>
-        </td>
-        <td class="py-3.5">
-          <span class="font-semibold text-slate-700">${client.plan}</span>
-          <span class="block text-[10px] text-slate-400">Desde ${client.acquiredDate}</span>
-        </td>
-        <td class="py-3.5">
-          <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700">
-            <span>●</span> ${client.status}
-          </span>
-        </td>
-        <td class="py-3.5 font-bold font-mono text-slate-800">${client.activitiesCount}</td>
-        <td class="py-3.5 font-bold font-mono text-blue-600">${client.placesCount} lugares</td>
-        <td class="py-3.5">
-          <button class="px-3 py-1 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-xl font-bold text-[11px] transition-colors"
-                  onclick="window.timeplusSimulateClient('${client.name}')">
-            Ver como cliente →
-          </button>
-        </td>
+    if (clients.length === 0) {
+      tbody.innerHTML = `
+        <tr>
+          <td colspan="6" class="py-8 text-center text-slate-400">
+            <div class="space-y-1">
+              <span class="text-2xl block mb-1">👥</span>
+              <p class="font-bold text-xs text-slate-600">No hay clientes activos registrados</p>
+              <p class="text-[11px] text-slate-400">Cuando un cliente solicite un plan y lo apruebes, aparecerá aquí.</p>
+            </div>
+          </td>
+        </tr>
       `;
-      tbody.appendChild(tr);
-    });
+    } else {
+      clients.forEach(client => {
+        const tr = document.createElement('tr');
+        tr.className = 'hover:bg-slate-50 transition-colors';
+        tr.innerHTML = `
+          <td class="py-3.5">
+            <div class="font-bold text-slate-800">${client.name}</div>
+            <div class="text-[11px] text-slate-400 font-mono">${client.email}</div>
+          </td>
+          <td class="py-3.5">
+            <span class="font-semibold text-slate-700">${client.plan}</span>
+            <span class="block text-[10px] text-slate-400">Desde ${client.acquiredDate}</span>
+          </td>
+          <td class="py-3.5">
+            <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700">
+              <span>●</span> ${client.status}
+            </span>
+          </td>
+          <td class="py-3.5 font-bold font-mono text-slate-800">${client.activitiesCount}</td>
+          <td class="py-3.5 font-bold font-mono text-blue-600">${client.placesCount} lugares</td>
+          <td class="py-3.5">
+            <div class="flex items-center gap-1.5">
+              <button class="px-2.5 py-1 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-xl font-bold text-[11px] transition-colors"
+                      onclick="window.timeplusSimulateClient('${client.name}')">
+                Ver como cliente →
+              </button>
+              <button class="px-2.5 py-1 bg-red-50 hover:bg-red-100 text-red-700 rounded-xl font-bold text-[11px] transition-colors flex items-center gap-1"
+                      onclick="window.timeplusDeleteClient('${client.email}', '${client.name}')" title="Eliminar cliente">
+                <span>🗑️</span> Eliminar
+              </button>
+            </div>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
   }
 
   // ==========================================
@@ -1534,6 +1530,42 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (err) {
           console.warn('Error al actualizar rechazo en Supabase:', err);
         }
+      }
+  // SuperAdmin Elimina un cliente individual
+  window.timeplusDeleteClient = async (email, name = '') => {
+    const displayName = name || email;
+    if (!confirm(`¿Eliminar al cliente "${displayName}" (${email})? Se revocará su acceso de inmediato.`)) {
+      return;
+    }
+    store.deleteClient(email);
+    renderAdminDashboard();
+
+    // Eliminar también de la nube Supabase si está disponible
+    if (window.timeplusSupabase && window.timeplusSupabase.client) {
+      try {
+        await window.timeplusSupabase.client.from('profiles').delete().eq('email', email);
+        console.log('🗑️ Cliente eliminado de Supabase Cloud:', email);
+      } catch (err) {
+        console.warn('Error al eliminar cliente en Supabase:', err);
+      }
+    }
+  };
+
+  // SuperAdmin Elimina TODOS los clientes
+  window.timeplusClearAllClients = async () => {
+    if (!confirm('⚠️ ¿Estás seguro de que deseas ELIMINAR TODOS los clientes? Esta acción dejará la lista en 0.')) {
+      return;
+    }
+    store.clearAllClients();
+    renderAdminDashboard();
+
+    // Eliminar clientes en Supabase Cloud
+    if (window.timeplusSupabase && window.timeplusSupabase.client) {
+      try {
+        await window.timeplusSupabase.client.from('profiles').delete().neq('role', 'admin');
+        console.log('🗑️ Todos los clientes eliminados de Supabase Cloud.');
+      } catch (err) {
+        console.warn('Error al vaciar clientes en Supabase:', err);
       }
     }
   };
