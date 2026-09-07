@@ -22,11 +22,16 @@ document.addEventListener('DOMContentLoaded', () => {
   const viewPlaceDetail = document.getElementById('view-place-detail');
   const viewActivityDetail = document.getElementById('view-activity-detail');
   const viewAdminDashboard = document.getElementById('view-admin-dashboard');
+  const viewModules = document.getElementById('view-modules');
+  const viewApk = document.getElementById('view-apk');
+  const viewSecurity = document.getElementById('view-security');
 
   // Modals
   const modalCreateActivity = document.getElementById('modal-create-activity');
   const modalCreateForm = document.getElementById('modal-create-form');
   const modalAI = document.getElementById('modal-ai');
+  const modalAuthSelector = document.getElementById('modal-auth-selector');
+  const modalPairDevice = document.getElementById('modal-pair-device');
 
   // Navigation Items
   const navButtons = document.querySelectorAll('.nav-btn');
@@ -100,7 +105,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Hide all views
-    [viewHome, viewAgenda, viewPlaces, viewStats, viewPlaceDetail, viewActivityDetail, viewAdminDashboard].forEach(v => {
+    [viewHome, viewAgenda, viewPlaces, viewStats, viewPlaceDetail, viewActivityDetail, viewAdminDashboard, viewModules, viewApk, viewSecurity].forEach(v => {
       if (v) v.classList.add('hidden');
     });
 
@@ -179,7 +184,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function closeAllAuthModals() {
-    ['modal-auth-client', 'modal-auth-admin', 'modal-auth-plan', 'view-login'].forEach(id => {
+    ['modal-auth-selector', 'modal-auth-client', 'modal-auth-admin', 'modal-auth-plan', 'modal-pair-device', 'view-login'].forEach(id => {
       const el = document.getElementById(id);
       if (el) el.classList.add('hidden');
     });
@@ -210,7 +215,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Hide all view panels first
-    [viewHome, viewAgenda, viewPlaces, viewStats, viewPlaceDetail, viewActivityDetail, viewAdminDashboard].forEach(v => {
+    [viewHome, viewAgenda, viewPlaces, viewStats, viewPlaceDetail, viewActivityDetail, viewAdminDashboard, viewModules, viewApk, viewSecurity].forEach(v => {
       if (v) v.classList.add('hidden');
     });
 
@@ -243,6 +248,23 @@ document.addEventListener('DOMContentLoaded', () => {
         if (viewStats) {
           viewStats.classList.remove('hidden');
           renderStats();
+        }
+        break;
+      case 'modules':
+        if (viewModules) {
+          viewModules.classList.remove('hidden');
+        }
+        break;
+      case 'apk':
+        if (viewApk) {
+          viewApk.classList.remove('hidden');
+          renderApkView();
+        }
+        break;
+      case 'security':
+        if (viewSecurity) {
+          viewSecurity.classList.remove('hidden');
+          renderSecurityView();
         }
         break;
       case 'place-detail':
@@ -454,43 +476,9 @@ document.addEventListener('DOMContentLoaded', () => {
           });
         }
       }
-    } catch (err) {
-      console.warn('Error en _syncRequestsFromCloud:', err);
-    } finally {
-      _syncInProgress = false;
-    }
-  }
-            requestsTbody.innerHTML = `<tr><td colspan="5" class="py-6 text-center text-xs text-slate-400 font-medium">✨ No hay solicitudes pendientes.</td></tr>`;
-          } else {
-            pending.forEach(req => {
-              const tr = document.createElement('tr');
-              tr.className = 'hover:bg-amber-50/40 transition-colors';
-              const providerLabel = req.provider || 'Correo Corporativo';
-              const isGoogle = providerLabel.toLowerCase().includes('google');
-              const fechaDisplay = req.requestedAt || (req.created_at ? new Date(req.created_at).toLocaleString('es', { dateStyle: 'short', timeStyle: 'short' }) : 'Reciente');
-              tr.innerHTML = `
-                <td class="py-3.5">
-                  <div class="font-extrabold text-slate-900">${req.name || req.email}</div>
-                  <div class="text-[11px] text-slate-400 font-mono">${req.email}</div>
-                </td>
-                <td class="py-3.5">
-                  <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-bold ${isGoogle ? 'bg-blue-50 text-blue-700 border border-blue-200' : 'bg-sky-50 text-sky-700 border border-sky-200'}">
-                    ${isGoogle ? '🌐' : '📫'} ${providerLabel}
-                  </span>
-                </td>
-                <td class="py-3.5"><span class="font-bold text-indigo-700">${req.plan || 'TIMEPLUS Connect Pro'}</span></td>
-                <td class="py-3.5 text-[11px] text-slate-400 font-medium">${fechaDisplay}</td>
-                <td class="py-3.5 text-right space-x-1.5">
-                  <button class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold text-xs shadow-sm transition-all active:scale-95"
-                          onclick="window.timeplusApproveClient('${req.id}')">✓ Aprobar</button>
-                  <button class="px-2.5 py-1.5 bg-slate-100 hover:bg-red-50 text-slate-500 hover:text-red-600 rounded-xl font-bold text-xs transition-colors"
-                          onclick="window.timeplusRejectClient('${req.id}')">✕ Rechazar</button>
-                </td>`;
-              requestsTbody.appendChild(tr);
-            });
-          }
-        }
-      }
+      // 3. RENDERIZAR CENTRO DE SEGURIDAD Y AUDITORÍA (SECCIONES 10 Y 11)
+      renderSecurityCenterTables();
+
     } catch (err) {
       console.warn('Error en _syncRequestsFromCloud:', err);
     } finally {
@@ -498,45 +486,108 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
+  function renderSecurityCenterTables() {
+    const accessTbody = document.getElementById('admin-security-access-body');
+    const auditTbody = document.getElementById('admin-audit-logs-body');
+    const secSessionsCount = document.getElementById('sec-active-sessions-count');
+
+    const secStats = store.getSecurityStats ? store.getSecurityStats() : {};
+    if (secSessionsCount) secSessionsCount.textContent = secStats.activeSessions || 386;
+
+    // Tabla 10: Últimos Accesos
+    if (accessTbody) {
+      const logs = store.getAuditLogs ? store.getAuditLogs() : [];
+      accessTbody.innerHTML = '';
+      logs.slice(0, 5).forEach(l => {
+        const tr = document.createElement('tr');
+        tr.className = 'hover:bg-slate-50 transition-colors';
+        const isSuccess = l.success;
+        tr.innerHTML = `
+          <td class="py-2.5 font-bold text-slate-800">${l.user}</td>
+          <td class="py-2.5 text-slate-500">${l.role}</td>
+          <td class="py-2.5">
+            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold ${l.platform === 'APK' ? 'bg-indigo-50 text-indigo-700' : 'bg-blue-50 text-blue-700'}">
+              ${l.platform === 'APK' ? '📱' : '🌐'} ${l.platform}
+            </span>
+          </td>
+          <td class="py-2.5 font-mono text-[11px] text-slate-600">${l.device}</td>
+          <td class="py-2.5 text-slate-400 font-mono text-[11px]">${l.time}</td>
+          <td class="py-2.5 text-center">
+            <span class="inline-flex items-center justify-center w-5 h-5 rounded-full ${isSuccess ? 'bg-emerald-100 text-emerald-700 font-black' : 'bg-red-100 text-red-700 font-black'} text-xs">
+              ${isSuccess ? '✓' : '✕'}
+            </span>
+          </td>
+        `;
+        accessTbody.appendChild(tr);
+      });
+    }
+
+    // Tabla 11: Auditoría de Actividad Forense
+    if (auditTbody) {
+      const logs = store.getAuditLogs ? store.getAuditLogs() : [];
+      auditTbody.innerHTML = '';
+      logs.forEach(l => {
+        const tr = document.createElement('tr');
+        tr.className = 'hover:bg-slate-50 transition-colors';
+        tr.innerHTML = `
+          <td class="py-2.5 font-mono text-[11px] font-bold text-slate-700">${l.time}</td>
+          <td class="py-2.5 font-semibold text-slate-800">${l.action}</td>
+          <td class="py-2.5 font-mono text-[11px] text-slate-600">${l.device} (${l.platform})</td>
+          <td class="py-2.5 font-mono text-[11px] text-indigo-600">${l.ip}</td>
+        `;
+        auditTbody.appendChild(tr);
+      });
+    }
+  }
+
   // ==========================================
-  // VIEW 1: HOME (PANTALLA PRINCIPAL)
+  // VIEW 1: HOME (DASHBOARD - TU CENTRO DE CONTROL)
   // ==========================================
   function renderHome() {
-    const activities = store.getActivities('2026-09-04');
-    const totalCount = activities.length;
-    const pendingCount = activities.filter(a => !a.completed).length;
+    const user = store.getCurrentUser();
+    const rawName = user ? user.name : 'Juan Pérez';
+    const firstName = rawName.split(' ')[0];
+    const hour = new Date().getHours();
+    const greeting = hour < 12 ? '¡Buenos días' : (hour < 18 ? '¡Buenas tardes' : '¡Buenas noches');
 
-    // Counters
-    const countTotalEl = document.getElementById('kpi-total');
-    const countPendingEl = document.getElementById('kpi-pending');
-    const countTotalDash = document.getElementById('kpi-total-dash');
-    const countPendingDash = document.getElementById('kpi-pending-dash');
+    const welcomeTitle = document.getElementById('home-welcome-title');
+    if (welcomeTitle) welcomeTitle.textContent = `${greeting}, ${firstName}!`;
 
-    if (countTotalEl) countTotalEl.textContent = totalCount;
-    if (countPendingEl) countPendingEl.textContent = pendingCount;
-    if (countTotalDash) countTotalDash.textContent = totalCount;
-    if (countPendingDash) countPendingDash.textContent = pendingCount;
+    // 4 KPI Cards Exact Section 4
+    const kpiEvents = document.getElementById('kpi-card-events');
+    const kpiTasks = document.getElementById('kpi-card-tasks');
+    const kpiAppts = document.getElementById('kpi-card-appointments');
+    const kpiClasses = document.getElementById('kpi-card-classes');
 
-    // Today list container
+    if (kpiEvents) kpiEvents.textContent = '12';
+    if (kpiTasks) kpiTasks.textContent = '5';
+    if (kpiAppts) kpiAppts.textContent = '3';
+    if (kpiClasses) kpiClasses.textContent = '2';
+
+    // Mini-calendario interactivo
+    renderMiniCalendar();
+
+    // Próximas actividades (Lista de compromisos)
     const listContainer = document.getElementById('home-activities-list');
     if (!listContainer) return;
 
+    const activities = store.getActivities('2026-09-04');
     listContainer.innerHTML = '';
 
-    activities.forEach(act => {
+    activities.slice(0, 5).forEach(act => {
       const item = document.createElement('div');
-      item.className = 'flex items-center justify-between p-3.5 bg-white rounded-2xl shadow-sm border border-slate-100 transition-all hover:border-blue-200 pressable cursor-pointer';
+      item.className = 'flex items-center justify-between p-3.5 bg-slate-50/70 hover:bg-blue-50/40 rounded-2xl border border-slate-100 transition-all hover:border-blue-200 pressable cursor-pointer';
       
       const isChecked = act.completed;
-      const textClass = isChecked ? 'line-through text-slate-400' : 'text-slate-800 font-medium';
+      const textClass = isChecked ? 'line-through text-slate-400' : 'text-slate-800 font-bold';
 
       item.innerHTML = `
         <div class="flex items-center gap-3.5 flex-1 min-w-0" data-action="open-detail" data-id="${act.id}">
-          <span class="font-mono text-xs font-semibold ${isChecked ? 'text-slate-400' : 'text-slate-500'} w-12">${act.time}</span>
+          <span class="font-mono text-xs font-black text-blue-600 bg-blue-100/60 px-2 py-1 rounded-xl w-14 text-center flex-shrink-0">${act.time}</span>
           <span class="text-xl flex-shrink-0">${act.icon}</span>
           <div class="truncate">
-            <p class="text-sm ${textClass} truncate">${act.title}</p>
-            ${act.placeName ? `<span class="text-[11px] text-slate-400 flex items-center gap-1">📍 ${act.placeName}</span>` : ''}
+            <p class="text-xs sm:text-sm ${textClass} truncate">${act.title}</p>
+            ${act.placeName ? `<span class="text-[10px] text-slate-400 flex items-center gap-1 font-medium">📍 ${act.placeName}</span>` : ''}
           </div>
         </div>
         <div class="pl-2">
@@ -547,12 +598,13 @@ document.addEventListener('DOMContentLoaded', () => {
       listContainer.appendChild(item);
     });
 
-    // Attach event listeners for checkboxes and item click
+    // Event listeners
     listContainer.querySelectorAll('.timeplus-checkbox').forEach(chk => {
       chk.addEventListener('change', (e) => {
         e.stopPropagation();
         const id = chk.getAttribute('data-id');
         store.toggleActivityComplete(id);
+        renderHome();
       });
     });
 
@@ -561,6 +613,143 @@ document.addEventListener('DOMContentLoaded', () => {
         const id = el.getAttribute('data-id');
         navigateTo('activity-detail', id);
       });
+    });
+  }
+
+  // Mini-Calendario Interactivo Septiembre 2026 (Sección 4)
+  let _calMonthOffset = 0;
+  function renderMiniCalendar() {
+    const daysContainer = document.getElementById('mini-calendar-days');
+    const monthTitle = document.getElementById('mini-cal-month-title');
+    if (!daysContainer) return;
+
+    const baseDate = new Date(2026, 8 + _calMonthOffset, 1);
+    const months = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+    const year = baseDate.getFullYear();
+    const month = baseDate.getMonth();
+
+    if (monthTitle) monthTitle.textContent = `${months[month]} ${year}`;
+
+    const firstDayIndex = (new Date(year, month, 1).getDay() + 6) % 7; // Lunes = 0
+    const totalDays = new Date(year, month + 1, 0).getDate();
+    const prevMonthDays = new Date(year, month, 0).getDate();
+
+    daysContainer.innerHTML = '';
+
+    // Días previos
+    for (let i = firstDayIndex - 1; i >= 0; i--) {
+      const d = document.createElement('div');
+      d.className = 'py-1.5 text-slate-300 text-center text-xs select-none';
+      d.textContent = prevMonthDays - i;
+      daysContainer.appendChild(d);
+    }
+
+    // Días del mes
+    const activeDays = [2, 4, 6, 9, 11, 14, 16, 18, 21, 23, 26, 28];
+    for (let day = 1; day <= totalDays; day++) {
+      const d = document.createElement('div');
+      const isCurrent = day === 6 && month === 8;
+      const hasEvents = activeDays.includes(day);
+
+      d.className = `py-1.5 rounded-xl text-center cursor-pointer transition-all relative ${
+        isCurrent ? 'bg-blue-600 text-white font-black shadow-xs' : 'hover:bg-slate-100 text-slate-700 font-semibold'
+      }`;
+      d.innerHTML = `
+        <span>${day}</span>
+        ${hasEvents && !isCurrent ? '<span class="w-1 h-1 rounded-full bg-emerald-500 absolute bottom-0.5 left-1/2 -translate-x-1/2"></span>' : ''}
+      `;
+      d.addEventListener('click', () => {
+        navigateTo('agenda');
+      });
+      daysContainer.appendChild(d);
+    }
+
+    const btnPrev = document.getElementById('btn-mini-cal-prev');
+    const btnNext = document.getElementById('btn-mini-cal-next');
+    if (btnPrev && !btnPrev._bound) {
+      btnPrev._bound = true;
+      btnPrev.addEventListener('click', () => {
+        _calMonthOffset--;
+        renderMiniCalendar();
+      });
+    }
+    if (btnNext && !btnNext._bound) {
+      btnNext._bound = true;
+      btnNext.addEventListener('click', () => {
+        _calMonthOffset++;
+        renderMiniCalendar();
+      });
+    }
+  }
+
+  // Render Módulo APK / APP (Sección 7)
+  function renderApkView() {
+    const list = document.getElementById('apk-linked-devices-list');
+    if (!list) return;
+
+    const devices = store.getDevices ? store.getDevices() : [];
+    list.innerHTML = '';
+
+    devices.forEach(dev => {
+      const row = document.createElement('div');
+      row.className = 'flex items-center justify-between py-3.5 hover:bg-slate-50 transition-colors';
+      row.innerHTML = `
+        <div class="flex items-center gap-3">
+          <span class="text-2xl p-2 bg-slate-100 rounded-xl">${dev.icon || '📱'}</span>
+          <div>
+            <h4 class="text-xs font-black text-slate-900">${dev.name}</h4>
+            <p class="text-[11px] text-slate-400">${dev.type} · ${dev.lastAccess}</p>
+          </div>
+        </div>
+        <div class="flex items-center gap-2">
+          <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold ${dev.active ? 'bg-emerald-50 text-emerald-700' : 'bg-slate-100 text-slate-500'}">
+            <span class="w-1.5 h-1.5 rounded-full ${dev.active ? 'bg-emerald-500 animate-pulse' : 'bg-slate-400'}"></span>
+            ${dev.active ? 'Activo' : 'Inactivo'}
+          </span>
+          ${!dev.isCurrent ? `
+            <button onclick="window.timeplusDisconnectDevice('${dev.id}')" class="px-2.5 py-1 text-[11px] font-bold text-red-600 hover:bg-red-50 rounded-lg transition-colors">
+              Desvincular
+            </button>
+          ` : ''}
+        </div>
+      `;
+      list.appendChild(row);
+    });
+  }
+
+  // Render Seguridad y Sesiones (Sección 9)
+  function renderSecurityView() {
+    const list = document.getElementById('security-other-devices-list');
+    if (!list) return;
+
+    const devices = store.getDevices ? store.getDevices().filter(d => !d.isCurrent) : [];
+    list.innerHTML = '';
+
+    if (devices.length === 0) {
+      list.innerHTML = `
+        <div class="p-6 text-center text-xs text-slate-400">
+          ✨ No hay otros dispositivos conectados en este momento.
+        </div>
+      `;
+      return;
+    }
+
+    devices.forEach(dev => {
+      const card = document.createElement('div');
+      card.className = 'flex items-center justify-between p-4 rounded-2xl bg-slate-50 border border-slate-200/80';
+      card.innerHTML = `
+        <div class="flex items-center gap-3">
+          <span class="text-2xl p-2 bg-white rounded-xl shadow-2xs">${dev.icon || '📱'}</span>
+          <div>
+            <h4 class="text-xs font-black text-slate-800">${dev.name}</h4>
+            <p class="text-[11px] text-slate-400">Último acceso: ${dev.lastAccess}</p>
+          </div>
+        </div>
+        <button onclick="window.timeplusDisconnectDevice('${dev.id}')" class="px-3 py-1.5 text-xs font-bold text-red-600 bg-red-50 hover:bg-red-100 rounded-xl transition-all">
+          Cerrar sesión
+        </button>
+      `;
+      list.appendChild(card);
     });
   }
 
@@ -624,8 +813,175 @@ document.addEventListener('DOMContentLoaded', () => {
 
       html += `</div></div>`;
       container.innerHTML = html;
+    } else if (agendaSubView === 'dia') {
+      // 🕒 SECCIÓN 6: VISTA DE AGENDA POR HORAS (07:00 A 19:00) COLOREADOS PASTEL
+      const daySlots = [
+        {
+          start: '07:00', end: '08:00',
+          title: 'Gimnasio & Entrenamiento Matutino',
+          category: 'Salud / Deporte',
+          place: 'Smart Fit Centro',
+          duration: '1h 00m',
+          icon: '🏃‍♂️',
+          bg: 'bg-emerald-50/90 border-emerald-400 text-emerald-950',
+          badge: 'bg-emerald-100 text-emerald-800 border-emerald-300'
+        },
+        {
+          start: '08:00', end: '08:30',
+          isFree: true,
+          label: 'Desayuno & Rutina Matutina'
+        },
+        {
+          start: '08:30', end: '09:30',
+          title: 'Reunión de Sincronización de Equipo',
+          category: 'Trabajo',
+          place: 'Sala Principal / Google Meet',
+          duration: '1h 00m',
+          icon: '💼',
+          bg: 'bg-blue-50/90 border-blue-400 text-blue-950',
+          badge: 'bg-blue-100 text-blue-800 border-blue-300'
+        },
+        {
+          start: '09:30', end: '10:00',
+          isFree: true,
+          label: 'Espacio libre / Revisión de correos'
+        },
+        {
+          start: '10:00', end: '11:30',
+          title: 'Clase de Matemáticas Avanzadas',
+          category: 'Estudio',
+          place: 'Aula 302 - Campus Central',
+          duration: '1h 30m',
+          icon: '📚',
+          bg: 'bg-purple-50/90 border-purple-400 text-purple-950',
+          badge: 'bg-purple-100 text-purple-800 border-purple-300'
+        },
+        {
+          start: '11:30', end: '12:00',
+          isFree: true,
+          label: 'Tiempo de repaso / Organización'
+        },
+        {
+          start: '12:00', end: '13:00',
+          title: 'Almuerzo con Carlos Mendoza',
+          category: 'Personal',
+          place: 'Restaurante El Jardín',
+          duration: '1h 00m',
+          icon: '🍽️',
+          bg: 'bg-amber-50/90 border-amber-400 text-amber-950',
+          badge: 'bg-amber-100 text-amber-800 border-amber-300'
+        },
+        {
+          start: '13:00', end: '14:30',
+          isFree: true,
+          label: 'Descanso / Traslado a cita médica'
+        },
+        {
+          start: '14:30', end: '15:30',
+          title: 'Cita Médica General',
+          category: 'Salud',
+          place: 'Clínica Las Américas · Dr. Silva',
+          duration: '1h 00m',
+          icon: '🩺',
+          bg: 'bg-teal-50/90 border-teal-400 text-teal-950',
+          badge: 'bg-teal-100 text-teal-800 border-teal-300'
+        },
+        {
+          start: '15:30', end: '16:00',
+          isFree: true,
+          label: 'Retorno a sede de trabajo'
+        },
+        {
+          start: '16:00', end: '17:00',
+          title: 'Preparar Informe Mensual Q3',
+          category: 'Trabajo',
+          place: 'Oficina Central / Google Drive',
+          duration: '1h 00m',
+          icon: '📊',
+          bg: 'bg-sky-50/90 border-sky-400 text-sky-950',
+          badge: 'bg-sky-100 text-sky-800 border-sky-300'
+        },
+        {
+          start: '17:00', end: '18:00',
+          isFree: true,
+          label: 'Tiempo flexible / Preparación cierre'
+        },
+        {
+          start: '18:00', end: '19:00',
+          title: 'Reunión Virtual de Cierre Semanal',
+          category: 'Reuniones',
+          place: 'Zoom Room 4402',
+          duration: '1h 00m',
+          icon: '💻',
+          bg: 'bg-indigo-50/90 border-indigo-400 text-indigo-950',
+          badge: 'bg-indigo-100 text-indigo-800 border-indigo-300'
+        }
+      ];
+
+      let html = `
+        <!-- Header Día Exact Section 6 -->
+        <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div>
+            <span class="text-[11px] font-black uppercase tracking-wider text-blue-600 bg-blue-50 px-2.5 py-0.5 rounded-full border border-blue-200">
+              6. Vista de Agenda por Horas (07:00 a 19:00)
+            </span>
+            <h3 class="text-base font-black text-slate-900 mt-1">Viernes, 4 de Septiembre de 2026</h3>
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="text-xs font-bold text-slate-600 bg-slate-100 px-3 py-1.5 rounded-xl border border-slate-200">
+              ⏱️ 6 bloques · 6.5 hrs ocupadas
+            </span>
+            <button onclick="window.timeplusNavigate('activity-form')" class="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold shadow-sm transition-all flex items-center gap-1">
+              <span>+</span> <span>Agregar</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Hourly Schedule 07:00 to 19:00 Pastel Cards -->
+        <div class="space-y-2.5 pt-1">
+      `;
+
+      daySlots.forEach(slot => {
+        if (slot.isFree) {
+          html += `
+            <div class="flex items-center gap-3 py-1.5 px-3 rounded-xl border border-dashed border-slate-200 hover:border-blue-300 hover:bg-blue-50/30 transition-all text-xs text-slate-400 group cursor-pointer" onclick="window.timeplusNavigate('activity-form')">
+              <span class="font-mono text-[11px] font-bold text-slate-400 w-12 flex-shrink-0">${slot.start}</span>
+              <span class="text-slate-300">·</span>
+              <span class="text-[11px] font-medium text-slate-500 group-hover:text-blue-600 transition-colors flex-1">${slot.label}</span>
+              <span class="opacity-0 group-hover:opacity-100 text-[10px] font-bold text-blue-600 bg-white px-2 py-0.5 rounded border border-blue-200 shadow-xs transition-opacity">+ Agendar</span>
+            </div>
+          `;
+        } else {
+          html += `
+            <div class="flex items-start gap-3 p-3.5 rounded-2xl border-l-4 shadow-sm transition-all hover:scale-[1.005] hover:shadow-md cursor-pointer ${slot.bg}" onclick="window.timeplusNavigate('activity-form')">
+              <div class="text-center font-mono flex-shrink-0 w-12 pt-0.5">
+                <span class="text-xs font-black block">${slot.start}</span>
+                <span class="text-[10px] font-bold opacity-60">${slot.end}</span>
+              </div>
+              <div class="flex-1 min-w-0">
+                <div class="flex flex-wrap items-center justify-between gap-1.5">
+                  <h4 class="text-xs sm:text-sm font-black truncate">${slot.title}</h4>
+                  <span class="text-[10px] font-extrabold px-2 py-0.5 rounded-full border ${slot.badge}">
+                    ${slot.category}
+                  </span>
+                </div>
+                <div class="flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] opacity-75 font-medium mt-1">
+                  <span>📍 ${slot.place}</span>
+                  <span>⏳ ${slot.duration}</span>
+                </div>
+              </div>
+              <div class="text-xl flex-shrink-0 self-center pl-1">
+                ${slot.icon}
+              </div>
+            </div>
+          `;
+        }
+      });
+
+      html += `</div>`;
+      container.innerHTML = html;
     } else {
-      // Classic View (DÍA / SEMANA / MES / AÑO)
+      // Classic View (SEMANA / MES / AÑO)
       let html = `
         <div class="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm text-center">
           <p class="text-xs uppercase tracking-wider text-slate-400 font-semibold mb-1">Vista Clásica</p>
@@ -1392,7 +1748,18 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   };
 
-  // --- Modales de Autenticación Separados (Cliente vs Admin vs Adquirir Plan) ---
+  // --- Modales de Autenticación Separados (Selector Dual vs Cliente vs Admin vs Adquirir Plan) ---
+  window.timeplusOpenLoginSelector = () => {
+    closeAllAuthModals();
+    const modal = document.getElementById('modal-auth-selector');
+    if (modal) modal.classList.remove('hidden');
+  };
+
+  window.timeplusCloseLoginSelector = () => {
+    const modal = document.getElementById('modal-auth-selector');
+    if (modal) modal.classList.add('hidden');
+  };
+
   window.timeplusOpenClientModal = () => {
     closeAllAuthModals();
     const modal = document.getElementById('modal-auth-client');
@@ -1914,5 +2281,81 @@ document.addEventListener('DOMContentLoaded', () => {
         console.warn('Error al vaciar clientes en Supabase:', err);
       }
     }
+  };
+
+  // ==========================================
+  // SECCIÓN 8: VINCULACIÓN DE DISPOSITIVO (MODAL & COUNTDOWN)
+  // ==========================================
+  let _pairTimerInterval = null;
+
+  window.timeplusOpenPairModal = () => {
+    const modal = document.getElementById('modal-pair-device');
+    if (!modal) return;
+    modal.classList.remove('hidden');
+
+    // Generar código OTP fresco
+    const codeDisplay = document.getElementById('pair-device-code-display');
+    if (codeDisplay) {
+      codeDisplay.textContent = typeof store.generatePairingCode === 'function' ? store.generatePairingCode() : 'TP-7F3K-2H9P';
+    }
+
+    // Iniciar countdown regresivo de 10 minutos (600 segundos)
+    let timeLeft = 600;
+    const timerDisplay = document.getElementById('pair-timer-countdown');
+    if (_pairTimerInterval) clearInterval(_pairTimerInterval);
+
+    _pairTimerInterval = setInterval(() => {
+      timeLeft--;
+      if (timeLeft <= 0) {
+        clearInterval(_pairTimerInterval);
+        _pairTimerInterval = null;
+        if (timerDisplay) timerDisplay.textContent = '00:00 (Expirado)';
+      } else {
+        const mins = Math.floor(timeLeft / 60);
+        const secs = timeLeft % 60;
+        if (timerDisplay) {
+          timerDisplay.textContent = `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+        }
+      }
+    }, 1000);
+  };
+
+  window.timeplusClosePairModal = () => {
+    const modal = document.getElementById('modal-pair-device');
+    if (modal) modal.classList.add('hidden');
+    if (_pairTimerInterval) {
+      clearInterval(_pairTimerInterval);
+      _pairTimerInterval = null;
+    }
+  };
+
+  // ==========================================
+  // SECCIÓN 9: SEGURIDAD & SESIONES ACTIVAS
+  // ==========================================
+  window.timeplusCloseAllOtherSessions = () => {
+    if (confirm('¿Cerrar todas las sesiones en otros dispositivos vinculados? Tu sesión actual se mantendrá activa.')) {
+      if (typeof store.closeAllOtherSessions === 'function') {
+        store.closeAllOtherSessions();
+      }
+      renderSecurityView();
+      renderApkView();
+      alert('✅ Todas las demás sesiones han sido cerradas con éxito.');
+    }
+  };
+
+  window.timeplusDisconnectDevice = (deviceId) => {
+    if (confirm('¿Desvincular este dispositivo de tu cuenta TIMEPLUS?')) {
+      if (typeof store.disconnectDevice === 'function') {
+        store.disconnectDevice(deviceId);
+      }
+      renderSecurityView();
+      renderApkView();
+    }
+  };
+
+  // Filtro de actividades rápido
+  window.timeplusFilterView = (filterName) => {
+    console.log('Filtro aplicado:', filterName);
+    navigateTo('agenda');
   };
 });

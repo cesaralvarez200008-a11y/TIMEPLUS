@@ -59,9 +59,9 @@
           <span>👑</span> <span class="hidden sm:inline">SuperAdmin</span>
         </button>
 
-        <!-- 4. INICIAR SESIÓN CLIENTE -->
-        <button onclick="window.timeplusOpenClientModal()" class="flex items-center gap-1.5 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-extrabold text-xs rounded-xl shadow-md shadow-blue-500/25 active:scale-95 transition-all">
-          <span>👤</span> <span>Iniciar Sesión</span>
+        <!-- 4. INICIAR SESIÓN (SELECTOR DUAL) -->
+        <button onclick="window.timeplusOpenLoginSelector()" class="flex items-center gap-1.5 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-extrabold text-xs rounded-xl shadow-md shadow-blue-500/25 active:scale-95 transition-all" title="Ingresar a TIMEPLUS">
+          <span>🔐</span> <span>Iniciar Sesión</span>
         </button>
       </div>
     </header>
@@ -89,9 +89,9 @@
 
       <!-- Botones de Acción Hero Separados -->
       <div class="flex flex-col sm:flex-row items-center gap-3 mt-8 w-full sm:w-auto z-10">
-        <!-- Opción 1: Cliente Aprobado -->
-        <button onclick="window.timeplusOpenClientModal()" class="w-full sm:w-auto px-7 py-3.5 bg-blue-600 hover:bg-blue-700 text-white font-black text-xs sm:text-sm rounded-2xl shadow-xl shadow-blue-500/25 transition-all flex items-center justify-center gap-2 active:scale-95">
-          <span>👤</span> <span>Iniciar Sesión como Cliente</span> <span>→</span>
+        <!-- Opción 1: Iniciar Sesión (Selector Dual Web & APK) -->
+        <button onclick="window.timeplusOpenLoginSelector()" class="w-full sm:w-auto px-7 py-3.5 bg-blue-600 hover:bg-blue-700 text-white font-black text-xs sm:text-sm rounded-2xl shadow-xl shadow-blue-500/25 transition-all flex items-center justify-center gap-2 active:scale-95">
+          <span>🔐</span> <span>Iniciar Sesión (Web & APK)</span> <span>→</span>
         </button>
 
         <!-- Opción 2: Adquirir Plan -->
@@ -443,8 +443,68 @@
   </div>
 
 
-  <!-- Placeholder para compatibilidad histórica -->
-  <div id="view-login" class="hidden"></div>
+  <!-- ========================================================= -->
+  <!-- SECCIÓN 1: INICIO DE SESIÓN — ELIGE CÓMO DESEAS INGRESAR   -->
+  <!-- ========================================================= -->
+  <div id="modal-auth-selector" onclick="if(event.target === this) window.timeplusCloseAuthModal()" class="fixed inset-0 z-50 min-h-screen w-full flex items-center justify-center p-3 sm:p-6 bg-slate-950/70 backdrop-blur-md hidden overflow-y-auto">
+    <div onclick="event.stopPropagation()" class="w-full max-w-lg bg-white rounded-[2.5rem] shadow-2xl p-6 sm:p-9 border border-slate-200 relative z-10 my-auto text-slate-800 animate-in fade-in zoom-in-95 duration-150 text-center space-y-6">
+      
+      <button onclick="window.timeplusCloseAuthModal()" class="absolute top-6 right-6 w-9 h-9 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center font-bold text-sm transition-all" title="Cerrar">
+        ✕
+      </button>
+
+      <!-- Header Selector Exact Section 1 -->
+      <div class="space-y-2">
+        <div class="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-tr from-blue-600 via-indigo-600 to-purple-600 text-white text-2xl font-black shadow-lg shadow-blue-500/25">
+          T+
+        </div>
+        <h2 class="text-2xl font-black text-slate-900 tracking-tight">1. Inicio de sesión</h2>
+        <p class="text-xs text-slate-500 font-medium">Elige cómo deseas ingresar a la plataforma.</p>
+      </div>
+
+      <!-- ¿Cómo ingresas? 2 Cards Exact Section 1 -->
+      <div class="space-y-3 pt-2">
+        <p class="text-xs font-black text-slate-400 uppercase tracking-wider">¿Cómo ingresas?</p>
+        
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+          <!-- Card 1: SUPER ADMIN -->
+          <div onclick="window.timeplusOpenAdminModal()"
+               class="p-5 rounded-3xl bg-slate-900 hover:bg-slate-950 text-white cursor-pointer transition-all hover:scale-[1.02] shadow-xl space-y-3 flex flex-col items-center justify-center border-2 border-slate-800 hover:border-amber-400 group">
+            <span class="text-3xl p-3 bg-white/10 rounded-2xl group-hover:scale-110 transition-transform">🛡️</span>
+            <div>
+              <span class="text-xs font-black uppercase tracking-wider block">SUPER ADMIN</span>
+              <p class="text-[11px] text-slate-400 mt-0.5">Administrar TIMEPLUS</p>
+            </div>
+            <span class="text-[10px] font-bold text-amber-400 bg-amber-400/10 px-2.5 py-0.5 rounded-full border border-amber-400/20">Control Total</span>
+          </div>
+
+          <!-- Card 2: CLIENTE -->
+          <div onclick="window.timeplusOpenClientModal()"
+               class="p-5 rounded-3xl bg-gradient-to-br from-blue-600 to-indigo-700 text-white cursor-pointer transition-all hover:scale-[1.02] shadow-xl shadow-blue-500/20 space-y-3 flex flex-col items-center justify-center border-2 border-blue-500 hover:border-white group">
+            <span class="text-3xl p-3 bg-white/10 rounded-2xl group-hover:scale-110 transition-transform">👤</span>
+            <div>
+              <span class="text-xs font-black uppercase tracking-wider block">CLIENTE</span>
+              <p class="text-[11px] text-blue-100 mt-0.5">Gestionar mi tiempo</p>
+            </div>
+            <span class="text-[10px] font-bold text-white bg-white/20 px-2.5 py-0.5 rounded-full">Agenda & IA</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Footnote Badges Exact Section 1 -->
+      <div class="pt-4 border-t border-slate-100 flex flex-wrap items-center justify-center gap-4 text-xs font-bold text-slate-500">
+        <span class="flex items-center gap-1.5 bg-slate-50 px-3 py-1.5 rounded-xl border border-slate-200">
+          <span>🌐</span> <span>Web: Accede desde tu computador</span>
+        </span>
+        <span class="flex items-center gap-1.5 bg-slate-50 px-3 py-1.5 rounded-xl border border-slate-200">
+          <span>📱</span> <span>APK: Lleva tu TIMEPLUS en el celular</span>
+        </span>
+      </div>
+
+      <p class="text-[11px] text-slate-400">Una sola cuenta. Toda tu información. En todos tus dispositivos.</p>
+
+    </div>
+  </div>
 
   <!-- ========================================================= -->
   <!-- MODAL 1: INICIAR SESIÓN — CLIENTES CON CUENTA APROBADA     -->
@@ -725,6 +785,80 @@
       </div>
 
     </div>
+  <!-- ========================================================= -->
+  <!-- SECCIÓN 8: MODAL VINCULAR DISPOSITIVO (QR & OTP CÓDIGO)    -->
+  <!-- ========================================================= -->
+  <div id="modal-pair-device" onclick="if(event.target === this) window.timeplusClosePairModal()" class="fixed inset-0 z-50 min-h-screen w-full flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-md hidden overflow-y-auto">
+    <div onclick="event.stopPropagation()" class="w-full max-w-md bg-white rounded-[2.5rem] shadow-2xl p-6 sm:p-8 border border-slate-200 relative z-10 my-auto text-slate-800 animate-in fade-in zoom-in-95 duration-150 text-center space-y-5">
+      
+      <button onclick="window.timeplusClosePairModal()" class="absolute top-6 right-6 w-9 h-9 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center font-bold text-sm transition-all" title="Cerrar">
+        ✕
+      </button>
+
+      <div>
+        <div class="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-blue-600 text-white text-xl font-black shadow-md shadow-blue-500/20 mb-2">
+          📱
+        </div>
+        <h2 class="text-xl font-black text-slate-900 tracking-tight">8. Vincular dispositivo</h2>
+        <p class="text-xs text-slate-500 mt-1">Escanea el código QR o usa el código temporal.</p>
+      </div>
+
+      <!-- QR Code Container Exact Section 8 -->
+      <div class="p-5 bg-white border-2 border-slate-100 rounded-3xl shadow-inner inline-block mx-auto">
+        <svg class="w-48 h-48 mx-auto" viewBox="0 0 100 100" fill="currentColor">
+          <!-- QR Pattern Mock SVG -->
+          <rect x="0" y="0" width="30" height="30" rx="4" fill="#0f172a"/>
+          <rect x="5" y="5" width="20" height="20" rx="2" fill="#ffffff"/>
+          <rect x="9" y="9" width="12" height="12" rx="1" fill="#2563eb"/>
+
+          <rect x="70" y="0" width="30" height="30" rx="4" fill="#0f172a"/>
+          <rect x="75" y="5" width="20" height="20" rx="2" fill="#ffffff"/>
+          <rect x="79" y="9" width="12" height="12" rx="1" fill="#2563eb"/>
+
+          <rect x="0" y="70" width="30" height="30" rx="4" fill="#0f172a"/>
+          <rect x="5" y="75" width="20" height="20" rx="2" fill="#ffffff"/>
+          <rect x="9" y="79" width="12" height="12" rx="1" fill="#2563eb"/>
+
+          <!-- Middle Elements -->
+          <rect x="36" y="8" width="8" height="8" rx="2" fill="#0f172a"/>
+          <rect x="48" y="14" width="14" height="6" rx="2" fill="#2563eb"/>
+          <rect x="36" y="22" width="6" height="14" rx="2" fill="#0f172a"/>
+
+          <rect x="8" y="38" width="14" height="6" rx="2" fill="#0f172a"/>
+          <rect x="8" y="50" width="8" height="12" rx="2" fill="#2563eb"/>
+
+          <rect x="38" y="38" width="24" height="24" rx="4" fill="#2563eb"/>
+          <circle cx="50" cy="50" r="6" fill="#ffffff"/>
+
+          <rect x="68" y="38" width="12" height="8" rx="2" fill="#0f172a"/>
+          <rect x="78" y="52" width="14" height="8" rx="2" fill="#2563eb"/>
+
+          <rect x="36" y="70" width="10" height="10" rx="2" fill="#0f172a"/>
+          <rect x="52" y="74" width="14" height="6" rx="2" fill="#2563eb"/>
+          <rect x="70" y="74" width="8" height="18" rx="2" fill="#0f172a"/>
+          <rect x="84" y="82" width="10" height="10" rx="2" fill="#2563eb"/>
+        </svg>
+        <p class="text-[11px] font-extrabold text-slate-600 mt-2">Escanea este código QR desde tu app TIMEPLUS</p>
+      </div>
+
+      <!-- OTP Code Exact Section 8 -->
+      <div class="space-y-2">
+        <p class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">O usa este código:</p>
+        <div id="pair-device-code-display" class="py-3 px-6 bg-slate-100 border border-slate-200 rounded-2xl font-mono text-2xl font-black text-slate-900 tracking-widest shadow-inner">
+          TP-7F3K-2H9P
+        </div>
+        <div class="flex items-center justify-center gap-1.5 text-xs text-amber-700 font-bold">
+          <span>⏱️</span> <span>Válido por <span id="pair-timer-countdown">10:00</span> minutos</span>
+        </div>
+      </div>
+
+      <div class="pt-2">
+        <button onclick="window.timeplusClosePairModal()" class="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-black text-xs rounded-xl shadow-md transition-all">
+          Cancelar
+        </button>
+      </div>
+
+    </div>
   </div>
 
 
@@ -849,31 +983,72 @@
           </div>
 
           <!-- Client View Links (Shown when Client is active) -->
-          <div id="client-nav-group" class="space-y-1">
-            <button class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-2xl font-bold text-xs transition-all text-blue-600 bg-blue-50" data-view="home">
-              <span class="text-lg">🏠</span>
-              <span class="text-sm">Inicio (Dashboard)</span>
+          <div id="client-nav-group" class="space-y-1 overflow-y-auto max-h-[calc(100vh-280px)] pr-1 custom-scroll">
+            <button class="nav-btn w-full flex items-center gap-3 px-4 py-2.5 rounded-2xl font-bold text-xs transition-all text-blue-600 bg-blue-50" data-view="home">
+              <span class="text-base">🏠</span>
+              <span class="text-xs">Inicio (Dashboard)</span>
             </button>
 
-            <button class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-2xl font-semibold text-xs transition-all text-slate-600 hover:bg-slate-50 hover:text-slate-900" data-view="agenda">
-              <span class="text-lg">📅</span>
-              <span class="text-sm">Agenda & Línea de Tiempo</span>
+            <button class="nav-btn w-full flex items-center gap-3 px-4 py-2 rounded-2xl font-semibold text-xs transition-all text-slate-600 hover:bg-slate-50 hover:text-slate-900" data-view="agenda">
+              <span class="text-base">📅</span>
+              <span class="text-xs">Agenda & Bloques</span>
             </button>
 
-            <button class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-2xl font-semibold text-xs transition-all text-slate-600 hover:bg-slate-50 hover:text-slate-900" data-view="places">
-              <span class="text-lg">📍</span>
-              <span class="text-sm">Mis Lugares</span>
-              <span class="ml-auto text-[10px] bg-slate-100 text-slate-600 font-bold px-2 py-0.5 rounded-full">4</span>
+            <button class="nav-btn w-full flex items-center gap-3 px-4 py-2 rounded-2xl font-semibold text-xs transition-all text-slate-600 hover:bg-slate-50 hover:text-slate-900" data-view="events" onclick="window.timeplusFilterView('evento')">
+              <span class="text-base">🗓️</span>
+              <span class="text-xs">Eventos</span>
             </button>
 
-            <button class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-2xl font-semibold text-xs transition-all text-slate-600 hover:bg-slate-50 hover:text-slate-900" data-view="stats">
-              <span class="text-lg">📊</span>
-              <span class="text-sm">Mi Actividad (Métricas)</span>
+            <button class="nav-btn w-full flex items-center gap-3 px-4 py-2 rounded-2xl font-semibold text-xs transition-all text-slate-600 hover:bg-slate-50 hover:text-slate-900" data-view="meetings" onclick="window.timeplusFilterView('reunion_virtual')">
+              <span class="text-base">💻</span>
+              <span class="text-xs">Reuniones</span>
             </button>
 
-            <button class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-2xl font-semibold text-xs transition-all text-slate-600 hover:bg-slate-50 hover:text-slate-900" data-view="activity-detail-list">
-              <span class="text-lg">📄</span>
-              <span class="text-sm">Entregas de Trabajo</span>
+            <button class="nav-btn w-full flex items-center gap-3 px-4 py-2 rounded-2xl font-semibold text-xs transition-all text-slate-600 hover:bg-slate-50 hover:text-slate-900" data-view="appointments" onclick="window.timeplusFilterView('cita_medica')">
+              <span class="text-base">🩺</span>
+              <span class="text-xs">Citas</span>
+            </button>
+
+            <button class="nav-btn w-full flex items-center gap-3 px-4 py-2 rounded-2xl font-semibold text-xs transition-all text-slate-600 hover:bg-slate-50 hover:text-slate-900" data-view="classes" onclick="window.timeplusFilterView('clase')">
+              <span class="text-base">🎓</span>
+              <span class="text-xs">Clases</span>
+            </button>
+
+            <button class="nav-btn w-full flex items-center gap-3 px-4 py-2 rounded-2xl font-semibold text-xs transition-all text-slate-600 hover:bg-slate-50 hover:text-slate-900" data-view="reminders" onclick="window.timeplusFilterView('recordatorio')">
+              <span class="text-base">🔔</span>
+              <span class="text-xs">Recordatorios</span>
+            </button>
+
+            <button class="nav-btn w-full flex items-center gap-3 px-4 py-2 rounded-2xl font-semibold text-xs transition-all text-slate-600 hover:bg-slate-50 hover:text-slate-900" data-view="meds" onclick="window.timeplusFilterView('medicamento')">
+              <span class="text-base">💊</span>
+              <span class="text-xs">Medicamentos</span>
+            </button>
+
+            <button class="nav-btn w-full flex items-center gap-3 px-4 py-2 rounded-2xl font-semibold text-xs transition-all text-slate-600 hover:bg-slate-50 hover:text-slate-900" data-view="work" onclick="window.timeplusFilterView('entrega_trabajo')">
+              <span class="text-base">💼</span>
+              <span class="text-xs">Trabajo & Tareas</span>
+            </button>
+
+            <button class="nav-btn w-full flex items-center gap-3 px-4 py-2 rounded-2xl font-semibold text-xs transition-all text-slate-600 hover:bg-slate-50 hover:text-slate-900" data-view="places">
+              <span class="text-base">📍</span>
+              <span class="text-xs">Lugares</span>
+              <span class="ml-auto text-[10px] bg-slate-100 text-slate-600 font-bold px-1.5 py-0.5 rounded-full">4</span>
+            </button>
+
+            <button class="nav-btn w-full flex items-center gap-3 px-4 py-2 rounded-2xl font-semibold text-xs transition-all text-blue-700 bg-blue-50/50 hover:bg-blue-100" data-view="apk" onclick="window.timeplusNavigate('apk')">
+              <span class="text-base">📱</span>
+              <span class="text-xs font-bold">APK / APP Celular</span>
+              <span class="ml-auto text-[9px] bg-emerald-100 text-emerald-700 font-bold px-1.5 py-0.5 rounded-full">Móvil</span>
+            </button>
+
+            <button class="nav-btn w-full flex items-center gap-3 px-4 py-2 rounded-2xl font-semibold text-xs transition-all text-slate-600 hover:bg-slate-50 hover:text-slate-900" data-view="stats" onclick="window.timeplusNavigate('stats')">
+              <span class="text-base">📊</span>
+              <span class="text-xs">Estadísticas</span>
+            </button>
+
+            <button class="nav-btn w-full flex items-center gap-3 px-4 py-2 rounded-2xl font-semibold text-xs transition-all text-slate-600 hover:bg-slate-50 hover:text-slate-900" data-view="security" onclick="window.timeplusNavigate('security')">
+              <span class="text-base">🛡️</span>
+              <span class="text-xs">Seguridad & Sesiones</span>
             </button>
           </div>
         </nav>
@@ -1013,75 +1188,208 @@
             </div>
           </div>
 
+          <!-- ========================================================= -->
+          <!-- SECCIÓN 10: CENTRO DE SEGURIDAD (SUPER ADMIN)             -->
+          <!-- ========================================================= -->
+          <div class="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm space-y-5">
+            <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+              <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-2xl bg-indigo-600 text-white flex items-center justify-center font-bold text-lg shadow-md shadow-indigo-500/20">
+                  🛡️
+                </div>
+                <div>
+                  <h2 class="text-base font-black text-slate-900">10. Centro de Seguridad (Super Admin)</h2>
+                  <p class="text-xs text-slate-500">Control total de la plataforma en tiempo real.</p>
+                </div>
+              </div>
+              <span class="text-[10px] font-black px-3 py-1 bg-emerald-100 text-emerald-800 rounded-full flex items-center gap-1.5">
+                <span class="w-1.5 h-1.5 rounded-full bg-emerald-600 animate-pulse"></span> Sistema Seguro
+              </span>
+            </div>
+
+            <!-- 6 Security KPIs Exact Section 10 -->
+            <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 text-center">
+              <div class="p-3.5 bg-slate-50 border border-slate-100 rounded-2xl">
+                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Usuarios activos</span>
+                <span class="text-xl font-black text-slate-900 font-mono mt-0.5 block">1.248</span>
+              </div>
+              <div class="p-3.5 bg-emerald-50 border border-emerald-100 rounded-2xl">
+                <span class="text-[10px] font-bold text-emerald-600 uppercase tracking-wider block">Sesiones activas</span>
+                <span id="sec-active-sessions-count" class="text-xl font-black text-emerald-700 font-mono mt-0.5 block">386</span>
+              </div>
+              <div class="p-3.5 bg-blue-50 border border-blue-100 rounded-2xl">
+                <span class="text-[10px] font-bold text-blue-600 uppercase tracking-wider block">Accesos Web</span>
+                <span class="text-xl font-black text-blue-700 font-mono mt-0.5 block">2.840</span>
+              </div>
+              <div class="p-3.5 bg-indigo-50 border border-indigo-100 rounded-2xl">
+                <span class="text-[10px] font-bold text-indigo-600 uppercase tracking-wider block">Accesos APK</span>
+                <span class="text-xl font-black text-indigo-700 font-mono mt-0.5 block">5.120</span>
+              </div>
+              <div class="p-3.5 bg-amber-50 border border-amber-100 rounded-2xl">
+                <span class="text-[10px] font-bold text-amber-600 uppercase tracking-wider block">Intentos fallidos</span>
+                <span class="text-xl font-black text-amber-700 font-mono mt-0.5 block">32</span>
+              </div>
+              <div class="p-3.5 bg-red-50 border border-red-100 rounded-2xl">
+                <span class="text-[10px] font-bold text-red-600 uppercase tracking-wider block">Accesos sospechosos</span>
+                <span class="text-xl font-black text-red-700 font-mono mt-0.5 block">4</span>
+              </div>
+            </div>
+
+            <!-- Tabla Últimos Accesos Exact Section 10 -->
+            <div>
+              <h3 class="text-xs font-black text-slate-700 uppercase tracking-wider mb-2.5">Últimos accesos registrados</h3>
+              <div class="overflow-x-auto">
+                <table class="w-full text-left text-xs">
+                  <thead>
+                    <tr class="text-slate-400 uppercase tracking-wider border-b border-slate-100 pb-2">
+                      <th class="py-2.5 font-bold">Usuario</th>
+                      <th class="py-2.5 font-bold">Rol</th>
+                      <th class="py-2.5 font-bold">Plataforma</th>
+                      <th class="py-2.5 font-bold">Dispositivo</th>
+                      <th class="py-2.5 font-bold">Fecha / Hora</th>
+                      <th class="py-2.5 font-bold text-center">Resultado</th>
+                    </tr>
+                  </thead>
+                  <tbody id="admin-security-access-body" class="divide-y divide-slate-100">
+                    <!-- Rendered by app.js -->
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <!-- ========================================================= -->
+          <!-- SECCIÓN 11: AUDITORÍA DE ACTIVIDAD (SUPER ADMIN)          -->
+          <!-- ========================================================= -->
+          <div class="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm space-y-4">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b border-slate-100 gap-2">
+              <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-2xl bg-slate-900 text-white flex items-center justify-center font-bold text-lg shadow-sm">
+                  📋
+                </div>
+                <div>
+                  <h2 class="text-base font-black text-slate-900">11. Auditoría de actividad</h2>
+                  <p class="text-xs text-slate-500">¿Qué hizo el usuario? Todo queda registrado.</p>
+                </div>
+              </div>
+              <div class="text-[11px] font-bold text-slate-400 bg-slate-50 px-3 py-1 rounded-xl border border-slate-200">
+                QUIÉN → CUÁNDO → DESDE DÓNDE → DISPOSITIVO → QUÉ HIZO
+              </div>
+            </div>
+
+            <div class="overflow-x-auto">
+              <table class="w-full text-left text-xs">
+                <thead>
+                  <tr class="text-slate-400 uppercase tracking-wider border-b border-slate-100 pb-2">
+                    <th class="py-2.5 font-bold">Hora</th>
+                    <th class="py-2.5 font-bold">Acción realizada</th>
+                    <th class="py-2.5 font-bold">Dispositivo</th>
+                    <th class="py-2.5 font-bold font-mono">Dirección IP</th>
+                  </tr>
+                </thead>
+                <tbody id="admin-audit-logs-body" class="divide-y divide-slate-100 font-medium">
+                  <!-- Rendered by app.js -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+
         </section>
 
 
         <!-- ========================================================= -->
-        <!-- VIEW 1: CLIENT HOME (QUIEN ADQUIERE LA APLICACIÓN)        -->
+        <!-- VIEW 1: CLIENT HOME (DASHBOARD - TU CENTRO DE CONTROL)    -->
         <!-- ========================================================= -->
         <section id="view-home" class="space-y-6">
           
-          <!-- Welcome Banner -->
+          <!-- Welcome Banner Section 4 -->
           <div class="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
             <div>
               <div class="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-blue-600">
-                <span>☀️</span> Viernes, 4 de septiembre de 2026
+                <span>🗓️</span> <span id="home-date-subtitle">Domingo, 6 de septiembre de 2026</span>
               </div>
-              <h1 class="text-2xl lg:text-3xl font-black text-slate-900 mt-1">¡Buenos días, Rafael!</h1>
-              <p class="text-sm text-slate-500 mt-1">Tienes <span class="font-bold text-blue-600">8 actividades</span> organizadas para hoy y <span class="font-bold text-amber-600">3 pendientes</span>.</p>
+              <h1 id="home-welcome-title" class="text-2xl lg:text-3xl font-black text-slate-900 mt-1">¡Buenas noches, Juan!</h1>
+              <p class="text-xs sm:text-sm text-slate-500 mt-1">Tu centro de control para organizar todas tus actividades, tareas y citas de hoy.</p>
             </div>
-            <div class="flex items-center gap-3">
-              <button onclick="window.timeplusNavigate('agenda')" class="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold rounded-2xl transition-all">
-                🧭 Ver Línea de Tiempo
+            <div class="flex items-center gap-2">
+              <button onclick="window.timeplusNavigate('modules')" class="px-4 py-2.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-xs font-bold rounded-2xl transition-all flex items-center gap-1.5">
+                <span>🗂️</span> <span>13 Módulos</span>
               </button>
-              <button onclick="window.openCreateModal()" class="px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-2xl shadow-md shadow-blue-500/20 transition-all">
-                ＋ Nueva Actividad
+              <button onclick="window.timeplusNavigate('agenda')" class="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold rounded-2xl transition-all flex items-center gap-1.5">
+                <span>🧭</span> <span>Ver Agenda</span>
+              </button>
+              <button onclick="window.openCreateModal()" class="px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-2xl shadow-md shadow-blue-500/20 transition-all flex items-center gap-1.5">
+                <span>＋</span> <span>Nueva</span>
               </button>
             </div>
           </div>
 
-          <!-- 4 KPI Metrics Row -->
+          <!-- 4 KPI Metrics Cards Exact Section 4 (Eventos, Tareas, Citas, Clases) -->
           <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
-            <div class="bg-white p-4 rounded-3xl border border-slate-200 shadow-sm">
-              <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Actividades Hoy</span>
-              <span id="kpi-total-dash" class="text-3xl font-black text-slate-900 block font-mono mt-1">8</span>
-              <span class="text-[11px] text-emerald-600 font-semibold mt-1 block">✓ 5 completadas</span>
+            <!-- 1. Eventos -->
+            <div class="bg-white p-4 sm:p-5 rounded-3xl border border-slate-200 shadow-sm hover:border-emerald-300 transition-all cursor-pointer" onclick="window.timeplusFilterView('evento')">
+              <div class="flex items-center justify-between">
+                <span class="text-2xl p-2 bg-emerald-50 text-emerald-600 rounded-2xl">🗓️</span>
+                <span id="kpi-card-events" class="text-3xl font-black text-emerald-600 font-mono">12</span>
+              </div>
+              <div class="mt-3">
+                <span class="text-xs font-extrabold text-slate-800 block">Eventos</span>
+                <span class="text-[11px] text-slate-400 font-medium">Reuniones y actividades</span>
+              </div>
             </div>
 
-            <div class="bg-white p-4 rounded-3xl border border-slate-200 shadow-sm">
-              <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Pendientes Hoy</span>
-              <span id="kpi-pending-dash" class="text-3xl font-black text-amber-500 block font-mono mt-1">3</span>
-              <span class="text-[11px] text-slate-400 font-medium mt-1 block">Próxima a las 09:30</span>
+            <!-- 2. Tareas -->
+            <div class="bg-white p-4 sm:p-5 rounded-3xl border border-slate-200 shadow-sm hover:border-amber-300 transition-all cursor-pointer" onclick="window.timeplusFilterView('tarea')">
+              <div class="flex items-center justify-between">
+                <span class="text-2xl p-2 bg-amber-50 text-amber-600 rounded-2xl">📋</span>
+                <span id="kpi-card-tasks" class="text-3xl font-black text-amber-600 font-mono">5</span>
+              </div>
+              <div class="mt-3">
+                <span class="text-xs font-extrabold text-slate-800 block">Tareas</span>
+                <span class="text-[11px] text-slate-400 font-medium">Pendientes de resolver</span>
+              </div>
             </div>
 
-            <div class="bg-white p-4 rounded-3xl border border-slate-200 shadow-sm cursor-pointer hover:border-blue-300 transition-all" onclick="window.timeplusNavigate('places')">
-              <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Lugares Favoritos</span>
-              <span class="text-3xl font-black text-blue-600 block font-mono mt-1">4</span>
-              <span class="text-[11px] text-blue-500 font-medium mt-1 block">157 visitas registradas →</span>
+            <!-- 3. Citas -->
+            <div class="bg-white p-4 sm:p-5 rounded-3xl border border-slate-200 shadow-sm hover:border-rose-300 transition-all cursor-pointer" onclick="window.timeplusFilterView('cita_medica')">
+              <div class="flex items-center justify-between">
+                <span class="text-2xl p-2 bg-rose-50 text-rose-600 rounded-2xl">🩺</span>
+                <span id="kpi-card-appointments" class="text-3xl font-black text-rose-600 font-mono">3</span>
+              </div>
+              <div class="mt-3">
+                <span class="text-xs font-extrabold text-slate-800 block">Citas</span>
+                <span class="text-[11px] text-slate-400 font-medium">Médicas y profesionales</span>
+              </div>
             </div>
 
-            <div class="bg-white p-4 rounded-3xl border border-slate-200 shadow-sm cursor-pointer hover:border-blue-300 transition-all" onclick="window.timeplusNavigate('stats')">
-              <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Actividad Septiembre</span>
-              <span class="text-3xl font-black text-indigo-600 block font-mono mt-1">147</span>
-              <span class="text-[11px] text-indigo-500 font-medium mt-1 block">Ver estadísticas →</span>
+            <!-- 4. Clases -->
+            <div class="bg-white p-4 sm:p-5 rounded-3xl border border-slate-200 shadow-sm hover:border-blue-300 transition-all cursor-pointer" onclick="window.timeplusFilterView('clase')">
+              <div class="flex items-center justify-between">
+                <span class="text-2xl p-2 bg-blue-50 text-blue-600 rounded-2xl">🎓</span>
+                <span id="kpi-card-classes" class="text-3xl font-black text-blue-600 font-mono">2</span>
+              </div>
+              <div class="mt-3">
+                <span class="text-xs font-extrabold text-slate-800 block">Clases</span>
+                <span class="text-[11px] text-slate-400 font-medium">Materias y talleres</span>
+              </div>
             </div>
           </div>
 
-          <!-- 2-Column Dashboard Split -->
+          <!-- 2-Column Dashboard Split (Próximas Actividades vs Mini-Calendario Septiembre 2026) -->
           <div class="grid grid-cols-1 xl:grid-cols-12 gap-6">
             
-            <!-- Column 1: Hoy Actividades List (7 Cols) -->
+            <!-- Column 1: Próximas Actividades (7 Cols) -->
             <div class="xl:col-span-7 space-y-4">
               <div class="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm space-y-4">
                 <div class="flex items-center justify-between pb-3 border-b border-slate-100">
                   <div>
                     <h2 class="text-base font-black text-slate-900 flex items-center gap-2">
-                      <span>📅</span> HOY — Lista de Actividades
+                      <span>⚡</span> Próximas actividades
                     </h2>
-                    <p class="text-xs text-slate-500 mt-0.5">Marca como completada o haz clic para ver su detalle.</p>
+                    <p class="text-xs text-slate-500 mt-0.5">Cronograma continuo de tus compromisos de hoy.</p>
                   </div>
                   <button onclick="window.timeplusNavigate('agenda')" class="text-xs font-bold text-blue-600 hover:text-blue-700">
-                    Ver cronología completa →
+                    Ver agenda completa →
                   </button>
                 </div>
 
@@ -1089,85 +1397,55 @@
                 <div id="home-activities-list" class="space-y-2.5"></div>
 
                 <button onclick="window.openCreateModal()" class="w-full py-3 border-2 border-dashed border-slate-200 hover:border-blue-400 text-slate-600 hover:text-blue-600 font-bold text-xs rounded-2xl flex items-center justify-center gap-2 transition-all">
-                  <span>＋</span> Agregar otra actividad a la agenda de hoy
+                  <span>＋</span> Agregar otra actividad
                 </button>
               </div>
             </div>
 
-            <!-- Column 2: Connected Places & Deliveries (5 Cols) -->
+            <!-- Column 2: Mini-Calendario Septiembre 2026 & Acceso Rápido (5 Cols) -->
             <div class="xl:col-span-5 space-y-6">
               
-              <!-- Quick Places Card -->
-              <div class="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm space-y-4">
-                <div class="flex items-center justify-between">
+              <!-- Mini-Calendario Interactivo Exacto Sección 4 -->
+              <div class="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm space-y-3">
+                <div class="flex items-center justify-between pb-2 border-b border-slate-100">
                   <h3 class="text-sm font-black text-slate-900 flex items-center gap-2">
-                    <span>📍</span> Mis Lugares Frecuentes
+                    <span>📅</span> <span id="mini-cal-month-title">Septiembre 2026</span>
                   </h3>
-                  <button onclick="window.timeplusNavigate('places')" class="text-xs font-bold text-blue-600 hover:underline">
-                    Ver todos →
-                  </button>
+                  <div class="flex items-center gap-1">
+                    <button id="btn-mini-cal-prev" class="w-7 h-7 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center text-xs font-bold transition-colors">‹</button>
+                    <button id="btn-mini-cal-next" class="w-7 h-7 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center text-xs font-bold transition-colors">›</button>
+                  </div>
                 </div>
 
-                <div class="grid grid-cols-2 gap-3">
-                  <div class="p-3.5 rounded-2xl bg-slate-50 hover:bg-blue-50/60 border border-slate-100 hover:border-blue-200 cursor-pointer transition-all" onclick="window.timeplusNavigate('place-detail', 'place-oficina')">
-                    <div class="flex items-center justify-between">
-                      <span class="text-2xl">🏢</span>
-                      <span class="text-[10px] font-bold text-blue-600 bg-blue-100 px-2 py-0.5 rounded-full">43 visitas</span>
-                    </div>
-                    <h4 class="font-bold text-xs text-slate-800 mt-2">Oficina</h4>
-                    <p class="text-[11px] text-slate-400 mt-0.5">31 reuniones · 5 entregas</p>
-                  </div>
+                <!-- Días de la semana -->
+                <div class="grid grid-cols-7 text-center text-[11px] font-bold text-slate-400 py-1">
+                  <span>Lu</span><span>Ma</span><span>Mi</span><span>Ju</span><span>Vi</span><span>Sá</span><span>Do</span>
+                </div>
 
-                  <div class="p-3.5 rounded-2xl bg-slate-50 hover:bg-blue-50/60 border border-slate-100 hover:border-blue-200 cursor-pointer transition-all" onclick="window.timeplusNavigate('place-detail', 'place-clinica')">
-                    <div class="flex items-center justify-between">
-                      <span class="text-2xl">🏥</span>
-                      <span class="text-[10px] font-bold text-blue-600 bg-blue-100 px-2 py-0.5 rounded-full">18 visitas</span>
-                    </div>
-                    <h4 class="font-bold text-xs text-slate-800 mt-2">Clínica</h4>
-                    <p class="text-[11px] text-slate-400 mt-0.5">12 citas · 4 reuniones</p>
-                  </div>
+                <!-- Días del mes generados por app.js -->
+                <div id="mini-calendar-days" class="grid grid-cols-7 gap-1 text-center text-xs font-medium"></div>
 
-                  <div class="p-3.5 rounded-2xl bg-slate-50 hover:bg-blue-50/60 border border-slate-100 hover:border-blue-200 cursor-pointer transition-all" onclick="window.timeplusNavigate('place-detail', 'place-universidad')">
-                    <div class="flex items-center justify-between">
-                      <span class="text-2xl">🎓</span>
-                      <span class="text-[10px] font-bold text-blue-600 bg-blue-100 px-2 py-0.5 rounded-full">86 visitas</span>
-                    </div>
-                    <h4 class="font-bold text-xs text-slate-800 mt-2">Universidad</h4>
-                    <p class="text-[11px] text-slate-400 mt-0.5">72 clases · 8 exámenes</p>
-                  </div>
-
-                  <div class="p-3.5 rounded-2xl bg-slate-50 hover:bg-blue-50/60 border border-slate-100 hover:border-blue-200 cursor-pointer transition-all" onclick="window.timeplusNavigate('place-detail', 'place-restaurante')">
-                    <div class="flex items-center justify-between">
-                      <span class="text-2xl">🍽️</span>
-                      <span class="text-[10px] font-bold text-blue-600 bg-blue-100 px-2 py-0.5 rounded-full">12 visitas</span>
-                    </div>
-                    <h4 class="font-bold text-xs text-slate-800 mt-2">Restaurante</h4>
-                    <p class="text-[11px] text-slate-400 mt-0.5">8 salidas · 4 reuniones</p>
-                  </div>
+                <div class="pt-2 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-500">
+                  <span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-blue-600"></span> Día actual</span>
+                  <span class="flex items-center gap-1.5"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Con actividades</span>
                 </div>
               </div>
 
-              <!-- Urgent Delivery Tracking Card -->
-              <div class="bg-gradient-to-br from-amber-500/10 to-orange-500/10 border border-amber-200 rounded-3xl p-6 shadow-sm space-y-3 cursor-pointer hover:border-amber-400 transition-all" onclick="window.timeplusNavigate('activity-detail', 'act-5')">
+              <!-- Tarjeta de Acceso APK / APP Celular Sección 7 Preview -->
+              <div class="bg-gradient-to-br from-blue-600 to-indigo-700 rounded-3xl p-6 text-white shadow-lg shadow-blue-500/20 space-y-3">
                 <div class="flex items-center justify-between">
-                  <span class="text-xs font-black text-amber-800 uppercase tracking-wider flex items-center gap-1.5">
-                    <span>📄</span> ENTREGA DE TRABAJO DESTACADA
-                  </span>
-                  <span class="text-[11px] font-bold px-2.5 py-0.5 bg-amber-200 text-amber-900 rounded-full">En proceso</span>
+                  <span class="text-xs font-black uppercase tracking-wider bg-white/20 px-2.5 py-0.5 rounded-full">TIMEPLUS MOBILE</span>
+                  <span class="text-xl">📱</span>
                 </div>
-                <h3 class="text-base font-extrabold text-slate-900">Informe de auditoría</h3>
-                <div class="text-xs text-slate-600 space-y-1">
-                  <p>📅 10 septiembre · ⏰ 5:00 p. m. · 📍 Oficina Central</p>
-                  <p>👤 Responsable: Yo · 🔔 3 recordatorios activos</p>
-                </div>
-                <div class="pt-2">
-                  <div class="flex justify-between text-xs font-bold text-slate-700 mb-1">
-                    <span>Progreso del Checklist</span>
-                    <span>2 de 4 (50%)</span>
-                  </div>
-                  <div class="w-full bg-slate-200 rounded-full h-2 overflow-hidden">
-                    <div class="bg-amber-500 h-2 rounded-full w-1/2"></div>
-                  </div>
+                <h3 class="text-lg font-black tracking-tight">Lleva tu TIMEPLUS en el celular</h3>
+                <p class="text-xs text-blue-100">Escanea el código QR para sincronizar tu agenda entre tu computador y tu teléfono en 5 segundos.</p>
+                <div class="pt-2 flex items-center gap-2">
+                  <button onclick="window.timeplusOpenPairModal()" class="flex-1 py-2.5 bg-white text-blue-900 hover:bg-blue-50 font-black text-xs rounded-xl transition-all text-center">
+                    🔗 Vincular Dispositivo
+                  </button>
+                  <button onclick="window.timeplusNavigate('apk')" class="px-3.5 py-2.5 bg-white/10 hover:bg-white/20 text-white font-bold text-xs rounded-xl transition-all">
+                    Ver APK →
+                  </button>
                 </div>
               </div>
 
@@ -1251,11 +1529,108 @@
         </section>
 
         <!-- ========================================================= -->
-        <!-- VIEW 4: MI ACTIVIDAD (ESTADÍSTICAS & ANALÍTICA)          -->
+        <!-- VIEW 4: SECCIÓN 12: ESTADÍSTICAS DE TIEMPO (ANALÍTICA)   -->
         <!-- ========================================================= -->
         <section id="view-stats" class="space-y-6 hidden">
+          <div class="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div>
+              <div class="inline-flex items-center gap-2 px-3 py-1 bg-blue-50 text-blue-700 text-xs font-bold rounded-full mb-1">
+                <span>📊</span> 12. Estadísticas de tiempo
+              </div>
+              <h2 class="text-2xl font-black text-slate-900 tracking-tight">Conoce cómo usas tu tiempo</h2>
+              <p class="text-xs text-slate-500 mt-0.5">Analítica en vivo de tus actividades, traslados y distribución de prioridades.</p>
+            </div>
+            <button onclick="window.timeplusNavigate('home')" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl transition-all">
+              ← Volver al Dashboard
+            </button>
+          </div>
+
+          <!-- Donut Chart & Percentages Exact Section 12 -->
+          <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            <!-- Donut Chart Card -->
+            <div class="lg:col-span-6 bg-white p-6 rounded-3xl border border-slate-200 shadow-sm flex flex-col items-center justify-center text-center">
+              <h3 class="text-xs font-black text-slate-400 uppercase tracking-wider mb-4 self-start">Distribución porcentual</h3>
+              
+              <!-- SVG Donut Graphic -->
+              <div class="relative w-56 h-56 my-2">
+                <svg viewBox="0 0 36 36" class="w-full h-full transform -rotate-90">
+                  <!-- Background Circle -->
+                  <path class="text-slate-100" stroke-width="4.5" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>
+                  <!-- Trabajo 42% (Blue) -->
+                  <path stroke-dasharray="42, 100" class="text-blue-600" stroke-width="4.8" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>
+                  <!-- Estudio 21% (Indigo) -->
+                  <path stroke-dasharray="21, 100" stroke-dashoffset="-42" class="text-indigo-500" stroke-width="4.8" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>
+                  <!-- Reuniones 15% (Sky) -->
+                  <path stroke-dasharray="15, 100" stroke-dashoffset="-63" class="text-sky-400" stroke-width="4.8" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>
+                  <!-- Traslados 8% (Amber) -->
+                  <path stroke-dasharray="8, 100" stroke-dashoffset="-78" class="text-amber-500" stroke-width="4.8" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>
+                  <!-- Personal 14% (Emerald) -->
+                  <path stroke-dasharray="14, 100" stroke-dashoffset="-86" class="text-emerald-500" stroke-width="4.8" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>
+                </svg>
+                <!-- Central Label -->
+                <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                  <span class="text-3xl font-black text-slate-900 font-mono">42%</span>
+                  <span class="text-[11px] font-bold text-blue-600 uppercase">Trabajo</span>
+                </div>
+              </div>
+
+              <!-- Donut Legend -->
+              <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 text-left w-full mt-4 pt-4 border-t border-slate-100 text-xs font-bold">
+                <div class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-blue-600"></span> <span>Trabajo: 42%</span></div>
+                <div class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-indigo-500"></span> <span>Estudio: 21%</span></div>
+                <div class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-sky-400"></span> <span>Reuniones: 15%</span></div>
+                <div class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-amber-500"></span> <span>Traslados: 8%</span></div>
+                <div class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-emerald-500"></span> <span>Personal: 14%</span></div>
+              </div>
+            </div>
+
+            <!-- Resumen de Actividades Exact Section 12 -->
+            <div class="lg:col-span-6 bg-white p-6 rounded-3xl border border-slate-200 shadow-sm space-y-4 flex flex-col justify-between">
+              <div>
+                <h3 class="text-xs font-black text-slate-400 uppercase tracking-wider mb-3">Resumen de actividades</h3>
+                <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                  <div class="p-4 bg-slate-50 border border-slate-100 rounded-2xl text-center">
+                    <span class="text-2xl block">💻</span>
+                    <span class="text-2xl font-black text-slate-900 font-mono mt-1 block">34</span>
+                    <span class="text-[11px] font-bold text-slate-500">Reuniones</span>
+                  </div>
+                  <div class="p-4 bg-purple-50 border border-purple-100 rounded-2xl text-center">
+                    <span class="text-2xl block">🎓</span>
+                    <span class="text-2xl font-black text-purple-700 font-mono mt-1 block">18</span>
+                    <span class="text-[11px] font-bold text-purple-600">Clases</span>
+                  </div>
+                  <div class="p-4 bg-amber-50 border border-amber-100 rounded-2xl text-center">
+                    <span class="text-2xl block">📋</span>
+                    <span class="text-2xl font-black text-amber-700 font-mono mt-1 block">76</span>
+                    <span class="text-[11px] font-bold text-amber-600">Tareas</span>
+                  </div>
+                  <div class="p-4 bg-blue-50 border border-blue-100 rounded-2xl text-center">
+                    <span class="text-2xl block">📍</span>
+                    <span class="text-2xl font-black text-blue-700 font-mono mt-1 block">29</span>
+                    <span class="text-[11px] font-bold text-blue-600">Visitas</span>
+                  </div>
+                  <div class="p-4 bg-emerald-50 border border-emerald-100 rounded-2xl text-center">
+                    <span class="text-2xl block">🗓️</span>
+                    <span class="text-2xl font-black text-emerald-700 font-mono mt-1 block">52</span>
+                    <span class="text-[11px] font-bold text-emerald-600">Eventos</span>
+                  </div>
+                  <div class="p-4 bg-rose-50 border border-rose-100 rounded-2xl text-center">
+                    <span class="text-2xl block">🩺</span>
+                    <span class="text-2xl font-black text-rose-700 font-mono mt-1 block">14</span>
+                    <span class="text-[11px] font-bold text-rose-600">Citas</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl border border-blue-200 text-xs text-blue-900 space-y-1">
+                <span class="font-extrabold flex items-center gap-1.5">💡 Consejo de Optimización IA:</span>
+                <p class="text-slate-600">El 42% de tu tiempo está en trabajo enfocado. Intenta agrupar tus reuniones los días martes y jueves para tener bloques de 3 horas de concentración pura.</p>
+              </div>
+            </div>
+          </div>
+
           <div id="stats-content">
-            <!-- Rendered by app.js -->
+            <!-- Dynamic analytics rendered by app.js -->
           </div>
         </section>
 
@@ -1268,6 +1643,245 @@
           </button>
           <div id="activity-detail-content">
             <!-- Rendered by app.js -->
+          </div>
+        </section>
+
+        <!-- ========================================================= -->
+        <!-- SECCIÓN 5: CATÁLOGO DE LOS 13 MÓDULOS PRINCIPALES         -->
+        <!-- ========================================================= -->
+        <section id="view-modules" class="space-y-6 hidden">
+          <div class="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div>
+              <div class="inline-flex items-center gap-2 px-3 py-1 bg-blue-50 text-blue-700 text-xs font-bold rounded-full mb-1">
+                <span>🗂️</span> 5. Módulos Principales
+              </div>
+              <h2 class="text-2xl font-black text-slate-900 tracking-tight">Todo lo que necesitas, en un solo lugar</h2>
+              <p class="text-xs text-slate-500 mt-0.5">El ecosistema integral de TIMEPLUS para conectar cada faceta de tu tiempo.</p>
+            </div>
+            <button onclick="window.timeplusNavigate('home')" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl transition-all">
+              ← Volver al Dashboard
+            </button>
+          </div>
+
+          <!-- Grid de los 13 Módulos Exacto Sección 5 -->
+          <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            
+            <!-- 1. Agenda -->
+            <div class="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm hover:border-blue-400 hover:shadow-md transition-all cursor-pointer group" onclick="window.timeplusNavigate('agenda')">
+              <span class="text-3xl p-3 rounded-2xl bg-blue-50 text-blue-600 inline-block group-hover:scale-110 transition-transform">📅</span>
+              <h3 class="font-black text-sm text-slate-900 mt-3">Agenda</h3>
+              <p class="text-[11px] text-slate-400 mt-1 leading-relaxed">Día, semana, mes, año y línea de tiempo.</p>
+            </div>
+
+            <!-- 2. Eventos -->
+            <div class="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm hover:border-emerald-400 hover:shadow-md transition-all cursor-pointer group" onclick="window.timeplusFilterView('evento')">
+              <span class="text-3xl p-3 rounded-2xl bg-emerald-50 text-emerald-600 inline-block group-hover:scale-110 transition-transform">🗓️</span>
+              <h3 class="font-black text-sm text-slate-900 mt-3">Eventos</h3>
+              <p class="text-[11px] text-slate-400 mt-1 leading-relaxed">Reuniones, citas, clases, actividades.</p>
+            </div>
+
+            <!-- 3. Recordatorios -->
+            <div class="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm hover:border-amber-400 hover:shadow-md transition-all cursor-pointer group" onclick="window.timeplusFilterView('recordatorio')">
+              <span class="text-3xl p-3 rounded-2xl bg-amber-50 text-amber-600 inline-block group-hover:scale-110 transition-transform">🔔</span>
+              <h3 class="font-black text-sm text-slate-900 mt-3">Recordatorios</h3>
+              <p class="text-[11px] text-slate-400 mt-1 leading-relaxed">Múltiples alertas y recurrentes.</p>
+            </div>
+
+            <!-- 4. Medicamentos -->
+            <div class="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm hover:border-teal-400 hover:shadow-md transition-all cursor-pointer group" onclick="window.timeplusFilterView('medicamento')">
+              <span class="text-3xl p-3 rounded-2xl bg-teal-50 text-teal-600 inline-block group-hover:scale-110 transition-transform">💊</span>
+              <h3 class="font-black text-sm text-slate-900 mt-3">Medicamentos</h3>
+              <p class="text-[11px] text-slate-400 mt-1 leading-relaxed">Horarios y alertas de dosis.</p>
+            </div>
+
+            <!-- 5. Clases -->
+            <div class="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm hover:border-purple-400 hover:shadow-md transition-all cursor-pointer group" onclick="window.timeplusFilterView('clase')">
+              <span class="text-3xl p-3 rounded-2xl bg-purple-50 text-purple-600 inline-block group-hover:scale-110 transition-transform">🎓</span>
+              <h3 class="font-black text-sm text-slate-900 mt-3">Clases</h3>
+              <p class="text-[11px] text-slate-400 mt-1 leading-relaxed">Materias, tareas y entregas.</p>
+            </div>
+
+            <!-- 6. Trabajo -->
+            <div class="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm hover:border-indigo-400 hover:shadow-md transition-all cursor-pointer group" onclick="window.timeplusFilterView('entrega_trabajo')">
+              <span class="text-3xl p-3 rounded-2xl bg-indigo-50 text-indigo-600 inline-block group-hover:scale-110 transition-transform">💼</span>
+              <h3 class="font-black text-sm text-slate-900 mt-3">Trabajo</h3>
+              <p class="text-[11px] text-slate-400 mt-1 leading-relaxed">Reuniones, informes, pendientes.</p>
+            </div>
+
+            <!-- 7. Personas -->
+            <div class="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm hover:border-rose-400 hover:shadow-md transition-all cursor-pointer group" onclick="window.timeplusNavigate('places')">
+              <span class="text-3xl p-3 rounded-2xl bg-rose-50 text-rose-600 inline-block group-hover:scale-110 transition-transform">👥</span>
+              <h3 class="font-black text-sm text-slate-900 mt-3">Personas</h3>
+              <p class="text-[11px] text-slate-400 mt-1 leading-relaxed">Contactos vinculados a actividades.</p>
+            </div>
+
+            <!-- 8. Lugares -->
+            <div class="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm hover:border-lime-400 hover:shadow-md transition-all cursor-pointer group" onclick="window.timeplusNavigate('places')">
+              <span class="text-3xl p-3 rounded-2xl bg-lime-50 text-lime-600 inline-block group-hover:scale-110 transition-transform">📍</span>
+              <h3 class="font-black text-sm text-slate-900 mt-3">Lugares</h3>
+              <p class="text-[11px] text-slate-400 mt-1 leading-relaxed">Dirección, ubicación y visitas.</p>
+            </div>
+
+            <!-- 9. Tareas -->
+            <div class="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm hover:border-green-400 hover:shadow-md transition-all cursor-pointer group" onclick="window.timeplusFilterView('tarea')">
+              <span class="text-3xl p-3 rounded-2xl bg-green-50 text-green-600 inline-block group-hover:scale-110 transition-transform">✅</span>
+              <h3 class="font-black text-sm text-slate-900 mt-3">Tareas</h3>
+              <p class="text-[11px] text-slate-400 mt-1 leading-relaxed">Pendientes, prioridad, vencimiento y archivos.</p>
+            </div>
+
+            <!-- 10. Reuniones virtuales -->
+            <div class="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm hover:border-sky-400 hover:shadow-md transition-all cursor-pointer group" onclick="window.timeplusFilterView('reunion_virtual')">
+              <span class="text-3xl p-3 rounded-2xl bg-sky-50 text-sky-600 inline-block group-hover:scale-110 transition-transform">📹</span>
+              <h3 class="font-black text-sm text-slate-900 mt-3">Reuniones virtuales</h3>
+              <p class="text-[11px] text-slate-400 mt-1 leading-relaxed">Enlace, ubicación, participantes.</p>
+            </div>
+
+            <!-- 11. Actividad -->
+            <div class="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm hover:border-cyan-400 hover:shadow-md transition-all cursor-pointer group" onclick="window.timeplusNavigate('stats')">
+              <span class="text-3xl p-3 rounded-2xl bg-cyan-50 text-cyan-600 inline-block group-hover:scale-110 transition-transform">⏱️</span>
+              <h3 class="font-black text-sm text-slate-900 mt-3">Actividad</h3>
+              <p class="text-[11px] text-slate-400 mt-1 leading-relaxed">Qué hiciste hoy, historial continuo.</p>
+            </div>
+
+            <!-- 12. Estadísticas de tiempo -->
+            <div class="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm hover:border-blue-400 hover:shadow-md transition-all cursor-pointer group" onclick="window.timeplusNavigate('stats')">
+              <span class="text-3xl p-3 rounded-2xl bg-blue-50 text-blue-600 inline-block group-hover:scale-110 transition-transform">📊</span>
+              <h3 class="font-black text-sm text-slate-900 mt-3">Estadísticas de tiempo</h3>
+              <p class="text-[11px] text-slate-400 mt-1 leading-relaxed">Dónde usas tu tiempo (% y horas).</p>
+            </div>
+
+            <!-- 13. Asistente IA -->
+            <div class="bg-gradient-to-br from-indigo-50 to-purple-50 p-5 rounded-3xl border border-indigo-200 shadow-sm hover:border-indigo-400 hover:shadow-md transition-all cursor-pointer group col-span-2 md:col-span-3 lg:col-span-4" onclick="window.timeplusOpenAIModal()">
+              <div class="flex items-center gap-4">
+                <span class="text-4xl p-3.5 rounded-2xl bg-indigo-600 text-white inline-block shadow-md shadow-indigo-500/20 group-hover:scale-105 transition-transform">🤖</span>
+                <div>
+                  <h3 class="font-black text-base text-slate-900">Inteligencia Artificial TIMEPLUS</h3>
+                  <p class="text-xs text-slate-500 mt-0.5">Organización automática, comandos por voz y sugerencias inteligentes para optimizar tu día.</p>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </section>
+
+        <!-- ========================================================= -->
+        <!-- SECCIÓN 7: MÓDULO APK / APP (TU TIMEPLUS EN EL CELULAR)   -->
+        <!-- ========================================================= -->
+        <section id="view-apk" class="space-y-6 hidden">
+          <div class="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+            <div>
+              <div class="inline-flex items-center gap-2 px-3 py-1 bg-blue-50 text-blue-700 text-xs font-bold rounded-full mb-1">
+                <span>📱</span> 7. Módulo APK / APP
+              </div>
+              <h2 class="text-2xl font-black text-slate-900 tracking-tight">Tu TIMEPLUS en el celular</h2>
+              <p class="text-xs text-slate-500 mt-0.5">Una sola cuenta. Toda tu información. En todos tus dispositivos.</p>
+            </div>
+            <div class="flex items-center gap-2">
+              <button onclick="window.timeplusOpenPairModal()" class="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-black text-xs rounded-xl shadow-md shadow-blue-500/20 transition-all flex items-center gap-2">
+                <span>🔗</span> <span>Vincular Dispositivo</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Tarjetas de Acción APK Exacto Sección 7 -->
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <!-- Botón 1: Descargar APK -->
+            <div class="bg-gradient-to-br from-slate-900 to-indigo-950 p-6 rounded-3xl text-white shadow-xl space-y-4 flex flex-col justify-between">
+              <div>
+                <div class="w-12 h-12 rounded-2xl bg-white/10 flex items-center justify-center text-2xl mb-3">
+                  📥
+                </div>
+                <h3 class="text-lg font-black">Descargar APK</h3>
+                <p class="text-xs text-slate-300 mt-1">Instala la aplicación nativa en tu teléfono Android y sincronízala al instante.</p>
+              </div>
+              <button onclick="alert('📲 Descarga iniciada: TIMEPLUS-v1.0.apk listo para instalar en tu Android.')" class="w-full py-3 bg-white text-slate-950 font-black text-xs rounded-xl hover:bg-slate-100 transition-all text-center shadow-md">
+                DESCARGAR APK
+              </button>
+            </div>
+
+            <!-- Botón 2: Vincular Dispositivo -->
+            <div class="bg-gradient-to-br from-blue-600 to-indigo-600 p-6 rounded-3xl text-white shadow-xl space-y-4 flex flex-col justify-between">
+              <div>
+                <div class="w-12 h-12 rounded-2xl bg-white/20 flex items-center justify-center text-2xl mb-3">
+                  🔗
+                </div>
+                <h3 class="text-lg font-black">Vincular Dispositivo</h3>
+                <p class="text-xs text-blue-100 mt-1">Genera un código QR o clave temporal OTP para enlazar tu teléfono sin ingresar clave.</p>
+              </div>
+              <button onclick="window.timeplusOpenPairModal()" class="w-full py-3 bg-white text-blue-700 font-black text-xs rounded-xl hover:bg-blue-50 transition-all text-center shadow-md">
+                VINCULAR DISPOSITIVO
+              </button>
+            </div>
+
+            <!-- Botón 3: Mis Dispositivos -->
+            <div class="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm space-y-4 flex flex-col justify-between">
+              <div>
+                <div class="w-12 h-12 rounded-2xl bg-slate-100 flex items-center justify-center text-2xl mb-3 text-slate-700">
+                  📱
+                </div>
+                <h3 class="text-lg font-black text-slate-900">Mis Dispositivos</h3>
+                <p class="text-xs text-slate-500 mt-1">Revisa cuántos celulares, computadores y tablets tienen acceso activo.</p>
+              </div>
+              <button onclick="window.timeplusNavigate('security')" class="w-full py-3 bg-slate-100 hover:bg-slate-200 text-slate-800 font-black text-xs rounded-xl transition-all text-center">
+                MIS DISPOSITIVOS
+              </button>
+            </div>
+          </div>
+
+          <!-- Dispositivos Vinculados Sección 7 -->
+          <div class="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm space-y-4">
+            <h3 class="text-sm font-black text-slate-900 flex items-center gap-2">
+              <span>📱</span> Dispositivos vinculados
+            </h3>
+            <div id="apk-linked-devices-list" class="divide-y divide-slate-100">
+              <!-- Rendered by app.js -->
+            </div>
+          </div>
+        </section>
+
+        <!-- ========================================================= -->
+        <!-- SECCIÓN 9: SEGURIDAD Y SESIONES                           -->
+        <!-- ========================================================= -->
+        <section id="view-security" class="space-y-6 hidden">
+          <div class="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div>
+              <div class="inline-flex items-center gap-2 px-3 py-1 bg-red-50 text-red-700 text-xs font-bold rounded-full mb-1">
+                <span>🛡️</span> 9. Seguridad y Sesiones
+              </div>
+              <h2 class="text-2xl font-black text-slate-900 tracking-tight">Controla tus accesos y dispositivos</h2>
+              <p class="text-xs text-slate-500 mt-0.5">Supervisa dónde está abierta tu cuenta y cierra sesiones no reconocidas.</p>
+            </div>
+            <button onclick="window.timeplusCloseAllOtherSessions()" class="px-4 py-2.5 bg-red-50 hover:bg-red-100 text-red-700 font-bold text-xs rounded-xl border border-red-200 transition-all flex items-center gap-2 shadow-xs">
+              <span>🚫</span> <span>Cerrar todas las sesiones</span>
+            </button>
+          </div>
+
+          <!-- Sesión Actual Exacto Sección 9 -->
+          <div class="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm space-y-4">
+            <h3 class="text-xs font-black text-slate-400 uppercase tracking-wider">Sesión actual</h3>
+            <div class="flex items-center justify-between p-4 rounded-2xl bg-emerald-50/60 border border-emerald-200">
+              <div class="flex items-center gap-3.5">
+                <span class="text-3xl p-2 bg-white rounded-2xl shadow-xs">💻</span>
+                <div>
+                  <h4 class="font-black text-sm text-slate-900">Windows 11 · Navegador Web</h4>
+                  <p class="text-xs text-slate-500">Colombia · Dirección IP: 190.12.34.56</p>
+                </div>
+              </div>
+              <span class="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-100 text-emerald-800 text-xs font-black rounded-full">
+                <span class="w-2 h-2 rounded-full bg-emerald-600 animate-pulse"></span> Activa ahora
+              </span>
+            </div>
+          </div>
+
+          <!-- Otros Dispositivos Conectados Exacto Sección 9 -->
+          <div class="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm space-y-4">
+            <div class="flex items-center justify-between">
+              <h3 class="text-xs font-black text-slate-400 uppercase tracking-wider">Otros dispositivos</h3>
+              <span class="text-xs text-slate-400 font-medium">Sincronizados en Supabase</span>
+            </div>
+            <div id="security-other-devices-list" class="space-y-3">
+              <!-- Rendered by app.js -->
+            </div>
           </div>
         </section>
 
@@ -1493,11 +2107,11 @@
 
   <!-- Supabase CDN Client -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="js/supabase-client.js?v=20260906_cloud"></script>
+  <script src="js/supabase-client.js?v=20260907_master"></script>
 
   <!-- Application Logic Scripts -->
-  <script src="js/store.js?v=20260906_cloud"></script>
-  <script src="js/ai-engine.js?v=20260906_cloud"></script>
-  <script src="js/app.js?v=20260906_cloud"></script>
+  <script src="js/store.js?v=20260907_master"></script>
+  <script src="js/ai-engine.js?v=20260907_master"></script>
+  <script src="js/app.js?v=20260907_master"></script>
 </body>
 </html>

@@ -28,7 +28,29 @@ const INITIAL_DATA = {
       totalMonthlyRevenue: '$14,200 USD',
       globalPlacesConnected: 8650,
       globalIAQueriesToday: 3840
-    }
+    },
+    securityStats: {
+      activeUsers: 1248,
+      activeSessions: 386,
+      webAccesses: 2840,
+      apkAccesses: 5120,
+      failedAttempts: 32,
+      suspiciousAccesses: 4
+    },
+    auditLogs: [
+      { id: 'log-1', time: '20:42', user: 'Carlos López', role: 'Cliente', platform: 'Web', device: 'Windows 11', ip: '190.12.34.56', action: 'Inicio de sesión', success: true },
+      { id: 'log-2', time: '20:45', user: 'María García', role: 'Cliente', platform: 'APK', device: 'Samsung Galaxy S25', ip: '192.168.1.45', action: 'Creó evento', success: true },
+      { id: 'log-3', time: '20:47', user: 'Admin', role: 'Super Admin', platform: 'Web', device: 'Windows 11', ip: '190.12.34.56', action: 'Aprobó cliente', success: true },
+      { id: 'log-4', time: '20:51', user: 'Pedro Ruiz', role: 'Cliente', platform: 'APK', device: 'Xiaomi 13', ip: '192.168.1.88', action: 'Creó recordatorio', success: true },
+      { id: 'log-5', time: '21:03', user: 'Carlos López', role: 'Cliente', platform: 'Web', device: 'Windows 11', ip: '190.12.34.56', action: 'Registró ubicación', success: true },
+      { id: 'log-6', time: '21:15', user: 'Pedro Ruiz', role: 'Cliente', platform: 'APK', device: 'Xiaomi 13', ip: '192.168.1.88', action: 'Intento de acceso fallido', success: false },
+      { id: 'log-7', time: '22:15', user: 'María García', role: 'Cliente', platform: 'APK', device: 'Samsung Galaxy S25', ip: '192.168.1.45', action: 'Cerró sesión', success: true }
+    ],
+    devices: [
+      { id: 'dev-1', name: 'Samsung Galaxy S25', type: 'Android · APK', active: true, isCurrent: false, lastAccess: 'Activo ahora', icon: '📱' },
+      { id: 'dev-2', name: 'Windows 11 · Web', type: 'Web · Navegador', active: true, isCurrent: true, lastAccess: 'Sesión actual', icon: '💻' },
+      { id: 'dev-3', name: 'iPhone 14 · App', type: 'iOS · App', active: true, isCurrent: false, lastAccess: 'Ayer 9:15 PM', icon: '🍏' }
+    ]
   },
   user: {
     name: 'Rafael',
@@ -824,6 +846,57 @@ class TimeplusStore {
     }
     this.saveData();
     this.notify();
+  }
+
+  // --- Security, Sessions & Device Pairing Methods ---
+  getSecurityStats() {
+    return (this.data.auth && this.data.auth.securityStats) ? this.data.auth.securityStats : {
+      activeUsers: 1248,
+      activeSessions: 386,
+      webAccesses: 2840,
+      apkAccesses: 5120,
+      failedAttempts: 32,
+      suspiciousAccesses: 4
+    };
+  }
+
+  getAuditLogs() {
+    return (this.data.auth && this.data.auth.auditLogs) ? this.data.auth.auditLogs : [];
+  }
+
+  getDevices() {
+    return (this.data.auth && this.data.auth.devices) ? this.data.auth.devices : [];
+  }
+
+  closeAllOtherSessions() {
+    if (this.data.auth && this.data.auth.devices) {
+      this.data.auth.devices = this.data.auth.devices.filter(d => d.isCurrent);
+      if (this.data.auth.securityStats) {
+        this.data.auth.securityStats.activeSessions = 1;
+      }
+      this.saveData();
+      this.notify();
+    }
+  }
+
+  disconnectDevice(id) {
+    if (this.data.auth && this.data.auth.devices) {
+      this.data.auth.devices = this.data.auth.devices.filter(d => d.id !== id);
+      if (this.data.auth.securityStats && this.data.auth.securityStats.activeSessions > 1) {
+        this.data.auth.securityStats.activeSessions -= 1;
+      }
+      this.saveData();
+      this.notify();
+    }
+  }
+
+  generatePairingCode() {
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    let p1 = '';
+    let p2 = '';
+    for (let i = 0; i < 4; i++) p1 += chars.charAt(Math.floor(Math.random() * chars.length));
+    for (let i = 0; i < 4; i++) p2 += chars.charAt(Math.floor(Math.random() * chars.length));
+    return `TP-${p1}-${p2}`;
   }
 }
 
