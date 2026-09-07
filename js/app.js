@@ -1258,6 +1258,8 @@ document.addEventListener('DOMContentLoaded', () => {
         alert('Error: ' + res.error);
       }
     }
+  };
+
   // --- MODAL DE EDICIÓN DE PERFIL DE CLIENTE ---
   window.timeplusOpenEditProfileModal = (sectionToFocus = '') => {
     const user = store.getCurrentUser();
