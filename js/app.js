@@ -267,7 +267,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // ==========================================
   // VIEW: ADMIN DASHBOARD (QUIEN MANEJA TODO)
   // ==========================================
-  function renderAdminDashboard() {
+  async function renderAdminDashboard() {
     // 1. Renderizar solicitudes pendientes de aprobación (Google / Outlook / Registro)
     const requestsTbody = document.getElementById('admin-requests-table-body');
     const badgePending = document.getElementById('badge-pending-count');
@@ -329,60 +329,9 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     }
 
-    // Sincronizar solicitudes desde Supabase Cloud (tabla client_requests)
-    if (window.timeplusSupabase && typeof window.timeplusSupabase.getClientRequests === 'function' && !renderAdminDashboard._fetchingCloud) {
-      renderAdminDashboard._fetchingCloud = true;
-      window.timeplusSupabase.getClientRequests()
-        .then(data => {
-          renderAdminDashboard._fetchingCloud = false;
-          if (Array.isArray(data) && data.length > 0) {
-            let hasNew = false;
-            data.forEach(p => {
-              if (p.status && p.status.toLowerCase() === 'pendiente') {
-                const allReqs = store.getClientRequests();
-                const found = allReqs.some(r => r.email && r.email.toLowerCase() === (p.email || '').toLowerCase());
-                if (!found) {
-                  store.addClientRequest(p.name, p.email, p.provider || 'Google Workspace', p.plan || 'TIMEPLUS Connect Pro', p.password || '');
-                  hasNew = true;
-                }
-              }
-            });
-            if (hasNew) {
-              renderAdminDashboard();
-            }
-          }
-        })
-        .catch(err => {
-          renderAdminDashboard._fetchingCloud = false;
-        });
-    }
-
-    // También consultar tabla profiles de Supabase Cloud
-    if (window.timeplusSupabase && window.timeplusSupabase.client && !renderAdminDashboard._fetchingProfiles) {
-      renderAdminDashboard._fetchingProfiles = true;
-      window.timeplusSupabase.client.from('profiles').select('*').then(({ data, error }) => {
-        renderAdminDashboard._fetchingProfiles = false;
-        if (!error && Array.isArray(data) && data.length > 0) {
-          let hasNew = false;
-          data.forEach(p => {
-            if (p.role === 'client' && p.email && p.email.toLowerCase() !== 'ces.rodriguez200@gmail.com') {
-              const allReqs = store.getClientRequests();
-              const foundInReqs = allReqs.some(r => r.email && r.email.toLowerCase() === (p.email || '').toLowerCase());
-              const foundInActive = store.getClientsList().some(c => c.email && c.email.toLowerCase() === (p.email || '').toLowerCase());
-              if (!foundInReqs && !foundInActive) {
-                store.addClientRequest(p.full_name || p.email.split('@')[0], p.email, 'Supabase Cloud', p.plan || 'TIMEPLUS Connect Pro', '123456');
-                hasNew = true;
-              }
-            }
-          });
-          if (hasNew) {
-            renderAdminDashboard();
-          }
-        }
-      }).catch(() => {
-        renderAdminDashboard._fetchingProfiles = false;
-      });
-    }
+    // Fetch DIRECTO desde Supabase Cloud — sin flags, sin debounce
+    // Esta función es la fuente de verdad para las solicitudes
+    _syncRequestsFromCloud();
 
     // 2. Renderizar clientes aprobados con licencias activas
     const tbody = document.getElementById('admin-clients-table-body');
@@ -457,6 +406,103 @@ document.addEventListener('DOMContentLoaded', () => {
         `;
         tbody.appendChild(tr);
       });
+    }
+  }
+
+  // ============================================================
+  // SYNC DIRECTO DESDE SUPABASE — fuente de verdad de solicitudes
+  // Se llama cada vez que se renderiza el dashboard
+  // ============================================================
+  let _syncInProgress = false;
+  async function _syncRequestsFromCloud() {
+    if (_syncInProgress) return;
+    _syncInProgress = true;
+
+    try {
+      if (!window.timeplusSupabase || typeof window.timeplusSupabase.getClientRequests !== 'function') {
+        _syncInProgress = false;
+        return;
+      }
+
+      const cloudData = await window.timeplusSupabase.getClientRequests();
+      console.log('☁️ Supabase client_requests recibidos:', cloudData.length, cloudData);
+
+      if (!Array.isArray(cloudData) || cloudData.length === 0) {
+        _syncInProgress = false;
+        return;
+      }
+
+      // Merge: añadir al store local solo los que no existen aún
+      const allLocalReqs = store.getClientRequests ? store.getClientRequests() : [];
+      let hasNew = false;
+
+      cloudData.forEach(p => {
+        const emailLower = (p.email || '').toLowerCase();
+        const found = allLocalReqs.some(r => (r.email || '').toLowerCase() === emailLower);
+        if (!found) {
+          store.addClientRequest(
+            p.name || p.email,
+            p.email,
+            p.provider || 'Google Workspace',
+            p.plan || 'TIMEPLUS Connect Pro',
+            p.password || ''
+          );
+          hasNew = true;
+        }
+      });
+
+      // Si hay solicitudes nuevas → re-renderizar SOLO la tabla de requests
+      if (hasNew) {
+        const requestsTbody = document.getElementById('admin-requests-table-body');
+        const badgePending = document.getElementById('badge-pending-count');
+        const allReqs = store.getClientRequests ? store.getClientRequests() : [];
+        const pending = allReqs.filter(r => !r.status || r.status.toLowerCase() === 'pendiente');
+
+        if (badgePending) {
+          badgePending.textContent = `${pending.length} pendientes`;
+          badgePending.className = pending.length > 0
+            ? 'text-[10px] font-black px-2.5 py-0.5 bg-amber-100 text-amber-800 rounded-full animate-pulse'
+            : 'text-[10px] font-black px-2.5 py-0.5 bg-slate-100 text-slate-500 rounded-full';
+        }
+
+        if (requestsTbody) {
+          requestsTbody.innerHTML = '';
+          if (pending.length === 0) {
+            requestsTbody.innerHTML = `<tr><td colspan="5" class="py-6 text-center text-xs text-slate-400 font-medium">✨ No hay solicitudes pendientes.</td></tr>`;
+          } else {
+            pending.forEach(req => {
+              const tr = document.createElement('tr');
+              tr.className = 'hover:bg-amber-50/40 transition-colors';
+              const providerLabel = req.provider || 'Correo Corporativo';
+              const isGoogle = providerLabel.toLowerCase().includes('google');
+              const fechaDisplay = req.requestedAt || (req.created_at ? new Date(req.created_at).toLocaleString('es', { dateStyle: 'short', timeStyle: 'short' }) : 'Reciente');
+              tr.innerHTML = `
+                <td class="py-3.5">
+                  <div class="font-extrabold text-slate-900">${req.name || req.email}</div>
+                  <div class="text-[11px] text-slate-400 font-mono">${req.email}</div>
+                </td>
+                <td class="py-3.5">
+                  <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-bold ${isGoogle ? 'bg-blue-50 text-blue-700 border border-blue-200' : 'bg-sky-50 text-sky-700 border border-sky-200'}">
+                    ${isGoogle ? '🌐' : '📫'} ${providerLabel}
+                  </span>
+                </td>
+                <td class="py-3.5"><span class="font-bold text-indigo-700">${req.plan || 'TIMEPLUS Connect Pro'}</span></td>
+                <td class="py-3.5 text-[11px] text-slate-400 font-medium">${fechaDisplay}</td>
+                <td class="py-3.5 text-right space-x-1.5">
+                  <button class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold text-xs shadow-sm transition-all active:scale-95"
+                          onclick="window.timeplusApproveClient('${req.id}')">✓ Aprobar</button>
+                  <button class="px-2.5 py-1.5 bg-slate-100 hover:bg-red-50 text-slate-500 hover:text-red-600 rounded-xl font-bold text-xs transition-colors"
+                          onclick="window.timeplusRejectClient('${req.id}')">✕ Rechazar</button>
+                </td>`;
+              requestsTbody.appendChild(tr);
+            });
+          }
+        }
+      }
+    } catch (err) {
+      console.warn('Error en _syncRequestsFromCloud:', err);
+    } finally {
+      _syncInProgress = false;
     }
   }
 
@@ -1281,12 +1327,10 @@ document.addEventListener('DOMContentLoaded', () => {
   };
 
   // Botón 🔄 Actualizar del panel de solicitudes admin
-  window.timeplusRefreshAdminRequests = () => {
+  window.timeplusRefreshAdminRequests = async () => {
     store.reloadFromStorage();
-    if (typeof renderAdminDashboard === 'function') {
-      renderAdminDashboard._fetchingCloud = false;
-      renderAdminDashboard();
-    }
+    _syncInProgress = false; // Forzar re-fetch aunque esté en progreso
+    await _syncRequestsFromCloud();
     // Feedback visual en el botón
     const btn = document.querySelector('[onclick="window.timeplusRefreshAdminRequests()"]');
     if (btn) {
@@ -1298,7 +1342,7 @@ document.addEventListener('DOMContentLoaded', () => {
         btn.innerHTML = original;
         btn.disabled = false;
         btn.classList.remove('opacity-60');
-      }, 1200);
+      }, 1500);
     }
   };
 
@@ -1617,54 +1661,42 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
+    // Mostrar estado "Enviando..."
+    if (msgEl) {
+      msgEl.className = 'text-[11px] font-semibold p-2.5 rounded-xl text-center bg-blue-50 text-blue-700 border border-blue-200 block';
+      msgEl.textContent = '⏳ Enviando solicitud...';
+    }
+
     const provider = email.includes('gmail') ? 'Google Workspace' : (email.includes('outlook') || email.includes('hotmail') ? 'Microsoft Outlook' : 'Correo Corporativo');
+
+    // 1. Guardar en localStorage local
     store.addClientRequest(name, email, provider, plan, pass);
 
-    // Sincronizar de inmediato en Supabase Cloud (tabla client_requests y auth)
-    if (window.timeplusSupabase && window.timeplusSupabase.client) {
-      // 1. Intentar registrar en Supabase Auth (crea usuario y dispara trigger handle_new_user -> profiles)
+    // 2. Guardar en Supabase Cloud (awaited para confirmar éxito)
+    let savedToCloud = false;
+    if (window.timeplusSupabase && typeof window.timeplusSupabase.addClientRequest === 'function') {
       try {
-        window.timeplusSupabase.client.auth.signUp({
-          email: email,
-          password: pass,
-          options: {
-            data: {
-              full_name: name,
-              plan: plan
-            }
-          }
-        }).then(({ data, error }) => {
-          if (!error && data) {
-            console.log('✅ Cliente registrado en Supabase Auth & Profiles:', email);
-          } else if (error) {
-            console.warn('Nota Supabase Auth signUp:', error.message);
-          }
-        }).catch(() => {});
-      } catch (e) {}
-
-      // 2. Intentar guardar en client_requests
-      if (typeof window.timeplusSupabase.addClientRequest === 'function') {
-        try {
-          window.timeplusSupabase.addClientRequest({
-            name,
-            email,
-            password: pass,
-            provider,
-            plan
-          });
-        } catch (e) {}
+        const result = await window.timeplusSupabase.addClientRequest({ name, email, password: pass, provider, plan });
+        savedToCloud = !!result;
+        console.log('☁️ Resultado Supabase addClientRequest:', result);
+      } catch (e) {
+        console.warn('Error guardando en Supabase Cloud:', e);
       }
     }
 
-    // Si el SuperAdmin ya está logueado en esta sesión, actualizar su dashboard en tiempo real
-    const currentUser = store.getCurrentUser();
-    if (currentUser && currentUser.role === 'admin') {
-      renderAdminDashboard();
+    // 3. También intentar registro en Auth (sin bloquear)
+    if (window.timeplusSupabase && window.timeplusSupabase.client) {
+      window.timeplusSupabase.client.auth.signUp({
+        email, password: pass,
+        options: { data: { full_name: name, plan } }
+      }).then(({ error }) => {
+        if (error) console.warn('Nota Auth signUp (no crítico):', error.message);
+      }).catch(() => {});
     }
 
     if (msgEl) {
       msgEl.className = 'text-[11px] font-semibold p-2.5 rounded-xl text-center bg-emerald-50 text-emerald-700 block';
-      msgEl.textContent = `✅ Solicitud enviada al SuperAdmin. En cuanto apruebe tu plan "${plan}", podrás ingresar con tu correo y contraseña.`;
+      msgEl.textContent = `✅ Solicitud enviada${savedToCloud ? ' y guardada en la nube' : ' localmente'}. En cuanto el SuperAdmin apruebe tu plan "${plan}", podrás ingresar.`;
     }
 
     if (nameInput) nameInput.value = '';

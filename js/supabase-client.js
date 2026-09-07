@@ -111,27 +111,44 @@ window.timeplusSupabase = {
   },
 
   async addClientRequest(req) {
-    if (!supabaseClient) return null;
+    if (!supabaseClient) {
+      console.warn('⚠️ Supabase no inicializado — no se puede guardar solicitud en la nube.');
+      return null;
+    }
     try {
+      // Verificar si ya existe una solicitud con este email
+      const { data: existing } = await supabaseClient
+        .from('client_requests')
+        .select('id, status')
+        .eq('email', req.email)
+        .maybeSingle();
+
+      if (existing) {
+        console.log('ℹ️ Ya existe solicitud en Supabase para:', req.email, '— status:', existing.status);
+        return existing;
+      }
+
+      // Insertar nueva solicitud
       const { data, error } = await supabaseClient
         .from('client_requests')
-        .upsert({
+        .insert({
           name: req.name,
           email: req.email,
-          password: req.password,
+          password: req.password || '',
           provider: req.provider || 'Google Workspace',
           plan: req.plan || 'TIMEPLUS Connect Pro',
           status: 'Pendiente'
-        }, { onConflict: 'email' })
+        })
         .select();
+
       if (error) {
-        console.warn('Error insertando client_request en Supabase:', error.message);
+        console.warn('❌ Error al insertar client_request en Supabase:', error.message, error);
         return null;
       }
-      console.log('✅ Solicitud guardada en Supabase Cloud:', req.email);
+      console.log('✅ Solicitud guardada en Supabase Cloud:', req.email, data?.[0]);
       return data?.[0] || null;
     } catch (e) {
-      console.warn('Exception insertando client_request en Supabase:', e);
+      console.warn('❌ Exception en addClientRequest Supabase:', e);
       return null;
     }
   },
