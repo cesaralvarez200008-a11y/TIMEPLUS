@@ -216,31 +216,160 @@
           </button>
         </form>
 
-        <!-- Formulario Solicitar Cuenta (Registro en Supabase) -->
-        <form id="form-landing-register" onsubmit="event.preventDefault(); timeplusDoLandingRegister();" style="display:none;flex-direction:column;gap:0.875rem;">
-          <div>
-            <label style="font-size:0.75rem;font-weight:700;display:block;margin-bottom:0.35rem;">Nombre Completo</label>
-            <input type="text" id="reg-name" placeholder="Ej: Rafael Carvajal" class="login-panel-input" required>
+        <!-- ══ FORMULARIO DE REGISTRO — WIZARD 5 PASOS ══ -->
+        <form id="form-landing-register" onsubmit="event.preventDefault(); timeplusDoLandingRegister();" style="display:none;flex-direction:column;gap:0.6rem;">
+
+          <!-- Barra de pasos -->
+          <div id="reg-stepper" style="display:flex;border-radius:0.5rem;overflow:hidden;border:1px solid #E2E8F0;margin-bottom:0.4rem;">
+            <div id="step-dot-1" style="flex:1;text-align:center;padding:0.38rem 0.1rem;font-size:0.61rem;font-weight:800;cursor:pointer;background:#2563EB;color:#fff;border-right:1px solid #1D4ED8;" onclick="timeplusWizardGoTo(1)">1·Cuenta</div>
+            <div id="step-dot-2" style="flex:1;text-align:center;padding:0.38rem 0.1rem;font-size:0.61rem;font-weight:800;cursor:pointer;background:#F1F5F9;color:#94A3B8;border-right:1px solid #E2E8F0;" onclick="timeplusWizardGoTo(2)">2·Personal</div>
+            <div id="step-dot-3" style="flex:1;text-align:center;padding:0.38rem 0.1rem;font-size:0.61rem;font-weight:800;cursor:pointer;background:#F1F5F9;color:#94A3B8;border-right:1px solid #E2E8F0;" onclick="timeplusWizardGoTo(3)">3·Academia</div>
+            <div id="step-dot-4" style="flex:1;text-align:center;padding:0.38rem 0.1rem;font-size:0.61rem;font-weight:800;cursor:pointer;background:#F1F5F9;color:#94A3B8;border-right:1px solid #E2E8F0;" onclick="timeplusWizardGoTo(4)">4·Lugares</div>
+            <div id="step-dot-5" style="flex:1;text-align:center;padding:0.38rem 0.1rem;font-size:0.61rem;font-weight:800;cursor:pointer;background:#F1F5F9;color:#94A3B8;" onclick="timeplusWizardGoTo(5)">5·Prefs</div>
           </div>
-          <div>
-            <label style="font-size:0.75rem;font-weight:700;display:block;margin-bottom:0.35rem;">Correo electrónico</label>
-            <input type="email" id="reg-email" placeholder="correo@ejemplo.com" class="login-panel-input" required>
+
+          <!-- PASO 1 -->
+          <div id="reg-panel-1" style="display:flex;flex-direction:column;gap:0.45rem;">
+            <p style="font-size:0.67rem;font-weight:800;color:#2563EB;margin:0 0 0.35rem;letter-spacing:0.04em;">PASO 1 — CUENTA &amp; TIPO DE USUARIO</p>
+            <div>
+              <label style="font-size:0.71rem;font-weight:700;display:block;margin-bottom:0.25rem;">Tipo de Usuario *</label>
+              <div style="display:flex;gap:0.35rem;">
+                <label style="flex:1;display:flex;align-items:center;gap:0.3rem;background:#F8FAFC;border:1.5px solid #E2E8F0;border-radius:0.5rem;padding:0.38rem 0.4rem;cursor:pointer;font-size:0.71rem;"><input type="radio" name="reg-usertype" value="Estudiante" checked> 🎓 Estudiante</label>
+                <label style="flex:1;display:flex;align-items:center;gap:0.3rem;background:#F8FAFC;border:1.5px solid #E2E8F0;border-radius:0.5rem;padding:0.38rem 0.4rem;cursor:pointer;font-size:0.71rem;"><input type="radio" name="reg-usertype" value="Profesor"> 📚 Profesor</label>
+                <label style="flex:1;display:flex;align-items:center;gap:0.3rem;background:#F8FAFC;border:1.5px solid #E2E8F0;border-radius:0.5rem;padding:0.38rem 0.4rem;cursor:pointer;font-size:0.71rem;"><input type="radio" name="reg-usertype" value="Profesional"> 💼 Profesional</label>
+              </div>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.4rem;">
+              <div><label style="font-size:0.71rem;font-weight:700;display:block;margin-bottom:0.2rem;">Correo *</label><input type="email" id="reg-email" placeholder="correo@ejemplo.com" class="login-panel-input" required></div>
+              <div><label style="font-size:0.71rem;font-weight:700;display:block;margin-bottom:0.2rem;">Celular / WhatsApp *</label><input type="tel" id="reg-phone" placeholder="+57 310 123 4567" class="login-panel-input" required></div>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.4rem;">
+              <div><label style="font-size:0.71rem;font-weight:700;display:block;margin-bottom:0.2rem;">Contraseña *</label><input type="password" id="reg-pass" placeholder="Mínimo 6 caracteres" class="login-panel-input" required></div>
+              <div><label style="font-size:0.71rem;font-weight:700;display:block;margin-bottom:0.2rem;">Confirmar Contraseña *</label><input type="password" id="reg-pass2" placeholder="Repite tu clave" class="login-panel-input" required></div>
+            </div>
+            <div style="display:flex;justify-content:flex-end;"><button type="button" class="login-panel-submit" style="padding:0.42rem 1.25rem;font-size:0.78rem;" onclick="timeplusWizardNext(1)">Siguiente →</button></div>
           </div>
-          <div>
-            <label style="font-size:0.75rem;font-weight:700;display:block;margin-bottom:0.35rem;">Plan Deseado</label>
-            <select id="reg-plan" class="login-panel-input" style="background:#fff;">
-              <option value="TIMEPLUS Connect Pro">TIMEPLUS Connect Pro (Recomendado)</option>
-              <option value="TIMEPLUS Enterprise">TIMEPLUS Enterprise</option>
-              <option value="TIMEPLUS Basic">TIMEPLUS Básico</option>
-            </select>
+
+          <!-- PASO 2 -->
+          <div id="reg-panel-2" style="display:none;flex-direction:column;gap:0.45rem;">
+            <p style="font-size:0.67rem;font-weight:800;color:#2563EB;margin:0 0 0.35rem;letter-spacing:0.04em;">PASO 2 — INFORMACIÓN PERSONAL</p>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.4rem;">
+              <div><label style="font-size:0.71rem;font-weight:700;display:block;margin-bottom:0.2rem;">Tipo de Persona *</label><select id="reg-persontype" class="login-panel-input" style="background:#fff;"><option value="Natural">Persona Natural</option><option value="Jurídica">Persona Jurídica</option></select></div>
+              <div><label style="font-size:0.71rem;font-weight:700;display:block;margin-bottom:0.2rem;">Género (opcional)</label><select id="reg-gender" class="login-panel-input" style="background:#fff;"><option value="">— Prefiero no decir —</option><option value="Masculino">Masculino</option><option value="Femenino">Femenino</option><option value="No binario">No binario</option><option value="Otro">Otro</option></select></div>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.4rem;">
+              <div><label style="font-size:0.71rem;font-weight:700;display:block;margin-bottom:0.2rem;">Nombres *</label><input type="text" id="reg-firstname" placeholder="Ej: Rafael" class="login-panel-input" required></div>
+              <div><label style="font-size:0.71rem;font-weight:700;display:block;margin-bottom:0.2rem;">Apellidos *</label><input type="text" id="reg-lastname" placeholder="Ej: Carvajal" class="login-panel-input" required></div>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.4rem;">
+              <div><label style="font-size:0.71rem;font-weight:700;display:block;margin-bottom:0.2rem;">Tipo de Documento *</label><select id="reg-doctype" class="login-panel-input" style="background:#fff;"><option value="CC">CC — Cédula de Ciudadanía</option><option value="TI">TI — Tarjeta de Identidad</option><option value="CE">CE — Cédula de Extranjería</option><option value="Pasaporte">Pasaporte</option></select></div>
+              <div><label style="font-size:0.71rem;font-weight:700;display:block;margin-bottom:0.2rem;">Número de Documento *</label><input type="text" id="reg-docnum" placeholder="Ej: 1012345678" class="login-panel-input" required></div>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.4rem;">
+              <div><label style="font-size:0.71rem;font-weight:700;display:block;margin-bottom:0.2rem;">Fecha de Nacimiento</label><input type="date" id="reg-birthdate" class="login-panel-input"></div>
+              <div><label style="font-size:0.71rem;font-weight:700;display:block;margin-bottom:0.2rem;">País *</label><input type="text" id="reg-country" placeholder="Colombia" value="Colombia" class="login-panel-input" required></div>
+            </div>
+            <div style="display:flex;justify-content:space-between;"><button type="button" class="btn-secondary" style="padding:0.42rem 0.9rem;font-size:0.74rem;" onclick="timeplusWizardGoTo(1)">← Atrás</button><button type="button" class="login-panel-submit" style="padding:0.42rem 1.25rem;font-size:0.78rem;" onclick="timeplusWizardNext(2)">Siguiente →</button></div>
           </div>
-          <div style="background:#EFF6FF;border:1px solid #BFDBFE;border-radius:0.5rem;padding:0.6rem;font-size:0.6875rem;color:#1E40AF;">
-            ℹ️ Tu solicitud quedará en estado <strong>PENDIENTE</strong> en Supabase Cloud hasta ser aprobada por el SuperAdmin.
+
+          <!-- PASO 3 -->
+          <div id="reg-panel-3" style="display:none;flex-direction:column;gap:0.45rem;">
+            <p style="font-size:0.67rem;font-weight:800;color:#2563EB;margin:0 0 0.35rem;letter-spacing:0.04em;">PASO 3 — INFORMACIÓN ACADÉMICA / PROFESIONAL</p>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.4rem;">
+              <div><label style="font-size:0.71rem;font-weight:700;display:block;margin-bottom:0.2rem;">Nivel Educativo</label><select id="reg-acadlevel" class="login-panel-input" style="background:#fff;"><option value="">— Seleccionar —</option><option value="Primaria">Primaria</option><option value="Secundaria">Secundaria / Bachillerato</option><option value="Técnico">Técnico / Tecnólogo</option><option value="Universitario">Universitario</option><option value="Posgrado">Posgrado / Maestría</option><option value="Doctorado">Doctorado</option></select></div>
+              <div><label style="font-size:0.71rem;font-weight:700;display:block;margin-bottom:0.2rem;">Institución Educativa</label><input type="text" id="reg-institution" placeholder="Ej: Universidad XYZ" class="login-panel-input"></div>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.4rem;">
+              <div><label style="font-size:0.71rem;font-weight:700;display:block;margin-bottom:0.2rem;">Programa / Carrera</label><input type="text" id="reg-program" placeholder="Ej: Ingeniería de Sistemas" class="login-panel-input"></div>
+              <div><label style="font-size:0.71rem;font-weight:700;display:block;margin-bottom:0.2rem;">Semestre / Grado</label><input type="text" id="reg-semester" placeholder="Ej: 4.° semestre" class="login-panel-input"></div>
+            </div>
+            <div><label style="font-size:0.71rem;font-weight:700;display:block;margin-bottom:0.2rem;">Áreas / Materias de Interés</label><input type="text" id="reg-interests" placeholder="Ej: Matemáticas, Programación, Diseño" class="login-panel-input"></div>
+            <div><label style="font-size:0.71rem;font-weight:700;display:block;margin-bottom:0.2rem;">Objetivo de Aprendizaje</label><input type="text" id="reg-goal" placeholder="Ej: Mejorar mi rendimiento académico con IA" class="login-panel-input"></div>
+            <div style="display:flex;justify-content:space-between;"><button type="button" class="btn-secondary" style="padding:0.42rem 0.9rem;font-size:0.74rem;" onclick="timeplusWizardGoTo(2)">← Atrás</button><button type="button" class="login-panel-submit" style="padding:0.42rem 1.25rem;font-size:0.78rem;" onclick="timeplusWizardNext(3)">Siguiente →</button></div>
           </div>
-          <button type="submit" id="btn-submit-register" class="login-panel-submit" style="background:linear-gradient(135deg,#16A34A,#15803D);">
-            Enviar Solicitud al SuperAdmin →
-          </button>
+
+          <!-- PASO 4 -->
+          <div id="reg-panel-4" style="display:none;flex-direction:column;gap:0.45rem;">
+            <p style="font-size:0.67rem;font-weight:800;color:#2563EB;margin:0 0 0.2rem;letter-spacing:0.04em;">PASO 4 — UBICACIONES &amp; RUTAS FRECUENTES</p>
+            <p style="font-size:0.66rem;color:#64748B;margin:0 0 0.3rem;">La IA usa estas direcciones para calcular tiempos de movilidad.</p>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.4rem;">
+              <div><label style="font-size:0.71rem;font-weight:700;display:block;margin-bottom:0.2rem;">🌆 Ciudad *</label><input type="text" id="reg-city" placeholder="Ej: Bogotá, Colombia" class="login-panel-input" required></div>
+              <div><label style="font-size:0.71rem;font-weight:700;display:block;margin-bottom:0.2rem;">🏠 Dirección Casa *</label><input type="text" id="reg-addr-home" placeholder="Ej: Cra 7 # 45-20, Chapinero" class="login-panel-input" required></div>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.4rem;">
+              <div><label style="font-size:0.71rem;font-weight:700;display:block;margin-bottom:0.2rem;">🏢 Trabajo / Estudio (opc.)</label><input type="text" id="reg-addr-work" placeholder="Dirección de trabajo o campus" class="login-panel-input"></div>
+              <div><label style="font-size:0.71rem;font-weight:700;display:block;margin-bottom:0.2rem;">👨‍👩‍👧 Familiar / Alt. (opc.)</label><input type="text" id="reg-addr-family" placeholder="Dirección de familiar cercano" class="login-panel-input"></div>
+            </div>
+            <div><label style="font-size:0.71rem;font-weight:700;display:block;margin-bottom:0.2rem;">🏋️ Gimnasio / Sede Habitual (opc.)</label><input type="text" id="reg-addr-gym" placeholder="Ej: SmartFit Calle 100, Bogotá" class="login-panel-input"></div>
+            <div style="background:#EFF6FF;border:1px solid #BFDBFE;border-radius:0.45rem;padding:0.38rem 0.6rem;font-size:0.63rem;color:#1E40AF;">🚗 Rutas IA: Casa → Gym · Trabajo → Gym · Familiar → Gym</div>
+            <div style="display:flex;justify-content:space-between;"><button type="button" class="btn-secondary" style="padding:0.42rem 0.9rem;font-size:0.74rem;" onclick="timeplusWizardGoTo(3)">← Atrás</button><button type="button" class="login-panel-submit" style="padding:0.42rem 1.25rem;font-size:0.78rem;" onclick="timeplusWizardNext(4)">Siguiente →</button></div>
+          </div>
+
+          <!-- PASO 5 -->
+          <div id="reg-panel-5" style="display:none;flex-direction:column;gap:0.45rem;">
+            <p style="font-size:0.67rem;font-weight:800;color:#2563EB;margin:0 0 0.35rem;letter-spacing:0.04em;">PASO 5 — PREFERENCIAS &amp; CONFIRMACIÓN</p>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.4rem;">
+              <div><label style="font-size:0.71rem;font-weight:700;display:block;margin-bottom:0.2rem;">Plan Deseado</label><select id="reg-plan" class="login-panel-input" style="background:#fff;"><option value="TIMEPLUS Connect Pro">Connect Pro (Recomendado)</option><option value="TIMEPLUS Enterprise">Enterprise</option><option value="TIMEPLUS Basic">Básico</option></select></div>
+              <div><label style="font-size:0.71rem;font-weight:700;display:block;margin-bottom:0.2rem;">Zona Horaria</label><select id="reg-timezone" class="login-panel-input" style="background:#fff;"><option value="America/Bogota">America/Bogota (COT -5)</option><option value="America/Mexico_City">America/Mexico_City (CST -6)</option><option value="America/Lima">America/Lima (PET -5)</option><option value="America/Santiago">America/Santiago (CLT -3)</option><option value="America/Buenos_Aires">America/Buenos_Aires (ART -3)</option><option value="Europe/Madrid">Europe/Madrid (CET +1)</option></select></div>
+            </div>
+            <div><label style="font-size:0.71rem;font-weight:700;display:block;margin-bottom:0.2rem;">Disponibilidad Horaria</label><input type="text" id="reg-availability" placeholder="Ej: Lunes a viernes 6pm–9pm, sábados mañana" class="login-panel-input"></div>
+            <div>
+              <label style="font-size:0.71rem;font-weight:700;display:block;margin-bottom:0.25rem;">Preferencia de Notificaciones</label>
+              <div style="display:flex;gap:0.35rem;">
+                <label style="flex:1;display:flex;align-items:center;gap:0.3rem;background:#F8FAFC;border:1.5px solid #E2E8F0;border-radius:0.5rem;padding:0.36rem 0.4rem;cursor:pointer;font-size:0.71rem;"><input type="radio" name="reg-notify" value="WhatsApp" checked> 📱 WhatsApp</label>
+                <label style="flex:1;display:flex;align-items:center;gap:0.3rem;background:#F8FAFC;border:1.5px solid #E2E8F0;border-radius:0.5rem;padding:0.36rem 0.4rem;cursor:pointer;font-size:0.71rem;"><input type="radio" name="reg-notify" value="App"> 🔔 App</label>
+                <label style="flex:1;display:flex;align-items:center;gap:0.3rem;background:#F8FAFC;border:1.5px solid #E2E8F0;border-radius:0.5rem;padding:0.36rem 0.4rem;cursor:pointer;font-size:0.71rem;"><input type="radio" name="reg-notify" value="Correo"> ✉️ Correo</label>
+              </div>
+            </div>
+            <div style="background:#EFF6FF;border:1px solid #BFDBFE;border-radius:0.45rem;padding:0.48rem 0.7rem;font-size:0.65rem;color:#1E40AF;">ℹ️ Al enviar, tus datos quedan registrados en Supabase Cloud en estado <strong>PENDIENTE</strong> para aprobación del SuperAdmin.</div>
+            <div style="display:flex;justify-content:space-between;"><button type="button" class="btn-secondary" style="padding:0.42rem 0.9rem;font-size:0.74rem;" onclick="timeplusWizardGoTo(4)">← Atrás</button><button type="submit" id="btn-submit-register" class="login-panel-submit" style="background:linear-gradient(135deg,#16A34A,#15803D);padding:0.42rem 1rem;font-size:0.76rem;">Enviar Solicitud al SuperAdmin →</button></div>
+          </div>
         </form>
+
+        <!-- Pantalla de Confirmación Inmediata Post-Registro -->
+        <div id="landing-register-success" style="display:none; text-align:center; padding:0.25rem 0;">
+          <div style="width:3rem; height:3rem; background:#DCFCE7; color:#15803D; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:1.5rem; margin:0 auto 0.6rem; border:2px solid #86EFAC; box-shadow:0 4px 12px rgba(22,163,74,0.2);">✓</div>
+          <h3 style="font-size:1rem; font-weight:900; color:#0F172A; margin-bottom:0.15rem;">¡Solicitud Recibida con Éxito!</h3>
+          <p style="font-size:0.775rem; color:#64748B; margin-bottom:0.6rem;">Hola <strong id="success-client-name" style="color:#0F172A;">...</strong>, tus datos están en revisión.</p>
+          <div style="text-align:left;font-size:0.7rem;display:flex;flex-direction:column;gap:0.38rem;margin-bottom:0.6rem;">
+            <div style="background:#F8FAFC;border:1px solid #E2E8F0;border-radius:0.5rem;padding:0.48rem 0.7rem;">
+              <div style="font-weight:800;color:#2563EB;font-size:0.63rem;margin-bottom:0.22rem;">🔐 CUENTA</div>
+              <div style="display:flex;justify-content:space-between;"><span style="color:#64748B;">Tipo</span><strong id="s-usertype">—</strong></div>
+              <div style="display:flex;justify-content:space-between;"><span style="color:#64748B;">Correo</span><strong id="s-email">—</strong></div>
+              <div style="display:flex;justify-content:space-between;"><span style="color:#64748B;">WhatsApp</span><strong id="s-phone">—</strong></div>
+            </div>
+            <div style="background:#F8FAFC;border:1px solid #E2E8F0;border-radius:0.5rem;padding:0.48rem 0.7rem;">
+              <div style="font-weight:800;color:#2563EB;font-size:0.63rem;margin-bottom:0.22rem;">👤 PERSONAL</div>
+              <div style="display:flex;justify-content:space-between;"><span style="color:#64748B;">Nombre</span><strong id="s-fullname">—</strong></div>
+              <div style="display:flex;justify-content:space-between;"><span style="color:#64748B;">Documento</span><strong id="s-doc">—</strong></div>
+              <div style="display:flex;justify-content:space-between;"><span style="color:#64748B;">Nacimiento</span><strong id="s-birth">—</strong></div>
+              <div style="display:flex;justify-content:space-between;"><span style="color:#64748B;">País</span><strong id="s-country">—</strong></div>
+            </div>
+            <div style="background:#F8FAFC;border:1px solid #E2E8F0;border-radius:0.5rem;padding:0.48rem 0.7rem;">
+              <div style="font-weight:800;color:#2563EB;font-size:0.63rem;margin-bottom:0.22rem;">🎓 ACADÉMICO</div>
+              <div style="display:flex;justify-content:space-between;"><span style="color:#64748B;">Nivel</span><strong id="s-level">—</strong></div>
+              <div style="display:flex;justify-content:space-between;"><span style="color:#64748B;">Institución</span><strong id="s-institution">—</strong></div>
+              <div style="display:flex;justify-content:space-between;"><span style="color:#64748B;">Programa</span><strong id="s-program">—</strong></div>
+            </div>
+            <div style="background:#F8FAFC;border:1px solid #E2E8F0;border-radius:0.5rem;padding:0.48rem 0.7rem;">
+              <div style="font-weight:800;color:#2563EB;font-size:0.63rem;margin-bottom:0.22rem;">📍 UBICACIONES</div>
+              <div style="display:flex;justify-content:space-between;"><span style="color:#64748B;">Ciudad</span><strong id="s-city">—</strong></div>
+              <div style="display:flex;justify-content:space-between;"><span style="color:#64748B;">Casa</span><strong id="s-home">—</strong></div>
+              <div style="display:flex;justify-content:space-between;"><span style="color:#64748B;">Gym</span><strong id="s-gym">—</strong></div>
+            </div>
+            <div style="background:#F8FAFC;border:1px solid #E2E8F0;border-radius:0.5rem;padding:0.48rem 0.7rem;">
+              <div style="font-weight:800;color:#2563EB;font-size:0.63rem;margin-bottom:0.22rem;">⚙️ PREFERENCIAS</div>
+              <div style="display:flex;justify-content:space-between;"><span style="color:#64748B;">Plan</span><strong id="s-plan" style="color:#2563EB;">—</strong></div>
+              <div style="display:flex;justify-content:space-between;"><span style="color:#64748B;">Notificaciones</span><strong id="s-notify">—</strong></div>
+              <div style="display:flex;justify-content:space-between;"><span style="color:#64748B;">Zona Horaria</span><strong id="s-tz">—</strong></div>
+            </div>
+          </div>
+          <div style="background:#FEFCE8; border:1px solid #FDE047; border-radius:0.55rem; padding:0.6rem; margin-bottom:0.65rem; text-align:left; display:flex; gap:0.55rem; align-items:center;">
+            <span style="font-size:1.1rem;">⏳</span>
+            <div style="font-size:0.65rem; color:#854D0E;"><strong>Estado: PENDIENTE DE APROBACIÓN</strong><br>El SuperAdmin revisará tu expediente. Una vez aprobado, podrás ingresar con tu correo y contraseña.</div>
+          </div>
+          <button type="button" class="login-panel-submit" onclick="timeplusSwitchModalTab('login')" style="width:100%; justify-content:center;">Ir a Iniciar Sesión →</button>
+        </div>
 
         <div style="margin-top:1.25rem;text-align:center;font-size:0.75rem;color:#64748B;">
           <span>Acceso Directo Admin: </span>
@@ -393,11 +522,58 @@
 
   <!-- Landing Page Logic con Verificación de Aprobación en Supabase -->
   <script>
+    /* ── Wizard: navegar al paso indicado ── */
+    function timeplusWizardGoTo(step) {
+      for (let i = 1; i <= 5; i++) {
+        const panel = document.getElementById('reg-panel-' + i);
+        const dot   = document.getElementById('step-dot-' + i);
+        if (!panel || !dot) continue;
+        if (i === step) {
+          panel.style.display = 'flex';
+          dot.style.background = '#2563EB';
+          dot.style.color = '#fff';
+        } else {
+          panel.style.display = 'none';
+          dot.style.background = i < step ? '#DCFCE7' : '#F1F5F9';
+          dot.style.color      = i < step ? '#15803D' : '#94A3B8';
+        }
+      }
+    }
+
+    /* ── Wizard: validar paso actual y avanzar ── */
+    function timeplusWizardNext(step) {
+      if (step === 1) {
+        const email = document.getElementById('reg-email').value.trim();
+        const phone = document.getElementById('reg-phone').value.trim();
+        const pass  = document.getElementById('reg-pass').value;
+        const pass2 = document.getElementById('reg-pass2').value;
+        if (!email || !phone || !pass) { alert('Completa correo, celular y contraseña.'); return; }
+        if (pass !== pass2) { alert('Las contraseñas no coinciden.'); return; }
+        if (pass.length < 6) { alert('La contraseña debe tener mínimo 6 caracteres.'); return; }
+      }
+      if (step === 2) {
+        const fn = document.getElementById('reg-firstname').value.trim();
+        const ln = document.getElementById('reg-lastname').value.trim();
+        const dn = document.getElementById('reg-docnum').value.trim();
+        const co = document.getElementById('reg-country').value.trim();
+        if (!fn || !ln || !dn || !co) { alert('Completa nombres, apellidos, número de documento y país.'); return; }
+      }
+      if (step === 4) {
+        const city = document.getElementById('reg-city').value.trim();
+        const home = document.getElementById('reg-addr-home').value.trim();
+        if (!city || !home) { alert('Ingresa la ciudad y tu dirección de residencia.'); return; }
+      }
+      timeplusWizardGoTo(step + 1);
+    }
+
     function timeplusShowLoginPanel(defaultTab = 'login') {
       timeplusSwitchModalTab(defaultTab);
       document.getElementById('landing-login-panel').classList.add('is-open');
+      if (defaultTab === 'register') timeplusWizardGoTo(1);
       setTimeout(() => {
-        const field = defaultTab === 'register' ? document.getElementById('reg-name') : document.getElementById('landing-email');
+        const field = defaultTab === 'register'
+          ? document.getElementById('reg-email')
+          : document.getElementById('landing-email');
         if (field) field.focus();
       }, 100);
     }
@@ -407,43 +583,36 @@
     }
 
     function timeplusSwitchModalTab(tab) {
-      const loginForm = document.getElementById('form-landing-login');
-      const regForm   = document.getElementById('form-landing-register');
-      const tabLogin  = document.getElementById('tab-login-btn');
-      const tabReg    = document.getElementById('tab-register-btn');
-      const title     = document.getElementById('modal-title');
-      const sub       = document.getElementById('modal-sub');
+      const loginForm   = document.getElementById('form-landing-login');
+      const regForm     = document.getElementById('form-landing-register');
+      const succView    = document.getElementById('landing-register-success');
+      const tabWrap     = document.getElementById('tab-login-btn').parentElement;
+      const tabLogin    = document.getElementById('tab-login-btn');
+      const tabReg      = document.getElementById('tab-register-btn');
+      const title       = document.getElementById('modal-title');
+      const sub         = document.getElementById('modal-sub');
+
+      if (tabWrap) tabWrap.style.display = 'flex';
+      if (succView) succView.style.display = 'none';
 
       if (tab === 'login') {
         loginForm.style.display = 'flex';
         regForm.style.display   = 'none';
-        tabLogin.style.background = '#ffffff';
-        tabLogin.style.color      = '#2563EB';
-        tabLogin.style.fontWeight = '800';
-        tabLogin.style.boxShadow  = '0 1px 3px rgba(0,0,0,0.1)';
-
-        tabReg.style.background   = 'transparent';
-        tabReg.style.color        = '#64748B';
-        tabReg.style.fontWeight   = '700';
-        tabReg.style.boxShadow    = 'none';
-
+        tabLogin.style.background = '#ffffff'; tabLogin.style.color = '#2563EB';
+        tabLogin.style.fontWeight = '800'; tabLogin.style.boxShadow = '0 1px 3px rgba(0,0,0,0.1)';
+        tabReg.style.background = 'transparent'; tabReg.style.color = '#64748B';
+        tabReg.style.fontWeight = '700'; tabReg.style.boxShadow = 'none';
         title.innerText = 'Iniciar Sesión';
         sub.innerText   = 'Accede a tu Sistema Operativo Personal';
       } else {
         loginForm.style.display = 'none';
         regForm.style.display   = 'flex';
-        tabReg.style.background   = '#ffffff';
-        tabReg.style.color        = '#16A34A';
-        tabReg.style.fontWeight   = '800';
-        tabReg.style.boxShadow    = '0 1px 3px rgba(0,0,0,0.1)';
-
-        tabLogin.style.background = 'transparent';
-        tabLogin.style.color      = '#64748B';
-        tabLogin.style.fontWeight = '700';
-        tabLogin.style.boxShadow  = 'none';
-
-        title.innerText = 'Solicitar Cuenta';
-        sub.innerText   = 'Regístrate para aprobación del SuperAdmin';
+        tabReg.style.background = '#ffffff'; tabReg.style.color = '#16A34A';
+        tabReg.style.fontWeight = '800'; tabReg.style.boxShadow = '0 1px 3px rgba(0,0,0,0.1)';
+        tabLogin.style.background = 'transparent'; tabLogin.style.color = '#64748B';
+        tabLogin.style.fontWeight = '700'; tabLogin.style.boxShadow = 'none';
+        title.innerText = 'Solicitar Cuenta de Cliente';
+        sub.innerText   = 'Registro en 5 pasos · Aprobación por SuperAdmin';
       }
     }
 
@@ -456,7 +625,6 @@
     async function timeplusDoLandingLogin() {
       const email = document.getElementById('landing-email').value.trim();
       const pass  = document.getElementById('landing-pass').value;
-
       if (!email || !pass) { alert('Por favor ingresa correo y contraseña.'); return; }
       if (!window.timeplusStore) { alert('El sistema aún está cargando. Intenta en un segundo.'); return; }
 
@@ -466,13 +634,11 @@
       try {
         const result = await window.timeplusStore.loginWithApproval(email, pass);
         if (submitBtn) { submitBtn.innerText = 'Ingresar →'; submitBtn.disabled = false; }
-
         if (result.success) {
           const user = result.user;
           document.getElementById('landing-view').style.display = 'none';
           document.getElementById('app-view').style.display    = 'flex';
           timeplusHideLoginPanel();
-
           const target = user.role === 'admin' ? 'admin' : 'hoy';
           if (window.timeplusRouter) window.timeplusRouter.navigate(target);
           if (window.timeplusShowToast) window.timeplusShowToast(`¡Bienvenido, ${user.name}! 👋`);
@@ -487,25 +653,88 @@
     }
 
     async function timeplusDoLandingRegister() {
-      const name  = document.getElementById('reg-name').value.trim();
-      const email = document.getElementById('reg-email').value.trim();
-      const plan  = document.getElementById('reg-plan').value;
+      // Paso 1
+      const userType = (document.querySelector('input[name="reg-usertype"]:checked') || {}).value || 'Estudiante';
+      const email    = document.getElementById('reg-email').value.trim();
+      const phone    = document.getElementById('reg-phone').value.trim();
+      const pass     = document.getElementById('reg-pass').value;
+      // Paso 2
+      const personType = document.getElementById('reg-persontype').value;
+      const firstName  = document.getElementById('reg-firstname').value.trim();
+      const lastName   = document.getElementById('reg-lastname').value.trim();
+      const docType    = document.getElementById('reg-doctype').value;
+      const docNumber  = document.getElementById('reg-docnum').value.trim();
+      const birthDate  = document.getElementById('reg-birthdate').value;
+      const gender     = document.getElementById('reg-gender').value;
+      const country    = document.getElementById('reg-country').value.trim();
+      // Paso 3
+      const academicLevel = document.getElementById('reg-acadlevel').value;
+      const institution   = document.getElementById('reg-institution').value.trim();
+      const program       = document.getElementById('reg-program').value.trim();
+      const semester      = document.getElementById('reg-semester').value.trim();
+      const interests     = document.getElementById('reg-interests').value.trim();
+      const learningGoal  = document.getElementById('reg-goal').value.trim();
+      // Paso 4
+      const city       = document.getElementById('reg-city').value.trim();
+      const addrHome   = document.getElementById('reg-addr-home').value.trim();
+      const addrWork   = document.getElementById('reg-addr-work').value.trim();
+      const addrFamily = document.getElementById('reg-addr-family').value.trim();
+      const addrGym    = document.getElementById('reg-addr-gym').value.trim();
+      // Paso 5
+      const plan         = document.getElementById('reg-plan').value;
+      const timezone     = document.getElementById('reg-timezone').value;
+      const availability = document.getElementById('reg-availability').value.trim();
+      const notifyPref   = (document.querySelector('input[name="reg-notify"]:checked') || {}).value || 'WhatsApp';
 
-      if (!name || !email) { alert('Por favor completa todos los campos.'); return; }
+      if (!email || !phone || !pass) { alert('Faltan datos del Paso 1 (correo, celular o contraseña).'); timeplusWizardGoTo(1); return; }
+      if (!firstName || !lastName || !docNumber) { alert('Faltan datos del Paso 2 (nombres, apellidos o documento).'); timeplusWizardGoTo(2); return; }
+      if (!city || !addrHome) { alert('Faltan datos del Paso 4 (ciudad o dirección de casa).'); timeplusWizardGoTo(4); return; }
       if (!window.timeplusSupabase) { alert('Supabase no disponible en este momento.'); return; }
 
+      const fullName = `${firstName} ${lastName}`.trim();
       const submitBtn = document.getElementById('btn-submit-register');
       if (submitBtn) { submitBtn.innerText = 'Registrando en Supabase...'; submitBtn.disabled = true; }
 
       try {
-        const res = await window.timeplusSupabase.registerClientRequest(name, email, plan);
+        const res = await window.timeplusSupabase.registerClientRequest({
+          name: fullName, email, phone, pass,
+          userType, personType, firstName, lastName,
+          docType, docNumber, birthDate, gender, country,
+          academicLevel, institution, program, semester, interests, learningGoal,
+          city, addrHome, addrWork, addrFamily, addrGym,
+          plan, timezone, availability, notifyPref
+        });
+
         if (submitBtn) { submitBtn.innerText = 'Enviar Solicitud al SuperAdmin →'; submitBtn.disabled = false; }
 
         if (res.ok) {
-          alert(`✅ SOLICITUD ENVIADA:\n\n${res.message}\n\nEl SuperAdmin revisará tu solicitud en el panel maestro. Una vez aprobada, podrás acceder.`);
-          timeplusSwitchModalTab('login');
+          document.getElementById('form-landing-register').style.display = 'none';
+          const tabWrap = document.getElementById('tab-login-btn').parentElement;
+          if (tabWrap) tabWrap.style.display = 'none';
+          document.getElementById('modal-title').innerText = 'Solicitud en Revisión';
+          document.getElementById('modal-sub').innerText   = 'Registro completado · 5 pasos en Supabase Cloud';
+
+          document.getElementById('success-client-name').innerText = firstName;
+          document.getElementById('s-usertype').innerText    = userType;
+          document.getElementById('s-email').innerText       = email;
+          document.getElementById('s-phone').innerText       = phone;
+          document.getElementById('s-fullname').innerText    = fullName;
+          document.getElementById('s-doc').innerText         = `${docType} ${docNumber}`;
+          document.getElementById('s-birth').innerText       = birthDate || '—';
+          document.getElementById('s-country').innerText     = country;
+          document.getElementById('s-level').innerText       = academicLevel || '—';
+          document.getElementById('s-institution').innerText = institution || '—';
+          document.getElementById('s-program').innerText     = program || '—';
+          document.getElementById('s-city').innerText        = city;
+          document.getElementById('s-home').innerText        = addrHome;
+          document.getElementById('s-gym').innerText         = addrGym || '—';
+          document.getElementById('s-plan').innerText        = plan;
+          document.getElementById('s-notify').innerText      = notifyPref;
+          document.getElementById('s-tz').innerText          = timezone;
+
+          document.getElementById('landing-register-success').style.display = 'block';
           document.getElementById('landing-email').value = email;
-          document.getElementById('landing-pass').value = '';
+          document.getElementById('landing-pass').value  = pass;
         } else {
           alert(`Error al registrar solicitud: ${res.error}`);
         }
@@ -523,33 +752,24 @@
     }
 
     document.addEventListener('DOMContentLoaded', () => {
-      // Cerrar panel modal al hacer clic afuera
       const panel = document.getElementById('landing-login-panel');
       panel.addEventListener('click', (e) => { if (e.target === panel) timeplusHideLoginPanel(); });
 
-      // Verificación estricta de sesión existente en Supabase Cloud
       setTimeout(async () => {
         if (window.timeplusStore) {
           const u = window.timeplusStore.getCurrentUser();
           const hash = window.location.hash || '';
-
           if (u && !hash.includes('inicio')) {
-            // Si es cliente, verificar en Supabase si sigue aprobado
             if (u.role === 'client' && window.timeplusSupabase) {
               const check = await window.timeplusSupabase.checkClientApproval(u.email);
               if (!check.allowed || check.status !== 'aprobado') {
-                // No está aprobado: expulsar y limpiar sesión
                 window.timeplusStore.logout();
                 document.getElementById('landing-view').style.display = 'block';
                 document.getElementById('app-view').style.display    = 'none';
-                if (window.timeplusShowToast) {
-                  window.timeplusShowToast('🔒 Tu cuenta está pendiente de aprobación por el SuperAdmin.');
-                }
+                if (window.timeplusShowToast) window.timeplusShowToast('🔒 Tu cuenta está pendiente de aprobación por el SuperAdmin.');
                 return;
               }
             }
-
-            // Aprobado o SuperAdmin: permitir paso al dashboard
             document.getElementById('landing-view').style.display = 'none';
             document.getElementById('app-view').style.display    = 'flex';
             const target = u.role === 'admin' ? 'admin' : 'hoy';
@@ -558,7 +778,6 @@
         }
       }, 150);
 
-      // Mobile menu
       const menuToggle = document.getElementById('mobile-menu-toggle');
       const sidebar    = document.getElementById('app-sidebar');
       if (menuToggle && sidebar) {

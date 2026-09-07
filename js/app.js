@@ -865,12 +865,89 @@ document.addEventListener('DOMContentLoaded', () => {
               </span>
             </div>
             <p style="color: #64748B; font-size: 0.875rem; margin-top: 0.25rem;">
-              ✉️ <strong>Correo:</strong> ${user.email} &nbsp;|&nbsp; 📋 <strong>Plan:</strong> ${user.plan || 'TIMEPLUS Connect Pro'}
+              ✉️ <strong>Correo:</strong> ${user.email} &nbsp;|&nbsp; 📋 <strong>Plan:</strong> ${user.plan || 'TIMEPLUS Connect Pro'} &nbsp;|&nbsp; 🎓 <strong>Tipo:</strong> ${user.userType || 'Estudiante'}
             </p>
-            <p style="font-size: 0.75rem; color: #94A3B8; margin-top: 0.25rem;">
+            <div style="display: flex; gap: 1rem; flex-wrap: wrap; margin-top: 0.65rem; font-size: 0.8125rem; color: #334155; background: #F8FAFC; padding: 0.65rem 1rem; border-radius: var(--radius-md); border: 1px solid #E2E8F0;">
+              <div>📱 <strong>WhatsApp:</strong> ${user.phone || 'No registrado'}</div>
+              <div>🪪 <strong>Doc:</strong> ${user.docType || 'CC'} ${user.docNumber || 'No registrado'}</div>
+              <div>🎂 <strong>Nacimiento:</strong> ${user.birthDate || 'No registrada'}</div>
+              <div>📍 <strong>Ciudad:</strong> ${user.city || 'No registrada'} (${user.country || 'Colombia'})</div>
+            </div>
+            <p style="font-size: 0.75rem; color: #94A3B8; margin-top: 0.4rem;">
               ID de Cliente: <code>${user.id || 'usr-active'}</code> &nbsp;|&nbsp; Rol: <strong>Cliente Autorizado</strong>
             </p>
           </div>
+        </div>
+
+        <!-- 4 Bloques Detallados del Expediente del Cliente -->
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem; margin-top: 1.5rem;">
+          
+          <!-- Bloque 1: Datos Personales -->
+          <div style="background: #ffffff; border: 1px solid #E2E8F0; border-radius: var(--radius-md); padding: 1.25rem;">
+            <div style="font-weight: 800; font-size: 0.8125rem; color: #2563EB; margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.35rem;">
+              <span>👤</span> <span>1. INFORMACIÓN PERSONAL</span>
+            </div>
+            <div style="font-size: 0.8125rem; display: flex; flex-direction: column; gap: 0.45rem; color: #334155;">
+              <div><span style="color:#64748B;">Tipo de Persona:</span> <strong>${user.personType || 'Persona Natural'}</strong></div>
+              <div><span style="color:#64748B;">Nombres y Apellidos:</span> <strong>${user.name || 'Cliente'}</strong></div>
+              <div><span style="color:#64748B;">Documento:</span> <strong>${user.docType || 'CC'} ${user.docNumber || 'No especificado'}</strong></div>
+              <div><span style="color:#64748B;">Fecha de Nacimiento:</span> <strong>${user.birthDate || 'No registrada'}</strong></div>
+              <div><span style="color:#64748B;">Género:</span> <strong>${user.gender || 'No especificado'}</strong></div>
+              <div><span style="color:#64748B;">País de Origen:</span> <strong>${user.country || 'Colombia'}</strong></div>
+            </div>
+          </div>
+
+          <!-- Bloque 2: Información Académica / Profesional -->
+          <div style="background: #ffffff; border: 1px solid #E2E8F0; border-radius: var(--radius-md); padding: 1.25rem;">
+            <div style="font-weight: 800; font-size: 0.8125rem; color: #7C3AED; margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.35rem;">
+              <span>🎓</span> <span>2. FICHA ACADÉMICA / PROFESIONAL</span>
+            </div>
+            <div style="font-size: 0.8125rem; display: flex; flex-direction: column; gap: 0.45rem; color: #334155;">
+              <div><span style="color:#64748B;">Nivel Educativo:</span> <strong>${user.academicLevel || 'Universitario'}</strong></div>
+              <div><span style="color:#64748B;">Institución:</span> <strong>${user.institution || 'No especificada'}</strong></div>
+              <div><span style="color:#64748B;">Programa / Carrera:</span> <strong>${user.program || 'No especificado'}</strong></div>
+              <div><span style="color:#64748B;">Semestre / Grado:</span> <strong>${user.semester || 'No especificado'}</strong></div>
+              <div><span style="color:#64748B;">Áreas de Interés:</span> <strong>${user.interests || 'Inteligencia Artificial, Productividad'}</strong></div>
+              <div><span style="color:#64748B;">Objetivo IA:</span> <em>${user.learningGoal || 'Organizar tiempos y rendimiento con TIMEPLUS'}</em></div>
+            </div>
+          </div>
+
+          <!-- Bloque 3: Ubicaciones & Rutas de Movilidad IA -->
+          <div style="background: #ffffff; border: 1px solid #E2E8F0; border-radius: var(--radius-md); padding: 1.25rem;">
+            <div style="font-weight: 800; font-size: 0.8125rem; color: #059669; margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.35rem;">
+              <span>🚗</span> <span>3. MOVILIDAD &amp; RUTAS FRECUENTES</span>
+            </div>
+            <div style="font-size: 0.8125rem; display: flex; flex-direction: column; gap: 0.45rem; color: #334155;">
+              <div><span style="color:#64748B;">Ciudad Base:</span> <strong>${user.city || 'Bogotá, Colombia'}</strong></div>
+              <div><span style="color:#64748B;">🏠 Residencia (Casa):</span> <strong>${user.addrHome || 'Registrada'}</strong></div>
+              <div><span style="color:#64748B;">🏢 Trabajo / Estudio:</span> <strong>${user.addrWork || 'No registrada'}</strong></div>
+              <div><span style="color:#64748B;">👨‍👩‍👧 Familiar / Alternativo:</span> <strong>${user.addrFamily || 'No registrada'}</strong></div>
+              <div><span style="color:#64748B;">🏋️ Sede Gimnasio:</span> <strong>${user.addrGym || 'SmartFit / Sede Habitual'}</strong></div>
+              
+              <!-- Rutas IA Inteligentes -->
+              <div style="margin-top: 0.5rem; padding: 0.5rem; background: #F0FDF4; border: 1px dashed #86EFAC; border-radius: 0.5rem; font-size: 0.75rem;">
+                <div style="font-weight: 700; color: #166534; margin-bottom: 0.2rem;">🤖 Rutas monitoreadas por IA:</div>
+                <div style="color: #15803D;">• Casa ➔ Gym: ~25-35 min</div>
+                <div style="color: #15803D;">• Trabajo ➔ Gym: ~15-20 min</div>
+                <div style="color: #15803D;">• Familiar ➔ Gym: ~30 min</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Bloque 4: Preferencias & Cuenta -->
+          <div style="background: #ffffff; border: 1px solid #E2E8F0; border-radius: var(--radius-md); padding: 1.25rem;">
+            <div style="font-weight: 800; font-size: 0.8125rem; color: #D97706; margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.35rem;">
+              <span>⚙️</span> <span>4. PREFERENCIAS &amp; CUENTA</span>
+            </div>
+            <div style="font-size: 0.8125rem; display: flex; flex-direction: column; gap: 0.45rem; color: #334155;">
+              <div><span style="color:#64748B;">Plan Activo:</span> <strong style="color:#2563EB;">${user.plan || 'TIMEPLUS Connect Pro'}</strong></div>
+              <div><span style="color:#64748B;">Notificaciones:</span> <strong>${user.notifyPref || 'WhatsApp'}</strong></div>
+              <div><span style="color:#64748B;">Disponibilidad:</span> <strong>${user.availability || 'Lunes a Viernes (Flexible)'}</strong></div>
+              <div><span style="color:#64748B;">Zona Horaria:</span> <strong>${user.timezone || 'America/Bogota (COT -5)'}</strong></div>
+              <div><span style="color:#64748B;">Estado de Cuenta:</span> <span style="background:#DCFCE7;color:#15803D;padding:0.1rem 0.4rem;border-radius:4px;font-weight:700;font-size:0.75rem;">ACTIVO</span></div>
+            </div>
+          </div>
+
         </div>
 
         <!-- Alerta de Aislamiento y Privacidad -->
@@ -1089,19 +1166,57 @@ document.addEventListener('DOMContentLoaded', () => {
     const client = all.find(r => r.id === id);
     if (!client) return;
 
+    let extra = {};
+    if (client.notes) {
+      try { extra = JSON.parse(client.notes); } catch(e) { extra = { notes: client.notes }; }
+    }
+
+    const phone = client.phone || extra.phone || 'No registrado';
+    const birth = client.birth_date || extra.birthDate || 'No registrada';
+    const city  = client.city || extra.city || 'No registrada';
     const isApp = (client.status || '').trim().toLowerCase() === 'aprobado';
-    alert(
-      `📋 DETALLE DE CLIENTE EN SUPABASE CLOUD:\n\n` +
-      `• Nombre: ${client.name || 'Sin nombre'}\n` +
-      `• Correo: ${client.email}\n` +
-      `• Plan: ${client.plan || 'TIMEPLUS Connect Pro'}\n` +
-      `• Estado actual: ${isApp ? '✅ APROBADO' : '⏳ PENDIENTE'}\n` +
-      `• ID de registro: ${client.id}\n` +
-      `• Fecha de solicitud: ${client.created_at ? new Date(client.created_at).toLocaleString() : 'N/A'}\n\n` +
+
+    const dossier = 
+      `📋 EXPEDIENTE MAESTRO DE CLIENTE (Supabase Cloud)\n` +
+      `══════════════════════════════════════════════════\n\n` +
+      `🔐 1. DATOS DE CUENTA & ACCESO:\n` +
+      `• Tipo de Usuario: ${extra.userType || 'Estudiante'}\n` +
+      `• Correo de Acceso: ${client.email}\n` +
+      `• Teléfono / WhatsApp: ${phone}\n` +
+      `• ID de Registro: ${client.id}\n` +
+      `• Fecha de Registro: ${client.created_at ? new Date(client.created_at).toLocaleString() : 'Reciente'}\n\n` +
+      `👤 2. DATOS PERSONALES:\n` +
+      `• Nombre Completo: ${client.name || 'Sin nombre'}\n` +
+      `• Tipo de Persona: ${extra.personType || 'Natural'}\n` +
+      `• Documento: ${extra.docType || 'CC'} ${extra.docNumber || 'No registrado'}\n` +
+      `• Fecha de Nacimiento: ${birth}\n` +
+      `• Género: ${extra.gender || 'No especificado'}\n` +
+      `• País / Ciudad: ${extra.country || 'Colombia'} — ${city}\n\n` +
+      `🎓 3. FICHA ACADÉMICA / PROFESIONAL:\n` +
+      `• Nivel Educativo: ${extra.academicLevel || 'No especificado'}\n` +
+      `• Institución: ${extra.institution || 'No especificada'}\n` +
+      `• Carrera / Programa: ${extra.program || 'No especificado'}\n` +
+      `• Semestre / Grado: ${extra.semester || 'No especificado'}\n` +
+      `• Áreas de Interés: ${extra.interests || 'No especificadas'}\n` +
+      `• Objetivo de Aprendizaje: ${extra.learningGoal || 'Organizar tiempos de estudio con IA'}\n\n` +
+      `📍 4. UBICACIONES & RUTAS FRECUENTES (MOVILIDAD IA):\n` +
+      `• 🏠 Residencia (Casa): ${extra.addrHome || 'No registrada'}\n` +
+      `• 🏢 Trabajo / Estudio: ${extra.addrWork || 'No registrada'}\n` +
+      `• 👨‍👩‍👧 Familiar / Alternativo: ${extra.addrFamily || 'No registrada'}\n` +
+      `• 🏋️ Gimnasio / Sede Habitual: ${extra.addrGym || 'No registrada'}\n` +
+      `• Monitoreo de Rutas IA: Casa ➔ Gym | Trabajo ➔ Gym | Familiar ➔ Gym\n\n` +
+      `⚙️ 5. PREFERENCIAS & PLAN:\n` +
+      `• Plan Elegido: ${client.plan || 'TIMEPLUS Connect Pro'}\n` +
+      `• Disponibilidad Horaria: ${extra.availability || 'Flexible'}\n` +
+      `• Canal Notificaciones: ${extra.notifyPref || 'WhatsApp'}\n` +
+      `• Zona Horaria: ${extra.timezone || 'America/Bogota'}\n\n` +
+      `══════════════════════════════════════════════════\n` +
+      `ESTADO ACTUAL: ${isApp ? '✅ APROBADO (Acceso Activo)' : '⏳ PENDIENTE DE APROBACIÓN'}\n` +
       (isApp 
-        ? `Este cliente tiene acceso habilitado y solo ve sus propios datos.` 
-        : `Este cliente tiene el acceso bloqueado hasta que hagas clic en "Aprobar Acceso".`)
-    );
+        ? `ℹ️ Este cliente solo puede ver sus propios datos privados.` 
+        : `⚠️ Para habilitar el acceso a este cliente, haz clic en "Aprobar Acceso".`);
+
+    alert(dossier);
   };
 
   window.timeplusAddClientPrompt = async () => {

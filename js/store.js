@@ -83,12 +83,41 @@ class TimePlusStore {
       const check = await window.timeplusSupabase.checkClientApproval(cleanEmail);
       if (check.allowed && check.status === 'aprobado') {
         const req = check.data;
+        let extra = {};
+        if (req.notes) {
+          try { extra = JSON.parse(req.notes); } catch(e) {}
+        }
         this.state.user = {
           id: req.id || ('usr-' + Date.now()),
           name: req.name || 'Cliente TIMEPLUS',
           email: req.email || cleanEmail,
+          phone: req.phone || extra.phone || '',
+          birthDate: req.birth_date || extra.birthDate || '',
+          city: req.city || extra.city || '',
           role: 'client',
-          plan: req.plan || 'TIMEPLUS Connect Pro'
+          plan: req.plan || 'TIMEPLUS Connect Pro',
+          userType: extra.userType || 'Estudiante',
+          personType: extra.personType || 'Natural',
+          firstName: extra.firstName || '',
+          lastName: extra.lastName || '',
+          docType: extra.docType || 'CC',
+          docNumber: extra.docNumber || '',
+          gender: extra.gender || '',
+          country: extra.country || 'Colombia',
+          academicLevel: extra.academicLevel || '',
+          institution: extra.institution || '',
+          program: extra.program || '',
+          semester: extra.semester || '',
+          interests: extra.interests || '',
+          learningGoal: extra.learningGoal || '',
+          addrHome: extra.addrHome || '',
+          addrWork: extra.addrWork || '',
+          addrFamily: extra.addrFamily || '',
+          addrGym: extra.addrGym || '',
+          availability: extra.availability || '',
+          notifyPref: extra.notifyPref || 'WhatsApp',
+          timezone: extra.timezone || 'America/Bogota',
+          extra: extra
         };
         this.saveState();
         return { success: true, user: this.state.user };

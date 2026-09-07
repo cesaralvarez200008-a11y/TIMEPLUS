@@ -74,10 +74,24 @@ window.timeplusSupabase = {
     }
   },
 
-  async registerClientRequest(name, email, plan = 'TIMEPLUS Connect Pro') {
-    if (!_client || !email) return { ok: false, error: 'Datos incompletos.' };
+  async registerClientRequest(clientDataOrName, emailParam, planParam = 'TIMEPLUS Connect Pro') {
+    if (!_client) return { ok: false, error: 'Base de datos no conectada.' };
+
+    let data = {};
+    if (typeof clientDataOrName === 'object') {
+      data = clientDataOrName;
+    } else {
+      data = {
+        name: clientDataOrName,
+        email: emailParam,
+        plan: planParam
+      };
+    }
+
+    const cleanEmail = (data.email || '').trim().toLowerCase();
+    if (!cleanEmail) return { ok: false, error: 'El correo electrónico es obligatorio.' };
+
     try {
-      const cleanEmail = email.trim().toLowerCase();
       const { data: existing } = await _client
         .from('client_requests')
         .select('*');
@@ -90,22 +104,65 @@ window.timeplusSupabase = {
           alreadyExists: true,
           status: found.status,
           isApproved: isApp,
-          message: isApp ? 'Tu cuenta ya está aprobada. Puedes iniciar sesión.' : 'Tu solicitud ya está registrada y pendiente de aprobación.'
+          client: found,
+          message: isApp ? 'Esta cuenta ya está aprobada. Puedes iniciar sesión directamente.' : 'Esta solicitud ya está registrada y en espera de aprobación por el SuperAdmin.'
         };
       }
 
-      const { data, error } = await _client
-        .from('client_requests')
-        .insert([{
-          name: name.trim() || 'Nuevo Cliente',
-          email: cleanEmail,
-          plan: plan,
-          status: 'pendiente',
-          created_at: new Date().toISOString()
-        }]);
+      const notesObj = {
+        phone: data.phone || '',
+        birthDate: data.birthDate || '',
+        city: data.city || '',
+        userType: data.userType || 'Estudiante',
+        personType: data.personType || 'Natural',
+        firstName: data.firstName || '',
+        lastName: data.lastName || '',
+        docType: data.docType || 'CC',
+        docNumber: data.docNumber || '',
+        gender: data.gender || '',
+        country: data.country || 'Colombia',
+        academicLevel: data.academicLevel || '',
+        institution: data.institution || '',
+        program: data.program || '',
+        semester: data.semester || '',
+        interests: data.interests || '',
+        learningGoal: data.learningGoal || '',
+        addrHome: data.addrHome || '',
+        addrWork: data.addrWork || '',
+        addrFamily: data.addrFamily || '',
+        addrGym: data.addrGym || '',
+        availability: data.availability || '',
+        notifyPref: data.notifyPref || 'WhatsApp',
+        timezone: data.timezone || 'America/Bogota',
+        registeredAt: new Date().toISOString()
+      };
 
-      if (error) throw error;
-      return { ok: true, alreadyExists: false, message: '¡Solicitud enviada! Espera a que el SuperAdmin apruebe tu cuenta.' };
+      const fullName = (data.name || (data.firstName ? `${data.firstName} ${data.lastName || ''}`.trim() : '') || 'Nuevo Cliente').trim();
+
+      const payload = {
+        name: fullName,
+        email: cleanEmail,
+        plan: data.plan || 'TIMEPLUS Connect Pro',
+        status: 'pendiente',
+        notes: JSON.stringify(notesObj),
+        created_at: new Date().toISOString()
+      };
+
+      let insertRes = await _client.from('client_requests').insert([payload]).select();
+      if (insertRes.error) {
+        delete payload.notes;
+        insertRes = await _client.from('client_requests').insert([payload]).select();
+        if (insertRes.error) throw insertRes.error;
+      }
+
+      const created = (insertRes.data && insertRes.data[0]) ? insertRes.data[0] : payload;
+
+      return {
+        ok: true,
+        alreadyExists: false,
+        client: { ...created, ...notesObj },
+        message: '¡Solicitud registrada con éxito! El SuperAdmin revisará tus datos.'
+      };
     } catch (e) {
       console.error('Error registrando solicitud en Supabase:', e);
       return { ok: false, error: e.message };
