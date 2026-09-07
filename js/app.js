@@ -1272,10 +1272,262 @@ document.addEventListener('DOMContentLoaded', () => {
   };
 
   window.timeplusOpenNewActivityModal = () => {
-    const title = prompt('¿Qué actividad deseas agendar? (Ej: "Reunión con Juan a las 5:00 p. m."):');
-    if (title && title.trim()) {
-      ai.processCommand(title.trim());
+    if (document.getElementById('tp-new-activity-overlay')) return;
+
+    const user = store.state.user || {};
+    const now = new Date();
+    const todayStr = now.toISOString().slice(0, 10);
+    const timeStr = now.getHours().toString().padStart(2,'0') + ':' + now.getMinutes().toString().padStart(2,'0');
+
+    const overlay = document.createElement('div');
+    overlay.id = 'tp-new-activity-overlay';
+    overlay.style.cssText = `
+      position:fixed;inset:0;z-index:9999;
+      background:rgba(10,10,30,0.75);backdrop-filter:blur(6px);
+      display:flex;align-items:center;justify-content:center;padding:16px;
+    `;
+
+    overlay.innerHTML = `
+      <div id="tp-activity-modal" style="
+        background:linear-gradient(145deg,#1a1a3e,#0f0f2d);
+        border:1px solid rgba(99,102,241,0.35);
+        border-radius:20px;width:100%;max-width:520px;
+        box-shadow:0 25px 60px rgba(0,0,0,0.6),0 0 0 1px rgba(99,102,241,0.1);
+        overflow:hidden;animation:tpSlideUp .28s cubic-bezier(.34,1.56,.64,1);
+      ">
+        <!-- Header -->
+        <div style="
+          background:linear-gradient(135deg,#6366f1,#8b5cf6);
+          padding:20px 24px;display:flex;align-items:center;justify-content:space-between;
+        ">
+          <div style="display:flex;align-items:center;gap:12px;">
+            <div style="
+              width:40px;height:40px;background:rgba(255,255,255,0.2);border-radius:12px;
+              display:flex;align-items:center;justify-content:center;font-size:18px;
+            ">📅</div>
+            <div>
+              <div style="color:#fff;font-size:17px;font-weight:700;letter-spacing:.3px;">Nueva Actividad</div>
+              <div style="color:rgba(255,255,255,0.7);font-size:12px;">Agrega un evento a tu agenda</div>
+            </div>
+          </div>
+          <button onclick="window.timeplusCloseNewActivityModal()" style="
+            background:rgba(255,255,255,0.15);border:none;color:#fff;
+            width:34px;height:34px;border-radius:10px;cursor:pointer;font-size:18px;
+            display:flex;align-items:center;justify-content:center;transition:background .2s;
+          " onmouseover="this.style.background='rgba(255,255,255,0.3)'" onmouseout="this.style.background='rgba(255,255,255,0.15)'">✕</button>
+        </div>
+
+        <!-- Body -->
+        <div style="padding:24px;display:flex;flex-direction:column;gap:16px;max-height:65vh;overflow-y:auto;">
+
+          <!-- Título -->
+          <div>
+            <label style="color:#a5b4fc;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.8px;display:block;margin-bottom:6px;">
+              📝 Título de la actividad *
+            </label>
+            <input id="tp-act-title" type="text" placeholder="Ej: Reunión con el equipo..." class="login-panel-input" style="width:100%;box-sizing:border-box;" />
+          </div>
+
+          <!-- Categoría + Tipo en grid -->
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+            <div>
+              <label style="color:#a5b4fc;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.8px;display:block;margin-bottom:6px;">
+                🏷️ Categoría
+              </label>
+              <select id="tp-act-category" class="login-panel-input" style="width:100%;box-sizing:border-box;" onchange="window.timeplusActivityCategoryChange()">
+                <option value="trabajo">💼 Trabajo</option>
+                <option value="personal">🌱 Personal</option>
+                <option value="salud">💊 Salud</option>
+                <option value="estudio">📚 Estudio</option>
+                <option value="fitness">🏋️ Fitness</option>
+                <option value="urgente">🚨 Urgente</option>
+                <option value="otros">📌 Otros</option>
+              </select>
+            </div>
+            <div>
+              <label style="color:#a5b4fc;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.8px;display:block;margin-bottom:6px;">
+                📋 Tipo
+              </label>
+              <select id="tp-act-type" class="login-panel-input" style="width:100%;box-sizing:border-box;">
+                <option value="personal">Personal</option>
+                <option value="reunion_virtual">Reunión Virtual</option>
+                <option value="cita_presencial">Cita Presencial</option>
+                <option value="medicamento">Medicamento</option>
+                <option value="fitness">Fitness / Deporte</option>
+                <option value="entrega_trabajo">Entrega / Tarea</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Fecha + Hora + Duración en grid -->
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;">
+            <div>
+              <label style="color:#a5b4fc;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.8px;display:block;margin-bottom:6px;">
+                📆 Fecha
+              </label>
+              <input id="tp-act-date" type="date" value="${todayStr}" class="login-panel-input" style="width:100%;box-sizing:border-box;" />
+            </div>
+            <div>
+              <label style="color:#a5b4fc;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.8px;display:block;margin-bottom:6px;">
+                🕐 Hora
+              </label>
+              <input id="tp-act-time" type="time" value="${timeStr}" class="login-panel-input" style="width:100%;box-sizing:border-box;" />
+            </div>
+            <div>
+              <label style="color:#a5b4fc;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.8px;display:block;margin-bottom:6px;">
+                ⏱️ Duración
+              </label>
+              <select id="tp-act-duration" class="login-panel-input" style="width:100%;box-sizing:border-box;">
+                <option value="15min">15 min</option>
+                <option value="30min">30 min</option>
+                <option value="45min">45 min</option>
+                <option value="1h" selected>1 hora</option>
+                <option value="1.5h">1.5 horas</option>
+                <option value="2h">2 horas</option>
+                <option value="todo_el_dia">Todo el día</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Campo condicional: Dosis (salud/medicamento) -->
+          <div id="tp-act-dosis-wrap" style="display:none;">
+            <label style="color:#a5b4fc;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.8px;display:block;margin-bottom:6px;">
+              💊 Dosis / Medicamento
+            </label>
+            <input id="tp-act-dosis" type="text" placeholder="Ej: Losartán 50mg — 1 comprimido" class="login-panel-input" style="width:100%;box-sizing:border-box;" />
+          </div>
+
+          <!-- Campo condicional: Enlace reunión -->
+          <div id="tp-act-meetlink-wrap" style="display:none;">
+            <label style="color:#a5b4fc;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.8px;display:block;margin-bottom:6px;">
+              🔗 Enlace de reunión
+            </label>
+            <input id="tp-act-meetlink" type="url" placeholder="https://meet.google.com/..." class="login-panel-input" style="width:100%;box-sizing:border-box;" />
+          </div>
+
+          <!-- Campo condicional: Ejercicios fitness -->
+          <div id="tp-act-fitness-wrap" style="display:none;">
+            <label style="color:#a5b4fc;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.8px;display:block;margin-bottom:6px;">
+              🏋️ Ejercicios / Rutina
+            </label>
+            <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:8px;">
+              ${['🏃 Cardio','💪 Fuerza','🧘 Yoga','🚴 Ciclismo','🏊 Natación','⚽ Deporte'].map(e=>`
+                <button onclick="this.style.background=this.style.background.includes('6366f1')?'rgba(255,255,255,0.05)':'rgba(99,102,241,0.4)';this.style.borderColor=this.style.borderColor.includes('6366f1')?'rgba(255,255,255,0.15)':'#6366f1';document.getElementById('tp-act-fitness-text').value=(document.getElementById('tp-act-fitness-text').value?document.getElementById('tp-act-fitness-text').value+', ':'')+this.textContent.trim()" style="
+                  background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.15);
+                  color:#e2e8f0;border-radius:20px;padding:5px 12px;cursor:pointer;font-size:12px;transition:all .2s;
+                ">${e}</button>
+              `).join('')}
+            </div>
+            <input id="tp-act-fitness-text" type="text" placeholder="O describe tu rutina..." class="login-panel-input" style="width:100%;box-sizing:border-box;" />
+          </div>
+
+          <!-- Notas -->
+          <div>
+            <label style="color:#a5b4fc;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.8px;display:block;margin-bottom:6px;">
+              📝 Notas / Descripción
+            </label>
+            <textarea id="tp-act-notes" rows="3" placeholder="Detalles adicionales... (opcional)" class="login-panel-input" style="width:100%;box-sizing:border-box;resize:vertical;"></textarea>
+          </div>
+
+        </div>
+
+        <!-- Footer -->
+        <div style="
+          padding:16px 24px;border-top:1px solid rgba(99,102,241,0.2);
+          display:flex;gap:12px;justify-content:flex-end;
+          background:rgba(0,0,0,0.2);
+        ">
+          <button onclick="window.timeplusCloseNewActivityModal()" style="
+            background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.15);
+            color:#94a3b8;padding:10px 20px;border-radius:10px;cursor:pointer;font-size:14px;
+            transition:all .2s;
+          " onmouseover="this.style.background='rgba(255,255,255,0.12)'" onmouseout="this.style.background='rgba(255,255,255,0.07)'">
+            ✕ Cancelar
+          </button>
+          <button onclick="window.timeplusSaveNewActivity()" style="
+            background:linear-gradient(135deg,#6366f1,#8b5cf6);
+            border:none;color:#fff;padding:10px 24px;border-radius:10px;cursor:pointer;
+            font-size:14px;font-weight:600;
+            box-shadow:0 4px 15px rgba(99,102,241,0.4);
+            transition:all .2s;
+          " onmouseover="this.style.transform='translateY(-1px)';this.style.boxShadow='0 6px 20px rgba(99,102,241,0.55)'"
+             onmouseout="this.style.transform='translateY(0)';this.style.boxShadow='0 4px 15px rgba(99,102,241,0.4)'">
+            💾 Agendar Actividad
+          </button>
+        </div>
+      </div>
+    `;
+
+    document.body.appendChild(overlay);
+    overlay.addEventListener('click', (e) => { if (e.target === overlay) window.timeplusCloseNewActivityModal(); });
+    setTimeout(() => document.getElementById('tp-act-title')?.focus(), 100);
+  };
+
+  window.timeplusActivityCategoryChange = () => {
+    const cat = document.getElementById('tp-act-category')?.value || '';
+    const typeEl = document.getElementById('tp-act-type');
+    document.getElementById('tp-act-dosis-wrap').style.display = (cat === 'salud') ? 'block' : 'none';
+    document.getElementById('tp-act-meetlink-wrap').style.display = (cat === 'trabajo') ? 'block' : 'none';
+    document.getElementById('tp-act-fitness-wrap').style.display = (cat === 'fitness') ? 'block' : 'none';
+    if (cat === 'salud' && typeEl) typeEl.value = 'medicamento';
+    if (cat === 'fitness' && typeEl) typeEl.value = 'fitness';
+    if (cat === 'trabajo' && typeEl) typeEl.value = 'reunion_virtual';
+  };
+
+  window.timeplusCloseNewActivityModal = () => {
+    const el = document.getElementById('tp-new-activity-overlay');
+    if (el) el.remove();
+  };
+
+  window.timeplusSaveNewActivity = () => {
+    const title = (document.getElementById('tp-act-title')?.value || '').trim();
+    if (!title) {
+      const inp = document.getElementById('tp-act-title');
+      if (inp) { inp.style.borderColor = '#ef4444'; inp.focus(); }
+      timeplusShowToast('⚠️ El título es obligatorio');
+      return;
     }
+
+    const user = store.state.user || {};
+    const category = document.getElementById('tp-act-category')?.value || 'personal';
+    const type = document.getElementById('tp-act-type')?.value || 'personal';
+    const date = document.getElementById('tp-act-date')?.value || new Date().toISOString().slice(0,10);
+    const time = document.getElementById('tp-act-time')?.value || '08:00';
+    const duration = document.getElementById('tp-act-duration')?.value || '1h';
+    const notes = document.getElementById('tp-act-notes')?.value || '';
+    const dosis = document.getElementById('tp-act-dosis')?.value || '';
+    const meetLink = document.getElementById('tp-act-meetlink')?.value || '';
+    const fitnessText = document.getElementById('tp-act-fitness-text')?.value || '';
+
+    const newActivity = {
+      id: 'act-' + Date.now(),
+      title,
+      category,
+      type,
+      time,
+      date,
+      duration,
+      notes: [notes, dosis ? '💊 ' + dosis : '', fitnessText ? '🏋️ ' + fitnessText : ''].filter(Boolean).join(' | '),
+      meetLink,
+      userEmail: user.email || '',
+      userId: user.id || '',
+      userName: user.name || '',
+      confirmedTaken: false,
+      attendees: [],
+      exercises: fitnessText ? fitnessText.split(',').map(s => s.trim()).filter(Boolean) : [],
+      subtasks: [],
+      travelTimeMin: 0,
+    };
+
+    store.addActivity(newActivity);
+    window.timeplusCloseNewActivityModal();
+    timeplusShowToast('✅ Actividad agendada correctamente');
+
+    // Refresh current view
+    const hash = location.hash.replace('#','') || 'today';
+    if (typeof updateUIForRole === 'function') updateUIForRole();
+    if (typeof renderToday === 'function' && (hash === 'today' || hash === '')) renderToday();
+    if (typeof renderAgenda === 'function' && hash === 'agenda') renderAgenda();
   };
 
   window.timeplusFilterAdminClients = (query) => {
