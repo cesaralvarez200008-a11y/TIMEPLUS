@@ -12,23 +12,13 @@
   <meta http-equiv="Expires" content="0">
 
   <script>
-    // Bypasses browser cache automatically on new releases
+    // Clean old service workers if any
     (function() {
-      const BUILD_ID = '20260907_v9';
       try {
-        // Limpiar cualquier ServiceWorker previo que pudiera retener caché
         if ('serviceWorker' in navigator) {
           navigator.serviceWorker.getRegistrations().then(regs => {
             for (let r of regs) r.unregister();
           }).catch(() => {});
-        }
-        const lastBuild = localStorage.getItem('TP_LAST_BUILD');
-        if (lastBuild !== BUILD_ID) {
-          localStorage.setItem('TP_LAST_BUILD', BUILD_ID);
-          if (location.search.indexOf('v=' + BUILD_ID) === -1) {
-            const cleanUrl = location.protocol + '//' + location.host + location.pathname + '?v=' + BUILD_ID + (location.hash || '');
-            window.location.replace(cleanUrl);
-          }
         }
       } catch (e) {}
     })();
@@ -210,7 +200,7 @@
   </style>
 
   <!-- Custom Styles -->
-  <link rel="stylesheet" href="css/styles.css?v=20260907_v9">
+  <link rel="stylesheet" href="css/styles.css?v=20260907_v10">
 </head>
 <body class="bg-slate-100 text-slate-900 min-h-screen flex flex-col antialiased selection:bg-blue-600 selection:text-white">
 
@@ -2302,11 +2292,11 @@
 
   <!-- Supabase CDN Client -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="js/supabase-client.js?v=20260907_v9"></script>
+  <script src="js/supabase-client.js?v=20260907_v10"></script>
 
   <!-- Application Logic Scripts -->
-  <script src="js/store.js?v=20260907_v9"></script>
-  <script src="js/ai-engine.js?v=20260907_v9"></script>
-  <script src="js/app.js?v=20260907_v9"></script>
+  <script src="js/store.js?v=20260907_v10"></script>
+  <script src="js/ai-engine.js?v=20260907_v10"></script>
+  <script src="js/app.js?v=20260907_v10"></script>
 </body>
 </html>

@@ -1,5 +1,4 @@
 {
-  "version": 2,
   "cleanUrls": true,
   "headers": [
     {
@@ -22,7 +21,7 @@
   ],
   "rewrites": [
     {
-      "source": "/((?!css/|js/|images/|.*\\..*).*)",
+      "source": "/(.*)",
       "destination": "/index.html"
     }
   ]
