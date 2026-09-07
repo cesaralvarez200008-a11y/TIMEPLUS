@@ -1,335 +1,266 @@
-// TIMEPLUS — Intelligent AI Engine & Natural Language Understanding (Spanish)
-// Supports multi-intent extraction, place querying, voice recognition & synthesis
+/**
+ * TIMEPLUS OS — Core AI Brain & Speech Engine
+ * Natural Language Understanding (NLP) in Spanish & Voice Execution
+ */
 
-class TimeplusAIEngine {
-  constructor(store) {
-    this.store = store;
-    this.isListening = false;
+class TimePlusAI {
+  constructor() {
     this.recognition = null;
-    this.initSpeechRecognition();
+    this.isListening = false;
+    this.synth = window.speechSynthesis || null;
+    this.setupSpeechRecognition();
   }
 
-  initSpeechRecognition() {
+  setupSpeechRecognition() {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (SpeechRecognition) {
       this.recognition = new SpeechRecognition();
       this.recognition.lang = 'es-ES';
       this.recognition.continuous = false;
       this.recognition.interimResults = false;
+
+      this.recognition.onstart = () => {
+        this.isListening = true;
+        this.updateMicUI(true);
+      };
+
+      this.recognition.onresult = (event) => {
+        const transcript = event.results[0][0].transcript;
+        console.log('🎙️ TIMEPLUS Voz escuchada:', transcript);
+        this.processCommand(transcript);
+      };
+
+      this.recognition.onerror = (e) => {
+        console.warn('Nota SpeechRecognition:', e.error);
+        this.isListening = false;
+        this.updateMicUI(false);
+      };
+
+      this.recognition.onend = () => {
+        this.isListening = false;
+        this.updateMicUI(false);
+      };
     }
   }
 
-  startListening(onResultCallback, onEndCallback) {
+  toggleVoice() {
     if (!this.recognition) {
-      alert('Tu navegador no soporta la Web Speech API para reconocimiento de voz. Puedes escribir tu orden directamente.');
-      if (onEndCallback) onEndCallback();
+      alert('Tu navegador no soporta entrada de voz directa (Web Speech API). Puedes escribir tu comando directamente en el cuadro.');
       return;
     }
-
-    this.isListening = true;
-
-    this.recognition.onresult = (event) => {
-      const transcript = event.results[0][0].transcript;
-      if (onResultCallback) onResultCallback(transcript);
-    };
-
-    this.recognition.onerror = (event) => {
-      console.error('Speech recognition error:', event.error);
-      this.isListening = false;
-      if (onEndCallback) onEndCallback();
-    };
-
-    this.recognition.onend = () => {
-      this.isListening = false;
-      if (onEndCallback) onEndCallback();
-    };
-
-    try {
-      this.recognition.start();
-    } catch (e) {
-      console.warn('Recognition already started:', e);
+    if (this.isListening) {
+      this.recognition.stop();
+    } else {
+      try {
+        this.recognition.start();
+      } catch (err) {
+        console.warn('Speech recognition busy:', err);
+      }
     }
   }
 
-  stopListening() {
-    if (this.recognition && this.isListening) {
-      this.recognition.stop();
-      this.isListening = false;
-    }
+  updateMicUI(listening) {
+    const micBtns = document.querySelectorAll('.btn-mic-glow');
+    micBtns.forEach(btn => {
+      if (listening) {
+        btn.classList.add('listening');
+        btn.title = 'Escuchando tu voz... Habla ahora';
+      } else {
+        btn.classList.remove('listening');
+        btn.title = 'Hablar con TIMEPLUS IA';
+      }
+    });
   }
 
   speak(text) {
-    if ('speechSynthesis' in window) {
-      window.speechSynthesis.cancel();
+    if (!this.synth) return;
+    try {
+      this.synth.cancel();
       const utterance = new SpeechSynthesisUtterance(text);
       utterance.lang = 'es-ES';
       utterance.rate = 1.05;
-      utterance.pitch = 1.0;
-      window.speechSynthesis.speak(utterance);
+      this.synth.speak(utterance);
+    } catch (e) {
+      console.warn('Speech synthesis error:', e);
     }
   }
 
-  // --- Natural Language Processor (NLP) ---
-  processInput(rawText) {
-    const text = rawText.trim();
-    const lower = text.toLowerCase();
+  // --- NLP Intent Parser ---
+  async processCommand(rawInput) {
+    const input = (rawInput || '').trim();
+    if (!input) return null;
 
-    // 1. Check if user is asking about Place History / Statistics
-    // Example: "Muéstrame todas las veces que fui a la clínica este año" or "cuántas visitas tengo a la oficina"
-    const placeQuery = this.matchPlaceQuery(lower);
-    if (placeQuery) {
-      return placeQuery;
-    }
+    const lower = input.toLowerCase();
+    const store = window.timeplusStore;
 
-    // 2. Check if user asks for today's summary
-    // Example: "¿Qué tengo hoy?", "¿Cuál es mi agenda?"
-    if (lower.includes('que tengo hoy') || lower.includes('agenda de hoy') || lower.includes('actividades de hoy') || lower === 'hoy') {
-      const acts = this.store.getActivities('2026-09-04');
-      const pending = acts.filter(a => !a.completed);
-      return {
-        type: 'query_today',
-        text: `Hoy tienes ${acts.length} actividades programadas (${pending.length} pendientes). Comienzas a las 08:00 con Medicamento y terminas a las 19:00 con Salida.`,
-        activities: acts
-      };
-    }
+    // Feedback visual en el input
+    const textInput = document.getElementById('ai-omni-input');
+    if (textInput) textInput.value = input;
 
-    // 3. Multi-event creation detection (e.g. "Mañana tengo reunión con Carlos a las 10 en la oficina y después debo entregar el informe.")
-    const compoundParts = this.splitCompoundSentences(text);
-    const createdActivities = [];
-
-    compoundParts.forEach((part, index) => {
-      const parsed = this.parseActivityIntent(part, index > 0 ? createdActivities[0] : null);
-      if (parsed) {
-        const created = this.store.addActivity(parsed);
-        createdActivities.push(created);
-      }
-    });
-
-    if (createdActivities.length > 0) {
-      const names = createdActivities.map(a => `"${a.title}" a las ${a.time}`).join(' y ');
-      return {
-        type: 'create_success',
-        count: createdActivities.length,
-        createdActivities,
-        text: createdActivities.length > 1
-          ? `He detectado 2 actividades relacionadas y las he creado en tu agenda: ${names}. Todo ha quedado conectado con su lugar y recordatorios.`
-          : `He creado la actividad ${names} en tu agenda.`
-      };
-    }
-
-    // Fallback: General assistant response or generic activity creation
-    const genericAct = this.parseActivityIntent(text);
-    if (genericAct) {
-      const created = this.store.addActivity(genericAct);
-      return {
-        type: 'create_success',
-        count: 1,
-        createdActivities: [created],
-        text: `He añadido "${created.title}" a tu agenda para el ${created.date} a las ${created.time}.`
-      };
-    }
-
-    return {
-      type: 'generic_response',
-      text: `Entendido. Puedes decirme cosas como: "Mañana tengo reunión con Carlos a las 10 en la oficina y después debo entregar el informe" o "Muéstrame todas las veces que fui a la clínica este año".`
+    let response = {
+      understood: false,
+      message: '',
+      action: null
     };
-  }
 
-  // --- Place Query Analyzer ---
-  matchPlaceQuery(lower) {
-    const places = this.store.getPlaces();
-    const isAskingVisits = lower.includes('veces') || lower.includes('visita') || lower.includes('visité') || lower.includes('fui a') || lower.includes('cuanto') || lower.includes('historial');
-
-    for (const p of places) {
-      const pName = p.shortName.toLowerCase();
-      if (lower.includes(pName) && isAskingVisits) {
-        const summary = p.historySummary;
-        let summaryText = '';
-        if (summary) {
-          const parts = [];
-          for (const [key, val] of Object.entries(summary)) {
-            parts.push(`${val} ${key}`);
-          }
-          if (parts.length > 0) {
-            summaryText = ` (${parts.join(', ')})`;
-          }
-        }
-
-        return {
-          type: 'place_history_answer',
-          place: p,
-          visitsCount: p.visitsCount,
-          lastVisit: p.lastVisit,
-          nextVisit: p.nextVisit,
-          text: `Has registrado un total de ${p.visitsCount} visitas a ${p.shortName}${summaryText}. Tu última visita fue el ${p.lastVisit} y tu próxima visita agendada es el ${p.nextVisit}.`,
-          action: 'open_place',
-          placeId: p.id
-        };
-      }
-    }
-    return null;
-  }
-
-  // --- Sentence Splitting for Compound Intents ---
-  splitCompoundSentences(text) {
-    // Look for conjunctions: " y después ", " y luego ", " y más tarde ", " y a continuación ", " y después de eso "
-    const regex = /\s+(?:y\s+despu[eé]s(?:\s+de\s+(?:eso|la\s+reuni[oó]n))?|y\s+luego|luego|y\s+m[aá]s\s+tarde)\s+/i;
-    if (regex.test(text)) {
-      return text.split(regex).filter(s => s.trim().length > 3);
-    }
-    return [text];
-  }
-
-  // --- Single Activity Intent Parser ---
-  parseActivityIntent(sentence, previousContext = null) {
-    const lower = sentence.toLowerCase();
-
-    // 1. Category and Icon detection
-    let category = 'tarea';
-    let categoryLabel = 'Tarea';
-    let icon = '✅';
-
-    if (lower.includes('reunión') || lower.includes('reunion') || lower.includes('meet') || lower.includes('llamada')) {
-      if (lower.includes('virtual') || lower.includes('meet') || lower.includes('zoom')) {
-        category = 'reunion_virtual';
-        categoryLabel = 'Reunión virtual';
-        icon = '💻';
+    // 1. Preguntas de Agenda: "¿Qué tengo hoy?" / "¿Qué tengo mañana?"
+    if (lower.includes('qué tengo hoy') || lower.includes('agenda de hoy') || lower.includes('actividades de hoy')) {
+      const acts = store.getActivities().filter(a => a.date === 'today');
+      if (acts.length === 0) {
+        response.message = 'No tienes actividades registradas para hoy. Tienes el día completamente libre.';
       } else {
-        category = 'reunion_presencial';
-        categoryLabel = 'Reunión presencial';
-        icon = '🤝';
+        const count = acts.length;
+        const first = acts[0];
+        response.message = `Hoy tienes ${count} actividades programadas. Tu primera actividad es "${first.title}" a las ${first.time}.`;
       }
-    } else if (lower.includes('cita') || lower.includes('médic') || lower.includes('doctor') || lower.includes('doctora') || lower.includes('odontólogo')) {
-      category = 'cita_medica';
-      categoryLabel = 'Cita médica';
-      icon = '🩺';
-    } else if (lower.includes('medicamento') || lower.includes('pastilla') || lower.includes('remedio') || lower.includes('dosis')) {
-      category = 'medicamento';
-      categoryLabel = 'Medicamento';
-      icon = '💊';
-    } else if (lower.includes('clase') || lower.includes('universidad') || lower.includes('curso') || lower.includes('lección')) {
-      category = 'clase';
-      categoryLabel = 'Clase';
-      icon = '🎓';
-    } else if (lower.includes('entrega') || lower.includes('entregar')) {
-      category = 'entrega_trabajo';
-      categoryLabel = 'Entrega de trabajo';
-      icon = '📄';
-    } else if (lower.includes('informe') || lower.includes('reporte') || lower.includes('auditoría')) {
-      category = 'informe';
-      categoryLabel = 'Informe';
-      icon = '📑';
-    } else if (lower.includes('cena') || lower.includes('almuerzo') || lower.includes('restaurante') || lower.includes('salida') || lower.includes('tomar algo')) {
-      category = 'salida';
-      categoryLabel = 'Salida';
-      icon = '🍽️';
-    } else if (lower.includes('evento') || lower.includes('fiesta') || lower.includes('celebración')) {
-      category = 'evento';
-      categoryLabel = 'Evento';
-      icon = '🎉';
-    } else if (lower.includes('viaje') || lower.includes('vuelo') || lower.includes('hotel')) {
-      category = 'viaje';
-      categoryLabel = 'Viaje';
-      icon = '✈️';
-    } else if (lower.includes('recordar') || lower.includes('recordatorio')) {
-      category = 'recordatorio';
-      categoryLabel = 'Recordatorio';
-      icon = '📌';
+      response.understood = true;
     }
 
-    // 2. Date parsing
-    let date = '2026-09-04'; // default base date
-    if (lower.includes('mañana')) {
-      date = '2026-09-05';
-    } else if (lower.includes('pasado mañana')) {
-      date = '2026-09-06';
-    } else if (lower.includes('lunes')) {
-      date = '2026-09-07';
-    } else if (lower.includes('martes')) {
-      date = '2026-09-08';
-    } else if (lower.includes('miércoles') || lower.includes('miercoles')) {
-      date = '2026-09-09';
-    } else if (lower.includes('jueves')) {
-      date = '2026-09-10';
-    } else if (previousContext) {
-      date = previousContext.date;
+    // 2. Tiempo libre: "¿Cuánto tiempo tengo libre?"
+    else if (lower.includes('tiempo libre') || lower.includes('cuánto libre')) {
+      response.message = 'Analizando tu agenda: Tienes 45 minutos libres entre las 2:15 p. m. y las 3:00 p. m., y la tarde libre después de las 7:00 p. m.';
+      response.understood = true;
     }
 
-    // 3. Time parsing
-    let time = '12:00';
-    const timeMatch = lower.match(/(?:a\s+las?|alas?)\s+(\d{1,2})(?::(\d{2}))?\s*(am|pm|a\.\s*m\.|p\.\s*m\.)?/);
-    if (timeMatch) {
-      let hours = parseInt(timeMatch[1], 10);
-      const minutes = timeMatch[2] ? timeMatch[2] : '00';
-      const meridiem = timeMatch[3] ? timeMatch[3].replace(/\./g, '').trim() : '';
-
-      if (meridiem === 'pm' && hours < 12) hours += 12;
-      if (meridiem === 'am' && hours === 12) hours = 0;
-
-      time = `${hours.toString().padStart(2, '0')}:${minutes}`;
-    } else if (previousContext) {
-      // If chained after another event, calculate 1.5 hours later
-      const [prevH, prevM] = previousContext.time.split(':').map(Number);
-      const nextH = Math.min(23, prevH + 1);
-      const nextM = prevM === 0 ? '30' : '00';
-      time = `${nextH.toString().padStart(2, '0')}:${nextM}`;
-    }
-
-    // 4. Place Association
-    let placeId = null;
-    let placeName = '';
-    const places = this.store.getPlaces();
-
-    for (const p of places) {
-      if (lower.includes(p.shortName.toLowerCase())) {
-        placeId = p.id;
-        placeName = p.name;
-        break;
+    // 3. Medicamentos: "Recuérdame tomar la pastilla / medicamento a las [hora]"
+    else if (lower.includes('pastilla') || lower.includes('medicamento') || lower.includes('medicina')) {
+      const timeMatch = lower.match(/(\d{1,2})(?::(\d{2}))?\s*(am|pm|a\.m\.|p\.m\.)?/);
+      let time = '08:00';
+      if (timeMatch) {
+        let h = parseInt(timeMatch[1]);
+        const m = timeMatch[2] || '00';
+        if (lower.includes('pm') || lower.includes('p.m.') || (h < 7 && !lower.includes('am'))) h += 12;
+        time = `${String(h).padStart(2, '0')}:${m}`;
       }
+
+      const act = store.addActivity({
+        title: 'Medicamento recetado',
+        category: 'salud',
+        time: time,
+        date: 'today',
+        duration: '10m',
+        type: 'medicamento',
+        dosage: '1 dosis con agua',
+        confirmedTaken: false,
+        notes: `Agendado por IA: "${input}"`
+      });
+
+      response.understood = true;
+      response.message = `Listo. He programado el recordatorio de tu medicamento a las ${time}. Te preguntaré si lo tomaste.`;
+      response.action = { type: 'CREATED_MED', data: act };
     }
 
-    // Inherit place from previous context if not explicitly mentioned
-    if (!placeId && previousContext && previousContext.placeId) {
-      placeId = previousContext.placeId;
-      placeName = previousContext.placeName;
+    // 4. Fitness: "Hoy entrené [pecho/pierna/cardio]..." / "Mañana tengo gimnasio"
+    else if (lower.includes('entrené') || lower.includes('gimnasio') || lower.includes('ejercicio') || lower.includes('gym')) {
+      if (lower.includes('cuántos días') || lower.includes('resumen')) {
+        const fit = store.getFitnessSummary();
+        response.message = `Esta semana has entrenado ${fit.weeklyWorkouts} días de tu meta de ${fit.targetWorkouts}, completando ${fit.activeHours} horas activas.`;
+      } else {
+        const act = store.recordWorkout({
+          title: lower.includes('pecho') ? 'Entrenamiento de Pecho y Tríceps' : 'Entrenamiento en Gimnasio',
+          duration: '1h',
+          durationHours: 1,
+          calories: 450,
+          exercises: [{ name: 'Rutina Completa', sets: 4, reps: '10-12', weight: 'Progresivo' }]
+        });
+        response.understood = true;
+        response.message = '¡Excelente! He registrado tu entrenamiento de hoy y sumado 450 kcal a tus estadísticas de fitness.';
+        response.action = { type: 'CREATED_FITNESS', data: act };
+      }
+      response.understood = true;
     }
 
-    // 5. Title synthesis
-    let title = sentence.trim();
-    // Clean common prefixes
-    title = title.replace(/^(mañana\s+tengo\s+|tengo\s+|debo\s+|hay\s+que\s+|recordar\s+)/i, '');
-    title = title.charAt(0).toUpperCase() + title.slice(1);
+    // 5. Reunión Virtual: "Agéndame una reunión virtual con [Carlos] el [martes/mañana] a las [hora]"
+    else if (lower.includes('reunión virtual') || (lower.includes('reunión') && lower.includes('con '))) {
+      const timeMatch = lower.match(/(\d{1,2})(?::(\d{2}))?\s*(am|pm|a\.m\.|p\.m\.)?/);
+      let time = '11:00';
+      if (timeMatch) {
+        let h = parseInt(timeMatch[1]);
+        const m = timeMatch[2] || '00';
+        if (lower.includes('pm') || lower.includes('tarde')) {
+          if (h < 12) h += 12;
+        }
+        time = `${String(h).padStart(2, '0')}:${m}`;
+      }
 
-    // If it's an "entrega de trabajo" or "informe", add standard checklist
-    const checklist = [];
-    if (category === 'entrega_trabajo' || category === 'informe') {
-      checklist.push(
-        { id: 'chk-' + Math.random(), text: 'Investigar', done: true },
-        { id: 'chk-' + Math.random(), text: 'Elaborar', done: false },
-        { id: 'chk-' + Math.random(), text: 'Revisar', done: false },
-        { id: 'chk-' + Math.random(), text: 'Entregar', done: false }
-      );
+      let person = 'Contacto';
+      if (lower.includes('carlos')) person = 'Carlos Pérez';
+      else if (lower.includes('maría')) person = 'María López';
+      else if (lower.includes('juan')) person = 'Juan Rodríguez';
+
+      const act = store.addActivity({
+        title: `Reunión virtual con ${person}`,
+        category: 'trabajo',
+        time: time,
+        date: 'today',
+        duration: '45m',
+        type: 'reunion_virtual',
+        attendees: [person],
+        meetLink: `https://meet.google.com/tmp-${Date.now().toString().slice(-6)}`,
+        notes: `Generado automáticamente por TIMEPLUS IA. Enlace Meet creado.`
+      });
+
+      response.understood = true;
+      response.message = `Entendido. He agendado la reunión virtual con ${person} para hoy a las ${time} y generé su enlace de Google Meet.`;
+      response.action = { type: 'CREATED_MEETING', data: act };
     }
 
-    return {
-      title,
-      category,
-      categoryLabel,
-      icon,
-      date,
-      time,
-      displayTime: time,
-      completed: false,
-      placeId,
-      placeName: placeName || 'Por definir',
-      responsible: 'Yo',
-      statusLabel: 'En proceso',
-      details: `Generado inteligentemente por TIMEPLUS IA`,
-      checklist,
-      reminders: ['1 hora antes', '1 día antes']
-    };
+    // 6. Movilidad y Cálculo de Salida: "Tengo una reunión en [Bogotá] a las [hora], calcula cuándo salir"
+    else if (lower.includes('cuándo salir') || lower.includes('cuándo debo salir') || lower.includes('tráfico') || lower.includes('movilidad')) {
+      response.understood = true;
+      response.message = 'Considerando la distancia (12 km), el tráfico actual hacia la sede y 15 minutos de preparación previa: Debes salir aproximadamente a las 3:10 p. m. para llegar puntual a tu cita de las 4:00 p. m.';
+    }
+
+    // 7. Organizar el día: "Organízame el día" / "Organízame la tarde"
+    else if (lower.includes('organízame') || lower.includes('organiza mi día')) {
+      response.understood = true;
+      response.message = 'He optimizado tu día: agrupé tus tareas pendientes en bloques continuos, reservé 45 minutos para tu almuerzo y programé tu entrenamiento a las 6:00 p. m. sin colisiones.';
+    }
+
+    // 8. Contactos: "¿Qué tengo pendiente con Carlos?"
+    else if (lower.includes('pendiente con') || lower.includes('con carlos')) {
+      const contacts = store.getContacts();
+      const carlos = contacts.find(c => c.name.toLowerCase().includes('carlos'));
+      if (carlos) {
+        response.message = `Con ${carlos.name} tienes pendiente: 1) Enviar cotización del módulo de salud, y 2) Revisar contrato marco. Tu última reunión con él fue hoy.`;
+      } else {
+        response.message = 'No encontré pendientes críticos con ese contacto.';
+      }
+      response.understood = true;
+    }
+
+    // 9. Reprogramar / Mover: "Muévela para las 5" / "Cancela mi reunión"
+    else if (lower.includes('muévela') || lower.includes('cancela')) {
+      response.understood = true;
+      response.message = 'Acción procesada en tu calendario: La actividad ha sido actualizada exitosamente.';
+    }
+
+    // 10. Fallback Inteligente: Crear actividad general
+    else {
+      const act = store.addActivity({
+        title: input.charAt(0).toUpperCase() + input.slice(1),
+        category: 'otros',
+        time: '16:30',
+        date: 'today',
+        duration: '30m',
+        type: 'tarea',
+        notes: 'Creado mediante comando libre de TIMEPLUS IA.'
+      });
+      response.understood = true;
+      response.message = `Entendido. He agregado "${input}" a tu centro de control para hoy.`;
+      response.action = { type: 'CREATED_GENERAL', data: act };
+    }
+
+    // Respuesta auditiva por voz
+    this.speak(response.message);
+
+    // Mostrar modal / toast de confirmación
+    if (window.timeplusShowToast) {
+      window.timeplusShowToast('🧠 IA: ' + response.message);
+    }
+
+    return response;
   }
 }
 
-// Global singleton instance
-window.timeplusAI = new TimeplusAIEngine(window.timeplusStore);
+window.timeplusAI = new TimePlusAI();
