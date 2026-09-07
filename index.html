@@ -16,6 +16,12 @@
     (function() {
       const BUILD_ID = '20260907_v8';
       try {
+        // Limpiar cualquier ServiceWorker previo que pudiera retener caché
+        if ('serviceWorker' in navigator) {
+          navigator.serviceWorker.getRegistrations().then(regs => {
+            for (let r of regs) r.unregister();
+          }).catch(() => {});
+        }
         const lastBuild = localStorage.getItem('TP_LAST_BUILD');
         if (lastBuild !== BUILD_ID) {
           localStorage.setItem('TP_LAST_BUILD', BUILD_ID);
