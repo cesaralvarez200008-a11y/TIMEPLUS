@@ -20,11 +20,10 @@
       ]
     }
   ],
-  "routes": [
-    { "handle": "filesystem" },
+  "rewrites": [
     {
-      "src": "/(.*)",
-      "dest": "/index.html"
+      "source": "/((?!css/|js/|images/|.*\\..*).*)",
+      "destination": "/index.html"
     }
   ]
 }

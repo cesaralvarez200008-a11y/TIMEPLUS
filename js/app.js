@@ -40,12 +40,27 @@ document.addEventListener('DOMContentLoaded', () => {
   const navButtons = document.querySelectorAll('.nav-btn');
 
   function initApp() {
-    renderCurrentView();
     setupEventListeners();
     setupStoreSubscription();
     setupSupabaseRealtime();
     updateClock();
     setInterval(updateClock, 30000);
+
+    // Escuchar eventos del historial del navegador (Botones Atrás / Adelante)
+    window.addEventListener('popstate', () => {
+      handleRoute(getCurrentRouteKey(), false);
+    });
+    window.addEventListener('hashchange', () => {
+      handleRoute(getCurrentRouteKey(), false);
+    });
+
+    // Cargar la vista o modal solicitado en la URL
+    const initialRoute = getCurrentRouteKey();
+    if (initialRoute && initialRoute !== 'inicio') {
+      handleRoute(initialRoute, false);
+    } else {
+      renderCurrentView();
+    }
   }
 
   function setupSupabaseRealtime() {
@@ -83,12 +98,173 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
+  // =========================================================================
+  // URL ROUTER — CADA SECCIÓN TIENE SU PROPIO LINK DIRECTO (SPA DEEP LINKING)
+  // =========================================================================
+  const ROUTE_ALIASES = {
+    '': 'inicio',
+    'index': 'inicio',
+    'inicio': 'inicio',
+    'landing': 'inicio',
+    'login': 'login',
+    'iniciar-sesion': 'login',
+    'login-cliente': 'login-cliente',
+    'cliente': 'login-cliente',
+    'planes': 'planes',
+    'adquirir-plan': 'planes',
+    'admin': 'admin',
+    'superadmin': 'admin',
+    'admin-dashboard': 'admin',
+    'admin-clients': 'admin-clients',
+    'clientes': 'admin-clients',
+    'admin-licenses': 'admin-licenses',
+    'licencias': 'admin-licenses',
+    'home': 'home',
+    'dashboard': 'home',
+    'agenda': 'agenda',
+    'calendario': 'agenda',
+    'eventos': 'events',
+    'events': 'events',
+    'reuniones': 'meetings',
+    'meetings': 'meetings',
+    'citas': 'appointments',
+    'appointments': 'appointments',
+    'clases': 'classes',
+    'classes': 'classes',
+    'recordatorios': 'reminders',
+    'reminders': 'reminders',
+    'medicamentos': 'meds',
+    'meds': 'meds',
+    'trabajo': 'work',
+    'work': 'work',
+    'places': 'places',
+    'lugares': 'places',
+    'stats': 'stats',
+    'estadisticas': 'stats',
+    'modules': 'modules',
+    'modulos': 'modules',
+    'apk': 'apk',
+    'security': 'security',
+    'seguridad': 'security'
+  };
+
+  function getCurrentRouteKey() {
+    // 1. Prioridad: hash (#/inicio, #admin, etc.)
+    if (window.location.hash) {
+      const h = window.location.hash.replace(/^#\/?/, '').split('?')[0].trim().toLowerCase();
+      if (h) return h;
+    }
+    // 2. Pathname (/inicio, /admin, /agenda, etc.)
+    const p = window.location.pathname.replace(/^\/+|\/+$/g, '').split('?')[0].trim().toLowerCase();
+    const clean = p.replace(/\.html$/, '');
+    return clean || 'inicio';
+  }
+
+  function syncURL(routeKey) {
+    if (!routeKey) return;
+    const cleanKey = routeKey.replace(/^#\/?/, '').replace(/^\/+/, '').trim().toLowerCase();
+    const newPath = '/' + (cleanKey === 'landing' ? 'inicio' : cleanKey);
+    try {
+      if (window.location.pathname !== newPath) {
+        window.history.pushState({ route: cleanKey }, '', newPath);
+      }
+    } catch (e) {
+      try {
+        window.location.hash = '#/' + cleanKey;
+      } catch (_) {}
+    }
+  }
+
+  function handleRoute(rawRoute, updateHistory = true) {
+    const key = (rawRoute || 'inicio').toLowerCase();
+    const resolved = ROUTE_ALIASES[key] || key;
+    const currentUser = store.getCurrentUser();
+
+    if (updateHistory) {
+      syncURL(resolved);
+    }
+
+    // Rutas de modales
+    if (resolved === 'login') {
+      window.timeplusOpenLoginSelector();
+      return;
+    }
+    if (resolved === 'login-cliente') {
+      window.timeplusOpenClientModal();
+      return;
+    }
+    if (resolved === 'planes') {
+      window.timeplusOpenPlanModal();
+      return;
+    }
+
+    // Rutas de SuperAdmin
+    if (resolved === 'admin' || resolved === 'admin-clients' || resolved === 'admin-licenses') {
+      if (!currentUser || currentUser.role !== 'admin') {
+        window.timeplusOpenAdminModal();
+        return;
+      }
+      currentView = 'admin-dashboard';
+      renderCurrentView();
+      return;
+    }
+
+    // Filtros de actividades de agenda
+    const filterMap = {
+      'events': 'evento',
+      'meetings': 'reunion_virtual',
+      'appointments': 'cita_medica',
+      'classes': 'clase',
+      'reminders': 'recordatorio',
+      'meds': 'medicamento',
+      'work': 'entrega_trabajo'
+    };
+    if (filterMap[resolved]) {
+      if (!currentUser) {
+        window.timeplusOpenClientModal();
+        return;
+      }
+      currentView = 'agenda';
+      renderCurrentView();
+      if (typeof window.timeplusFilterView === 'function') {
+        window.timeplusFilterView(filterMap[resolved]);
+      }
+      return;
+    }
+
+    // Inicio / Landing
+    if (resolved === 'inicio' || resolved === 'landing') {
+      if (!currentUser) {
+        currentView = 'landing';
+        closeAllAuthModals();
+        renderCurrentView();
+      } else if (currentUser.role === 'admin') {
+        currentView = 'admin-dashboard';
+        renderCurrentView();
+      } else {
+        currentView = 'home';
+        renderCurrentView();
+      }
+      return;
+    }
+
+    // Si el usuario no está autenticado y pide una sección privada
+    if (!currentUser) {
+      renderCurrentView();
+      window.timeplusOpenLoginSelector();
+      return;
+    }
+
+    // Navegación a vistas estándar
+    navigateTo(resolved, null, false);
+  }
+
   // --- View Switcher ---
-  function navigateTo(viewName, param = null) {
+  function navigateTo(viewName, param = null, updateHistory = true) {
     const currentUser = store.getCurrentUser();
     if (!currentUser) {
-      currentView = 'login';
       renderCurrentView();
+      window.timeplusOpenLoginSelector();
       return;
     }
 
@@ -102,6 +278,10 @@ document.addEventListener('DOMContentLoaded', () => {
     if (viewName === 'activity-detail-list') {
       currentView = 'activity-detail';
       selectedActivityId = param || 'act-5';
+    }
+
+    if (updateHistory) {
+      syncURL(viewName);
     }
 
     // Hide all views
@@ -1637,7 +1817,14 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // Global window helpers for inline HTML event handlers
-  window.timeplusNavigate = (view, param) => navigateTo(view, param);
+  window.timeplusNavigate = (view, param) => {
+    if (param && (view === 'place-detail' || view === 'activity-detail')) {
+      navigateTo(view, param, true);
+    } else {
+      handleRoute(view, true);
+    }
+  };
+  window.timeplusHandleRoute = handleRoute;
   window.openCreateModal = () => openCreateModal();
   window.openAIModal = (startMic = false) => openAIModal(startMic);
   window.setTimeplusStatsFilter = (filter) => {
@@ -1659,6 +1846,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // Auth & Multi-Role Global Handlers
   window.quickLogin = (role) => {
     store.login(role);
+    syncURL(role === 'admin' ? 'admin' : 'inicio');
     renderCurrentView();
   };
   window.timeplusLogout = async () => {
@@ -1670,6 +1858,7 @@ document.addEventListener('DOMContentLoaded', () => {
       console.warn('Error signOut supabase:', e);
     }
     store.logout();
+    syncURL('inicio');
     renderCurrentView();
   };
   window.timeplusSwitchRole = (role) => {
@@ -1768,6 +1957,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // --- Modales de Autenticación Separados (Selector Dual vs Cliente vs Admin vs Adquirir Plan) ---
   window.timeplusOpenLoginSelector = () => {
     closeAllAuthModals();
+    syncURL('login');
     const modal = document.getElementById('modal-auth-selector');
     if (modal) modal.classList.remove('hidden');
   };
@@ -1775,28 +1965,33 @@ document.addEventListener('DOMContentLoaded', () => {
   window.timeplusCloseLoginSelector = () => {
     const modal = document.getElementById('modal-auth-selector');
     if (modal) modal.classList.add('hidden');
+    syncURL(store.getCurrentUser() ? (store.getCurrentUser().role === 'admin' ? 'admin' : 'inicio') : 'inicio');
   };
 
   window.timeplusOpenClientModal = () => {
     closeAllAuthModals();
+    syncURL('login-cliente');
     const modal = document.getElementById('modal-auth-client');
     if (modal) modal.classList.remove('hidden');
   };
 
   window.timeplusOpenAdminModal = () => {
     closeAllAuthModals();
+    syncURL('admin');
     const modal = document.getElementById('modal-auth-admin');
     if (modal) modal.classList.remove('hidden');
   };
 
   window.timeplusOpenPlanModal = () => {
     closeAllAuthModals();
+    syncURL('planes');
     const modal = document.getElementById('modal-auth-plan');
     if (modal) modal.classList.remove('hidden');
   };
 
   window.timeplusCloseAuthModal = () => {
     closeAllAuthModals();
+    syncURL(store.getCurrentUser() ? (store.getCurrentUser().role === 'admin' ? 'admin' : 'inicio') : 'inicio');
     // Resetear formulario de registro para la próxima apertura
     const panelForm = document.getElementById('panel-reg-form');
     const panelWelcome = document.getElementById('panel-reg-welcome');
@@ -1892,6 +2087,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
       setTimeout(() => {
         store.login('admin');
+        syncURL('admin');
         renderCurrentView();
       }, 500);
       return;
@@ -1907,6 +2103,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!error && data && data.user) {
           const isAdmin = email.toLowerCase() === 'ces.rodriguez200@gmail.com';
           store.login(isAdmin ? 'admin' : 'client');
+          syncURL(isAdmin ? 'admin' : 'inicio');
           renderCurrentView();
           return;
         }
@@ -2029,6 +2226,7 @@ document.addEventListener('DOMContentLoaded', () => {
       }
       setTimeout(() => {
         store.login(cloudRecord.email);
+        syncURL('inicio');
         renderCurrentView();
       }, 500);
       return;
@@ -2053,6 +2251,7 @@ document.addEventListener('DOMContentLoaded', () => {
       }
       setTimeout(() => {
         store.login('client');
+        syncURL('inicio');
         renderCurrentView();
       }, 500);
     } else {
