@@ -14,7 +14,7 @@
   <script>
     // Bypasses browser cache automatically on new releases
     (function() {
-      const BUILD_ID = '20260907_v7';
+      const BUILD_ID = '20260907_v8';
       try {
         const lastBuild = localStorage.getItem('TP_LAST_BUILD');
         if (lastBuild !== BUILD_ID) {
@@ -149,17 +149,62 @@
     .flex-1 { flex: 1 1 0% !important; }
     .max-w-7xl { max-width: 80rem !important; }
 
+    /* Admin Dashboard Rich Styles */
+    #view-admin-dashboard {
+      display: block !important;
+      width: 100% !important;
+    }
+    #view-admin-dashboard.hidden { display: none !important; }
+
+    #view-admin-dashboard > div:first-child,
+    .admin-banner-gradient {
+      background-color: #1e1b4b !important;
+      background-image: linear-gradient(135deg, #1e1b4b 0%, #0f172a 50%, #172554 100%) !important;
+      color: #ffffff !important;
+      border-radius: 1.5rem !important;
+      padding: 1.5rem 2rem !important;
+      box-shadow: 0 10px 25px -5px rgba(30, 27, 75, 0.4) !important;
+    }
+
+    #view-admin-dashboard .grid {
+      display: grid !important;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)) !important;
+      gap: 1rem !important;
+    }
+
+    #view-admin-dashboard .bg-white {
+      background-color: #ffffff !important;
+      border: 1px solid #e2e8f0 !important;
+      border-radius: 1.5rem !important;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05) !important;
+    }
+
+    #app-sidebar {
+      width: 16rem !important;
+      flex-shrink: 0 !important;
+    }
+    @media (max-width: 1023px) {
+      #app-sidebar { display: none !important; }
+    }
+    @media (min-width: 1024px) {
+      #app-sidebar { display: flex !important; flex-direction: column !important; }
+    }
+
+    table { width: 100%; border-collapse: collapse; }
+    th, td { padding: 0.75rem 1rem; text-align: left; }
+    tr { border-bottom: 1px solid #f1f5f9; }
+
     /* Navbar hero primary button */
     #view-landing header { background: rgba(255,255,255,0.95); backdrop-filter: blur(12px); border-bottom: 1px solid #E2E8F0; padding: 0.875rem 1rem; width: 100%; display: flex; align-items: center; justify-content: space-between; }
     #view-landing section { width: 100%; display: flex; flex-direction: column; align-items: center; }
     #view-landing section h1 { font-size: clamp(1.8rem, 5vw, 3.75rem); font-weight: 900; color: #0F172A; }
     #view-landing section p { color: #475569; max-width: 42rem; margin-top: 1.25rem; line-height: 1.6; }
 
-    #app-shell header { background: rgba(255,255,255,0.95); backdrop-filter: blur(12px); border-bottom: 1px solid #E2E8F0; padding: 0.75rem 1rem; width: 100%; display: flex; align-items: center; justify-content: space-between; }
+    #app-shell header { background: #ffffff !important; border-bottom: 1px solid #E2E8F0; padding: 0.75rem 1.5rem; width: 100%; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
   </style>
 
   <!-- Custom Styles -->
-  <link rel="stylesheet" href="css/styles.css?v=20260907_v7">
+  <link rel="stylesheet" href="css/styles.css?v=20260907_v8">
 </head>
 <body class="bg-slate-100 text-slate-900 min-h-screen flex flex-col antialiased selection:bg-blue-600 selection:text-white">
 
@@ -2251,11 +2296,11 @@
 
   <!-- Supabase CDN Client -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="js/supabase-client.js?v=20260907_v7"></script>
+  <script src="js/supabase-client.js?v=20260907_v8"></script>
 
   <!-- Application Logic Scripts -->
-  <script src="js/store.js?v=20260907_v7"></script>
-  <script src="js/ai-engine.js?v=20260907_v7"></script>
-  <script src="js/app.js?v=20260907_v7"></script>
+  <script src="js/store.js?v=20260907_v8"></script>
+  <script src="js/ai-engine.js?v=20260907_v8"></script>
+  <script src="js/app.js?v=20260907_v8"></script>
 </body>
 </html>
