@@ -841,14 +841,21 @@ document.addEventListener('DOMContentLoaded', () => {
     const meetings = acts.filter(a => a.type && a.type.startsWith('reunion'));
 
     contentEl.innerHTML = `
-      <div style="margin-bottom: 1.5rem;">
-        <div style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.75rem; font-weight: 800; color: #2563EB;">
-          <span>👤</span> <span>MÓDULO DE CLIENTE</span>
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 0.75rem;">
+        <div>
+          <div style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.75rem; font-weight: 800; color: #2563EB;">
+            <span>👤</span> <span>MÓDULO DE CLIENTE</span>
+          </div>
+          <h2 style="font-size: 1.75rem; margin-top: 0.25rem;">Mi Perfil &amp; Mis Datos Privados</h2>
+          <p style="font-size: 0.8125rem; color: #64748B;">
+            Espacio seguro. Tu cuenta está aislada: únicamente tú tienes acceso a tus actividades, salud y datos.
+          </p>
         </div>
-        <h2 style="font-size: 1.75rem; margin-top: 0.25rem;">Mi Perfil &amp; Mis Datos Privados</h2>
-        <p style="font-size: 0.8125rem; color: #64748B;">
-          Espacio seguro. Tu cuenta está aislada: únicamente tú tienes acceso a tus actividades, salud y datos.
-        </p>
+        <div>
+          <button class="btn-primary" onclick="window.timeplusOpenEditProfileModal()" style="display: flex; align-items: center; gap: 0.45rem; padding: 0.55rem 1.25rem; font-size: 0.8125rem; background: linear-gradient(135deg, #2563EB, #1D4ED8); box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);">
+            <span>✏️</span> <span>Editar Mi Información</span>
+          </button>
+        </div>
       </div>
 
       <!-- Tarjeta de Identidad del Cliente -->
@@ -879,13 +886,16 @@ document.addEventListener('DOMContentLoaded', () => {
           </div>
         </div>
 
-        <!-- 4 Bloques Detallados del Expediente del Cliente -->
+        <!-- 4 Bloques Detallados del Expediente del Cliente (Con botón Editar) -->
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem; margin-top: 1.5rem;">
           
           <!-- Bloque 1: Datos Personales -->
           <div style="background: #ffffff; border: 1px solid #E2E8F0; border-radius: var(--radius-md); padding: 1.25rem;">
-            <div style="font-weight: 800; font-size: 0.8125rem; color: #2563EB; margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.35rem;">
-              <span>👤</span> <span>1. INFORMACIÓN PERSONAL</span>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+              <div style="font-weight: 800; font-size: 0.8125rem; color: #2563EB; display: flex; align-items: center; gap: 0.35rem;">
+                <span>👤</span> <span>1. INFORMACIÓN PERSONAL</span>
+              </div>
+              <button class="btn-secondary" onclick="window.timeplusOpenEditProfileModal('personal')" style="padding: 0.2rem 0.55rem; font-size: 0.6875rem;">✏️ Editar</button>
             </div>
             <div style="font-size: 0.8125rem; display: flex; flex-direction: column; gap: 0.45rem; color: #334155;">
               <div><span style="color:#64748B;">Tipo de Persona:</span> <strong>${user.personType || 'Persona Natural'}</strong></div>
@@ -899,8 +909,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
           <!-- Bloque 2: Información Académica / Profesional -->
           <div style="background: #ffffff; border: 1px solid #E2E8F0; border-radius: var(--radius-md); padding: 1.25rem;">
-            <div style="font-weight: 800; font-size: 0.8125rem; color: #7C3AED; margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.35rem;">
-              <span>🎓</span> <span>2. FICHA ACADÉMICA / PROFESIONAL</span>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+              <div style="font-weight: 800; font-size: 0.8125rem; color: #7C3AED; display: flex; align-items: center; gap: 0.35rem;">
+                <span>🎓</span> <span>2. FICHA ACADÉMICA / PROFESIONAL</span>
+              </div>
+              <button class="btn-secondary" onclick="window.timeplusOpenEditProfileModal('academico')" style="padding: 0.2rem 0.55rem; font-size: 0.6875rem;">✏️ Editar</button>
             </div>
             <div style="font-size: 0.8125rem; display: flex; flex-direction: column; gap: 0.45rem; color: #334155;">
               <div><span style="color:#64748B;">Nivel Educativo:</span> <strong>${user.academicLevel || 'Universitario'}</strong></div>
@@ -914,8 +927,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
           <!-- Bloque 3: Ubicaciones & Rutas de Movilidad IA -->
           <div style="background: #ffffff; border: 1px solid #E2E8F0; border-radius: var(--radius-md); padding: 1.25rem;">
-            <div style="font-weight: 800; font-size: 0.8125rem; color: #059669; margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.35rem;">
-              <span>🚗</span> <span>3. MOVILIDAD &amp; RUTAS FRECUENTES</span>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+              <div style="font-weight: 800; font-size: 0.8125rem; color: #059669; display: flex; align-items: center; gap: 0.35rem;">
+                <span>🚗</span> <span>3. MOVILIDAD &amp; RUTAS FRECUENTES</span>
+              </div>
+              <button class="btn-secondary" onclick="window.timeplusOpenEditProfileModal('movilidad')" style="padding: 0.2rem 0.55rem; font-size: 0.6875rem;">✏️ Editar</button>
             </div>
             <div style="font-size: 0.8125rem; display: flex; flex-direction: column; gap: 0.45rem; color: #334155;">
               <div><span style="color:#64748B;">Ciudad Base:</span> <strong>${user.city || 'Bogotá, Colombia'}</strong></div>
@@ -936,8 +952,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
           <!-- Bloque 4: Preferencias & Cuenta -->
           <div style="background: #ffffff; border: 1px solid #E2E8F0; border-radius: var(--radius-md); padding: 1.25rem;">
-            <div style="font-weight: 800; font-size: 0.8125rem; color: #D97706; margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.35rem;">
-              <span>⚙️</span> <span>4. PREFERENCIAS &amp; CUENTA</span>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+              <div style="font-weight: 800; font-size: 0.8125rem; color: #D97706; display: flex; align-items: center; gap: 0.35rem;">
+                <span>⚙️</span> <span>4. PREFERENCIAS &amp; CUENTA</span>
+              </div>
+              <button class="btn-secondary" onclick="window.timeplusOpenEditProfileModal('preferencias')" style="padding: 0.2rem 0.55rem; font-size: 0.6875rem;">✏️ Editar</button>
             </div>
             <div style="font-size: 0.8125rem; display: flex; flex-direction: column; gap: 0.45rem; color: #334155;">
               <div><span style="color:#64748B;">Plan Activo:</span> <strong style="color:#2563EB;">${user.plan || 'TIMEPLUS Connect Pro'}</strong></div>
@@ -1004,7 +1023,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
       <!-- Acciones de Cuenta de Cliente -->
       <div style="display: flex; gap: 0.75rem; margin-top: 1.5rem; flex-wrap: wrap;">
-        <button class="btn-primary" onclick="window.timeplusRouter.navigate('hoy')">
+        <button class="btn-primary" onclick="window.timeplusOpenEditProfileModal()" style="background: linear-gradient(135deg, #2563EB, #1D4ED8);">
+          ✏️ Editar Mis Datos &amp; Rutas
+        </button>
+        <button class="btn-primary" style="background: #4F46E5;" onclick="window.timeplusRouter.navigate('hoy')">
           Ir a mi Centro de Control HOY →
         </button>
         <button class="btn-secondary" onclick="window.timeplusAI.toggleVoice()">
@@ -1235,6 +1257,277 @@ document.addEventListener('DOMContentLoaded', () => {
       } else {
         alert('Error: ' + res.error);
       }
+    }
+  // --- MODAL DE EDICIÓN DE PERFIL DE CLIENTE ---
+  window.timeplusOpenEditProfileModal = (sectionToFocus = '') => {
+    const user = store.getCurrentUser();
+    if (!user) return;
+
+    let modal = document.getElementById('profile-edit-modal');
+    if (!modal) {
+      modal = document.createElement('div');
+      modal.id = 'profile-edit-modal';
+      modal.style.position = 'fixed';
+      modal.style.inset = '0';
+      modal.style.background = 'rgba(15, 23, 42, 0.65)';
+      modal.style.backdropFilter = 'blur(4px)';
+      modal.style.display = 'flex';
+      modal.style.alignItems = 'center';
+      modal.style.justifyContent = 'center';
+      modal.style.zIndex = '9999';
+      modal.style.padding = '1rem';
+      document.body.appendChild(modal);
+    }
+
+    modal.innerHTML = `
+      <div style="background:#fff;border-radius:1.25rem;width:100%;max-width:38rem;max-height:90vh;overflow-y:auto;box-shadow:0 25px 50px -12px rgba(0,0,0,0.25);position:relative;padding:1.75rem;">
+        <button onclick="window.timeplusCloseEditProfileModal()" style="position:absolute;top:1rem;right:1rem;border:none;background:none;font-size:1.25rem;cursor:pointer;color:#94A3B8;">✕</button>
+
+        <div style="margin-bottom:1.25rem;">
+          <div style="font-size:0.75rem;font-weight:800;color:#2563EB;">EDITAR PERFIL &amp; RUTAS</div>
+          <h2 style="font-size:1.35rem;font-weight:900;margin-top:0.2rem;">Actualizar Mis Datos Privados</h2>
+          <p style="font-size:0.75rem;color:#64748B;">Modifica tus datos y rutas. Se sincronizarán automáticamente con tu cuenta y la nube de Supabase.</p>
+        </div>
+
+        <form onsubmit="event.preventDefault(); window.timeplusSaveProfileChanges();" style="display:flex;flex-direction:column;gap:1rem;">
+          
+          <!-- Bloque 1: Personal -->
+          <div id="section-personal" style="background:#F8FAFC;border:1px solid #E2E8F0;border-radius:0.75rem;padding:1rem;">
+            <div style="font-size:0.75rem;font-weight:800;color:#2563EB;margin-bottom:0.6rem;display:flex;align-items:center;gap:0.35rem;">
+              <span>👤</span> <span>1. INFORMACIÓN PERSONAL</span>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.5rem;margin-bottom:0.5rem;">
+              <div>
+                <label style="font-size:0.7rem;font-weight:700;display:block;margin-bottom:0.2rem;">Nombre Completo</label>
+                <input type="text" id="edit-name" value="${user.name || ''}" class="login-panel-input" required>
+              </div>
+              <div>
+                <label style="font-size:0.7rem;font-weight:700;display:block;margin-bottom:0.2rem;">Tipo de Persona</label>
+                <select id="edit-persontype" class="login-panel-input" style="background:#fff;">
+                  <option value="Natural" ${user.personType === 'Natural' ? 'selected' : ''}>Persona Natural</option>
+                  <option value="Jurídica" ${user.personType === 'Jurídica' ? 'selected' : ''}>Persona Jurídica</option>
+                </select>
+              </div>
+            </div>
+
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.5rem;margin-bottom:0.5rem;">
+              <div>
+                <label style="font-size:0.7rem;font-weight:700;display:block;margin-bottom:0.2rem;">Tipo de Documento</label>
+                <select id="edit-doctype" class="login-panel-input" style="background:#fff;">
+                  <option value="CC" ${user.docType === 'CC' ? 'selected' : ''}>CC — Cédula de Ciudadanía</option>
+                  <option value="TI" ${user.docType === 'TI' ? 'selected' : ''}>TI — Tarjeta de Identidad</option>
+                  <option value="CE" ${user.docType === 'CE' ? 'selected' : ''}>CE — Cédula de Extranjería</option>
+                  <option value="Pasaporte" ${user.docType === 'Pasaporte' ? 'selected' : ''}>Pasaporte</option>
+                </select>
+              </div>
+              <div>
+                <label style="font-size:0.7rem;font-weight:700;display:block;margin-bottom:0.2rem;">Número de Documento</label>
+                <input type="text" id="edit-docnum" value="${user.docNumber || ''}" class="login-panel-input" placeholder="Ej: 1012345678">
+              </div>
+            </div>
+
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.5rem;margin-bottom:0.5rem;">
+              <div>
+                <label style="font-size:0.7rem;font-weight:700;display:block;margin-bottom:0.2rem;">Fecha de Nacimiento</label>
+                <input type="date" id="edit-birthdate" value="${user.birthDate || ''}" class="login-panel-input">
+              </div>
+              <div>
+                <label style="font-size:0.7rem;font-weight:700;display:block;margin-bottom:0.2rem;">Género</label>
+                <select id="edit-gender" class="login-panel-input" style="background:#fff;">
+                  <option value="" ${!user.gender ? 'selected' : ''}>— Prefiero no decir —</option>
+                  <option value="Masculino" ${user.gender === 'Masculino' ? 'selected' : ''}>Masculino</option>
+                  <option value="Femenino" ${user.gender === 'Femenino' ? 'selected' : ''}>Femenino</option>
+                  <option value="No binario" ${user.gender === 'No binario' ? 'selected' : ''}>No binario</option>
+                  <option value="Otro" ${user.gender === 'Otro' ? 'selected' : ''}>Otro</option>
+                </select>
+              </div>
+            </div>
+
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.5rem;">
+              <div>
+                <label style="font-size:0.7rem;font-weight:700;display:block;margin-bottom:0.2rem;">Celular / WhatsApp</label>
+                <input type="tel" id="edit-phone" value="${user.phone || ''}" class="login-panel-input" placeholder="+57 310 123 4567">
+              </div>
+              <div>
+                <label style="font-size:0.7rem;font-weight:700;display:block;margin-bottom:0.2rem;">País</label>
+                <input type="text" id="edit-country" value="${user.country || 'Colombia'}" class="login-panel-input">
+              </div>
+            </div>
+          </div>
+
+          <!-- Bloque 2: Académico -->
+          <div id="section-academico" style="background:#F8FAFC;border:1px solid #E2E8F0;border-radius:0.75rem;padding:1rem;">
+            <div style="font-size:0.75rem;font-weight:800;color:#7C3AED;margin-bottom:0.6rem;display:flex;align-items:center;gap:0.35rem;">
+              <span>🎓</span> <span>2. INFORMACIÓN ACADÉMICA / PROFESIONAL</span>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.5rem;margin-bottom:0.5rem;">
+              <div>
+                <label style="font-size:0.7rem;font-weight:700;display:block;margin-bottom:0.2rem;">Nivel Educativo</label>
+                <select id="edit-acadlevel" class="login-panel-input" style="background:#fff;">
+                  <option value="Primaria" ${user.academicLevel === 'Primaria' ? 'selected' : ''}>Primaria</option>
+                  <option value="Secundaria" ${user.academicLevel === 'Secundaria' ? 'selected' : ''}>Secundaria / Bachillerato</option>
+                  <option value="Técnico" ${user.academicLevel === 'Técnico' ? 'selected' : ''}>Técnico / Tecnólogo</option>
+                  <option value="Universitario" ${user.academicLevel === 'Universitario' || !user.academicLevel ? 'selected' : ''}>Universitario</option>
+                  <option value="Posgrado" ${user.academicLevel === 'Posgrado' ? 'selected' : ''}>Posgrado / Maestría</option>
+                  <option value="Doctorado" ${user.academicLevel === 'Doctorado' ? 'selected' : ''}>Doctorado</option>
+                </select>
+              </div>
+              <div>
+                <label style="font-size:0.7rem;font-weight:700;display:block;margin-bottom:0.2rem;">Institución / Universidad</label>
+                <input type="text" id="edit-institution" value="${user.institution || ''}" class="login-panel-input" placeholder="Ej: Universidad XYZ">
+              </div>
+            </div>
+
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.5rem;margin-bottom:0.5rem;">
+              <div>
+                <label style="font-size:0.7rem;font-weight:700;display:block;margin-bottom:0.2rem;">Programa / Carrera</label>
+                <input type="text" id="edit-program" value="${user.program || ''}" class="login-panel-input" placeholder="Ej: Ingeniería de Sistemas">
+              </div>
+              <div>
+                <label style="font-size:0.7rem;font-weight:700;display:block;margin-bottom:0.2rem;">Semestre / Grado</label>
+                <input type="text" id="edit-semester" value="${user.semester || ''}" class="login-panel-input" placeholder="Ej: 4.° semestre">
+              </div>
+            </div>
+
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.5rem;">
+              <div>
+                <label style="font-size:0.7rem;font-weight:700;display:block;margin-bottom:0.2rem;">Áreas / Materias de Interés</label>
+                <input type="text" id="edit-interests" value="${user.interests || ''}" class="login-panel-input" placeholder="Ej: Inteligencia Artificial, Negocios">
+              </div>
+              <div>
+                <label style="font-size:0.7rem;font-weight:700;display:block;margin-bottom:0.2rem;">Objetivo de Aprendizaje</label>
+                <input type="text" id="edit-goal" value="${user.learningGoal || ''}" class="login-panel-input" placeholder="Ej: Organizar tiempos con IA">
+              </div>
+            </div>
+          </div>
+
+          <!-- Bloque 3: Ubicaciones & Rutas Movilidad -->
+          <div id="section-movilidad" style="background:#F8FAFC;border:1px solid #E2E8F0;border-radius:0.75rem;padding:1rem;">
+            <div style="font-size:0.75rem;font-weight:800;color:#059669;margin-bottom:0.6rem;display:flex;align-items:center;gap:0.35rem;">
+              <span>🚗</span> <span>3. UBICACIONES &amp; RUTAS DE MOVILIDAD IA</span>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.5rem;margin-bottom:0.5rem;">
+              <div>
+                <label style="font-size:0.7rem;font-weight:700;display:block;margin-bottom:0.2rem;">Ciudad Base</label>
+                <input type="text" id="edit-city" value="${user.city || ''}" class="login-panel-input" placeholder="Ej: Bogotá, Colombia">
+              </div>
+              <div>
+                <label style="font-size:0.7rem;font-weight:700;display:block;margin-bottom:0.2rem;">🏠 Dirección Casa / Residencia</label>
+                <input type="text" id="edit-addr-home" value="${user.addrHome || ''}" class="login-panel-input" placeholder="Ej: Cra 7 # 45-20">
+              </div>
+            </div>
+
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.5rem;margin-bottom:0.5rem;">
+              <div>
+                <label style="font-size:0.7rem;font-weight:700;display:block;margin-bottom:0.2rem;">🏢 Dirección Trabajo / Estudio</label>
+                <input type="text" id="edit-addr-work" value="${user.addrWork || ''}" class="login-panel-input" placeholder="Dirección de trabajo o campus">
+              </div>
+              <div>
+                <label style="font-size:0.7rem;font-weight:700;display:block;margin-bottom:0.2rem;">👨‍👩‍👧 Dirección Familiar / Alternativo</label>
+                <input type="text" id="edit-addr-family" value="${user.addrFamily || ''}" class="login-panel-input" placeholder="Dirección familiar">
+              </div>
+            </div>
+
+            <div>
+              <label style="font-size:0.7rem;font-weight:700;display:block;margin-bottom:0.2rem;">🏋️ Sede Gimnasio Habitual</label>
+              <input type="text" id="edit-addr-gym" value="${user.addrGym || ''}" class="login-panel-input" placeholder="Ej: SmartFit Calle 100, Bogotá">
+            </div>
+          </div>
+
+          <!-- Bloque 4: Preferencias -->
+          <div id="section-preferencias" style="background:#F8FAFC;border:1px solid #E2E8F0;border-radius:0.75rem;padding:1rem;">
+            <div style="font-size:0.75rem;font-weight:800;color:#D97706;margin-bottom:0.6rem;display:flex;align-items:center;gap:0.35rem;">
+              <span>⚙️</span> <span>4. PREFERENCIAS &amp; CUENTA</span>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.5rem;margin-bottom:0.5rem;">
+              <div>
+                <label style="font-size:0.7rem;font-weight:700;display:block;margin-bottom:0.2rem;">Disponibilidad Horaria</label>
+                <input type="text" id="edit-availability" value="${user.availability || ''}" class="login-panel-input" placeholder="Ej: Lunes a Viernes 6pm-9pm">
+              </div>
+              <div>
+                <label style="font-size:0.7rem;font-weight:700;display:block;margin-bottom:0.2rem;">Notificaciones</label>
+                <select id="edit-notify" class="login-panel-input" style="background:#fff;">
+                  <option value="WhatsApp" ${user.notifyPref === 'WhatsApp' ? 'selected' : ''}>📱 WhatsApp</option>
+                  <option value="App" ${user.notifyPref === 'App' ? 'selected' : ''}>🔔 Notificaciones App</option>
+                  <option value="Correo" ${user.notifyPref === 'Correo' ? 'selected' : ''}>✉️ Correo Electrónico</option>
+                </select>
+              </div>
+            </div>
+            <div>
+              <label style="font-size:0.7rem;font-weight:700;display:block;margin-bottom:0.2rem;">Zona Horaria</label>
+              <select id="edit-timezone" class="login-panel-input" style="background:#fff;">
+                <option value="America/Bogota" ${user.timezone === 'America/Bogota' || !user.timezone ? 'selected' : ''}>America/Bogota (COT -5)</option>
+                <option value="America/Mexico_City" ${user.timezone === 'America/Mexico_City' ? 'selected' : ''}>America/Mexico_City (CST -6)</option>
+                <option value="America/Lima" ${user.timezone === 'America/Lima' ? 'selected' : ''}>America/Lima (PET -5)</option>
+                <option value="America/Santiago" ${user.timezone === 'America/Santiago' ? 'selected' : ''}>America/Santiago (CLT -3)</option>
+                <option value="America/Buenos_Aires" ${user.timezone === 'America/Buenos_Aires' ? 'selected' : ''}>America/Buenos_Aires (ART -3)</option>
+                <option value="Europe/Madrid" ${user.timezone === 'Europe/Madrid' ? 'selected' : ''}>Europe/Madrid (CET +1)</option>
+              </select>
+            </div>
+          </div>
+
+          <div style="display:flex;justify-content:flex-end;gap:0.5rem;margin-top:0.5rem;">
+            <button type="button" class="btn-secondary" onclick="window.timeplusCloseEditProfileModal()">Cancelar</button>
+            <button type="submit" id="btn-save-profile" class="btn-primary" style="background:linear-gradient(135deg,#16A34A,#15803D);padding:0.6rem 1.5rem;">
+              💾 Guardar Cambios
+            </button>
+          </div>
+        </form>
+      </div>
+    `;
+    modal.style.display = 'flex';
+
+    if (sectionToFocus) {
+      setTimeout(() => {
+        const sec = document.getElementById('section-' + sectionToFocus);
+        if (sec) sec.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }, 100);
+    }
+  };
+
+  window.timeplusCloseEditProfileModal = () => {
+    const modal = document.getElementById('profile-edit-modal');
+    if (modal) modal.style.display = 'none';
+  };
+
+  window.timeplusSaveProfileChanges = async () => {
+    const btn = document.getElementById('btn-save-profile');
+    if (btn) { btn.innerText = 'Guardando en Supabase...'; btn.disabled = true; }
+
+    const updated = {
+      name: document.getElementById('edit-name').value.trim(),
+      personType: document.getElementById('edit-persontype').value,
+      docType: document.getElementById('edit-doctype').value,
+      docNumber: document.getElementById('edit-docnum').value.trim(),
+      birthDate: document.getElementById('edit-birthdate').value,
+      gender: document.getElementById('edit-gender').value,
+      phone: document.getElementById('edit-phone').value.trim(),
+      country: document.getElementById('edit-country').value.trim(),
+      academicLevel: document.getElementById('edit-acadlevel').value,
+      institution: document.getElementById('edit-institution').value.trim(),
+      program: document.getElementById('edit-program').value.trim(),
+      semester: document.getElementById('edit-semester').value.trim(),
+      interests: document.getElementById('edit-interests').value.trim(),
+      learningGoal: document.getElementById('edit-goal').value.trim(),
+      city: document.getElementById('edit-city').value.trim(),
+      addrHome: document.getElementById('edit-addr-home').value.trim(),
+      addrWork: document.getElementById('edit-addr-work').value.trim(),
+      addrFamily: document.getElementById('edit-addr-family').value.trim(),
+      addrGym: document.getElementById('edit-addr-gym').value.trim(),
+      availability: document.getElementById('edit-availability').value.trim(),
+      notifyPref: document.getElementById('edit-notify').value,
+      timezone: document.getElementById('edit-timezone').value
+    };
+
+    try {
+      await store.updateUserProfile(updated);
+      window.timeplusCloseEditProfileModal();
+      if (window.timeplusShowToast) window.timeplusShowToast('✅ ¡Perfil y rutas actualizados con éxito!');
+      updateUIForRole();
+      renderProfile();
+    } catch(e) {
+      if (btn) { btn.innerText = '💾 Guardar Cambios'; btn.disabled = false; }
+      alert('Error guardando cambios: ' + e.message);
     }
   };
 

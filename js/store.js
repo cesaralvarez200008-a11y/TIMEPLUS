@@ -157,6 +157,24 @@ class TimePlusStore {
     this.saveState();
   }
 
+  async updateUserProfile(updatedData) {
+    if (!this.state.user) return false;
+    this.state.user = {
+      ...this.state.user,
+      ...updatedData
+    };
+    this.saveState();
+
+    if (window.timeplusSupabase && this.state.user.role === 'client') {
+      try {
+        await window.timeplusSupabase.updateClientProfile(this.state.user.id || this.state.user.email, updatedData);
+      } catch(e) {
+        console.warn('Error syncing profile update to Supabase:', e);
+      }
+    }
+    return true;
+  }
+
   // --- Activities Management con Aislamiento por Cliente ---
   getActivities() {
     const acts = this.state.activities || [];

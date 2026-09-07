@@ -169,18 +169,42 @@ window.timeplusSupabase = {
     }
   },
 
-  async updateRequestStatus(id, newStatus) {
-    if (!_client) return false;
+  async updateClientProfile(idOrEmail, updatedData) {
+    if (!_client) return { ok: false, error: 'Supabase no conectado' };
     try {
-      const { error } = await _client
+      const { data: list, error: errSel } = await _client.from('client_requests').select('*');
+      if (errSel) throw errSel;
+      const cleanTarget = (idOrEmail || '').trim().toLowerCase();
+      const existing = (list || []).find(r => r.id === idOrEmail || (r.email || '').toLowerCase() === cleanTarget);
+      if (!existing) return { ok: false, error: 'Cliente no encontrado en Supabase' };
+
+      let currentNotes = {};
+      if (existing.notes) {
+        try { currentNotes = JSON.parse(existing.notes); } catch(e) {}
+      }
+
+      const mergedNotes = {
+        ...currentNotes,
+        ...updatedData,
+        updatedAt: new Date().toISOString()
+      };
+
+      const updatePayload = {
+        notes: JSON.stringify(mergedNotes),
+        name: (updatedData.name || existing.name || '').trim()
+      };
+
+      const { error: errUpd } = await _client
         .from('client_requests')
-        .update({ status: newStatus.trim().toLowerCase(), updated_at: new Date().toISOString() })
-        .eq('id', id);
-      if (error) throw error;
-      return true;
-    } catch (e) {
-      console.error('Error updating status:', e);
-      return false;
+        .update(updatePayload)
+        .eq('id', existing.id);
+
+      if (errUpd) throw errUpd;
+
+      return { ok: true, data: { ...existing, ...mergedNotes, name: updatePayload.name } };
+    } catch(e) {
+      console.error('Error actualizando perfil en Supabase:', e);
+      return { ok: false, error: e.message };
     }
   },
 
