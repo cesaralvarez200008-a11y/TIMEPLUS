@@ -21,9 +21,9 @@ class TimePlusRouter {
   }
 
   handleRouting() {
-    const rawHash = window.location.hash || '#/hoy';
+    const rawHash = window.location.hash || '#/inicio';
     let path = rawHash.replace(/^#\/?/, '').split('?')[0].trim().toLowerCase();
-    if (!path) path = 'hoy';
+    if (!path) path = 'inicio';
 
     this.currentRoute = path;
     const handler = this.routes[path] || this.routes['*'] || this.routes['hoy'];

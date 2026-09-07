@@ -3,139 +3,413 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>TIMEPLUS OS — Sistema Operativo Personal de Organización con IA</title>
+  <title>TIMEPLUS — Tu tiempo. Tu vida. Organizada por IA.</title>
   <meta name="description" content="Dile a TimePlus qué necesitas y la IA organiza el resto. Agenda, reuniones, salud, fitness, proyectos y movilidad.">
-  
-  <!-- Zero-Cache Headers -->
+
+  <!-- Zero-Cache -->
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
 
-  <!-- Native Autonomous Stylesheet (Zero CDN Dependencies) -->
-  <link rel="stylesheet" href="css/timeplus-os.css?v=20260907_rebuild">
+  <!-- Native Stylesheet (Zero CDN) -->
+  <link rel="stylesheet" href="css/timeplus-os.css?v=20260907c">
 </head>
 <body>
 
-  <!-- Top Navigation Header -->
-  <header class="top-header">
-    <div style="display: flex; align-items: center; gap: 1rem;">
-      <button id="mobile-menu-toggle" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; display: none;" class="mobile-only">
-        ☰
-      </button>
-      <div class="brand-badge" onclick="window.timeplusRouter.navigate('hoy')">
-        <div class="brand-icon">T+</div>
-        <div class="brand-text">
-          <h1>TIMEPLUS <span style="font-size: 0.65rem; background: #EFF6FF; color: #2563EB; border: 1px solid #BFDBFE; padding: 0.1rem 0.4rem; border-radius: 9999px;">OS</span></h1>
-          <p>Sistema Operativo Personal con IA</p>
+  <!-- ═══════════════════════════════════════════════════════
+       PRIMERA VISTA — LANDING PAGE (visible cuando NO está autenticado)
+  ═══════════════════════════════════════════════════════ -->
+  <div id="landing-view" class="landing-view-container">
+
+    <!-- NAV BAR -->
+    <nav class="landing-nav">
+      <div class="landing-brand">
+        <div class="landing-brand-icon">T</div>
+        <span class="landing-brand-name">TIMEPLUS</span>
+      </div>
+
+      <ul class="landing-menu-links">
+        <li><a href="#inicio" class="landing-menu-item active">Inicio</a></li>
+        <li><a href="#funciones" class="landing-menu-item">Funciones</a></li>
+        <li><a href="#ia" class="landing-menu-item">TIMEPLUS AI</a></li>
+        <li><a href="#precios" class="landing-menu-item">Precios</a></li>
+        <li><a href="#nosotros" class="landing-menu-item">Nosotros</a></li>
+      </ul>
+
+      <div class="landing-nav-actions">
+        <button class="btn-nav-link" onclick="timeplusShowLoginPanel()">Iniciar sesión</button>
+        <button class="btn-nav-cta" onclick="timeplusShowLoginPanel()">Crear cuenta →</button>
+      </div>
+    </nav>
+
+    <!-- HERO SECTION -->
+    <section class="landing-hero-section">
+
+      <!-- LEFT COLUMN -->
+      <div class="hero-left-col">
+        <h1 class="hero-main-title">
+          Tu tiempo.<br>
+          Tu vida.<br>
+          Organizada por <span class="hero-accent-ia">IA.</span>
+        </h1>
+
+        <p class="hero-sub-description">
+          Dile a TimePlus qué necesitas y la IA organiza el resto.<br>
+          Agenda, reuniones, salud, gym, proyectos y movilidad — todo en un solo lugar.
+        </p>
+
+        <div class="hero-cta-buttons">
+          <button class="btn-hero-primary" onclick="timeplusShowLoginPanel()">
+            Comenzar gratis →
+          </button>
+          <button class="btn-hero-secondary" onclick="timeplusShowLoginPanel()">
+            ✦ Descubrir TIMEPLUS AI →
+          </button>
+        </div>
+
+        <!-- CATEGORY PILLS -->
+        <div class="hero-category-pills-bar">
+          <span class="category-pill-item" style="background:#DCFCE7;color:#15803D;">
+            <span class="category-pill-icon">🏋️</span> Gym
+          </span>
+          <span class="category-pill-item" style="background:#EFF6FF;color:#1D4ED8;">
+            <span class="category-pill-icon">📅</span> Agenda
+          </span>
+          <span class="category-pill-item" style="background:#F5F3FF;color:#7C3AED;">
+            <span class="category-pill-icon">🩺</span> Citas
+          </span>
+          <span class="category-pill-item" style="background:#FFF7ED;color:#C2410C;">
+            <span class="category-pill-icon">💻</span> Reuniones
+          </span>
+          <span class="category-pill-item" style="background:#FEFCE8;color:#A16207;">
+            <span class="category-pill-icon">💊</span> Medicina
+          </span>
+          <span class="category-pill-item" style="background:#F0FDF4;color:#15803D;">
+            <span class="category-pill-icon">✅</span> Tareas
+          </span>
+          <span class="category-pill-item" style="background:#F1F5F9;color:#475569;">
+            <span class="category-pill-icon">＋</span> más
+          </span>
+        </div>
+      </div>
+
+      <!-- RIGHT COLUMN: MOCKUP CARD -->
+      <div class="hero-right-col">
+
+        <!-- BACKGROUND WAVE -->
+        <div class="hero-right-wave"></div>
+
+        <!-- TODAY FLOATING CARD -->
+        <div class="mockup-today-card">
+          <div class="mockup-today-header">
+            <div class="mockup-today-title-wrap">
+              <span class="mockup-today-label">HOY</span>
+              <span class="mockup-today-date">Dom, 7 Sep 2026</span>
+            </div>
+            <div class="mockup-date-nav">
+              <button>‹</button>
+              <button>›</button>
+            </div>
+          </div>
+
+          <div class="mockup-timeline-list">
+
+            <div class="mockup-timeline-row">
+              <div class="mockup-row-bar" style="background:#10B981;"></div>
+              <span class="mockup-row-time">06:30</span>
+              <div class="mockup-row-icon-box" style="background:#DCFCE7;color:#10B981;">🏋️</div>
+              <span class="mockup-row-label">Entrenamiento</span>
+            </div>
+
+            <div class="mockup-timeline-row">
+              <div class="mockup-row-bar" style="background:#2563EB;"></div>
+              <span class="mockup-row-time">09:00</span>
+              <div class="mockup-row-icon-box" style="background:#EFF6FF;color:#2563EB;">💼</div>
+              <span class="mockup-row-label">Reunión</span>
+            </div>
+
+            <div class="mockup-timeline-row">
+              <div class="mockup-row-bar" style="background:#F59E0B;"></div>
+              <span class="mockup-row-time">11:30</span>
+              <div class="mockup-row-icon-box" style="background:#FEFCE8;color:#D97706;">📝</div>
+              <span class="mockup-row-label">Tarea</span>
+            </div>
+
+            <div class="mockup-timeline-row">
+              <div class="mockup-row-bar" style="background:#F97316;"></div>
+              <span class="mockup-row-time">13:00</span>
+              <div class="mockup-row-icon-box" style="background:#FFF7ED;color:#EA580C;">🍽️</div>
+              <span class="mockup-row-label">Almuerzo</span>
+            </div>
+
+            <div class="mockup-timeline-row">
+              <div class="mockup-row-bar" style="background:#8B5CF6;"></div>
+              <span class="mockup-row-time">16:00</span>
+              <div class="mockup-row-icon-box" style="background:#F5F3FF;color:#7C3AED;">🩺</div>
+              <span class="mockup-row-label">Cita</span>
+            </div>
+
+            <div class="mockup-timeline-row">
+              <div class="mockup-row-bar" style="background:#EF4444;"></div>
+              <span class="mockup-row-time">20:00</span>
+              <div class="mockup-row-icon-box" style="background:#FEF2F2;color:#DC2626;">💊</div>
+              <span class="mockup-row-label">Medicamento</span>
+            </div>
+
+          </div>
+
+          <div class="mockup-bottom-chevron">
+            <span>⌄</span>
+          </div>
+        </div>
+
+        <!-- AI FLOATING CARD -->
+        <div class="mockup-ai-floating-card">
+          <div class="mockup-ai-header">
+            <div class="mockup-ai-brand">
+              <span class="mockup-ai-sparkle">✦</span>
+              <span>TIMEPLUS AI</span>
+            </div>
+          </div>
+          <p class="mockup-ai-text">
+            He reorganizado tu día y encontré <strong>45 minutos</strong> disponibles para entrenar
+          </p>
+          <button class="mockup-ai-btn" onclick="timeplusShowLoginPanel()">Ver planificación →</button>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- LOGIN PANEL (oculto por defecto) -->
+    <div id="landing-login-panel">
+      <div class="login-panel-box">
+        <button class="login-panel-close" onclick="timeplusHideLoginPanel()">✕</button>
+
+        <div style="text-align:center; margin-bottom:1.75rem;">
+          <div class="login-panel-logo">T</div>
+          <h2 style="font-size:1.375rem;font-weight:900;">Iniciar Sesión</h2>
+          <p style="font-size:0.8125rem;color:#64748B;margin-top:0.25rem;">Accede a tu Sistema Operativo Personal</p>
+        </div>
+
+        <form onsubmit="event.preventDefault(); timeplusDoLandingLogin();" style="display:flex;flex-direction:column;gap:1rem;">
+          <div>
+            <label style="font-size:0.75rem;font-weight:700;display:block;margin-bottom:0.35rem;">Correo electrónico</label>
+            <input type="email" id="landing-email" placeholder="correo@ejemplo.com" class="login-panel-input">
+          </div>
+          <div>
+            <label style="font-size:0.75rem;font-weight:700;display:block;margin-bottom:0.35rem;">Contraseña</label>
+            <input type="password" id="landing-pass" placeholder="••••••••" class="login-panel-input">
+          </div>
+          <button type="submit" class="login-panel-submit">
+            Ingresar →
+          </button>
+        </form>
+
+        <div style="margin-top:1.25rem;text-align:center;font-size:0.75rem;color:#64748B;">
+          <span>Acceso Admin: </span>
+          <button onclick="timeplusQuickFillAdmin()" style="background:none;border:none;color:#2563EB;font-weight:700;cursor:pointer;font-size:0.75rem;">ces.rodriguez200@gmail.com</button>
         </div>
       </div>
     </div>
 
-    <div style="display: flex; align-items: center; gap: 0.75rem;">
-      <button class="btn-secondary" onclick="window.timeplusRouter.navigate('admin')">
-        👑 SuperAdmin
-      </button>
-      <button class="btn-primary" onclick="window.timeplusAI.toggleVoice()">
-        🎙️ Hablar con IA
-      </button>
+  </div><!-- /landing-view -->
+
+
+  <!-- ═══════════════════════════════════════════════════════
+       APP SHELL — visible sólo cuando el usuario está autenticado
+  ═══════════════════════════════════════════════════════ -->
+  <div id="app-view" style="display:none; flex-direction:column; min-height:100vh;">
+
+    <!-- Top Navigation Header -->
+    <header class="top-header">
+      <div style="display:flex; align-items:center; gap:1rem;">
+        <button id="mobile-menu-toggle" style="background:none;border:none;font-size:1.5rem;cursor:pointer;" class="mobile-only">☰</button>
+        <div class="brand-badge" onclick="window.timeplusRouter && window.timeplusRouter.navigate('hoy')" style="cursor:pointer;">
+          <div class="brand-icon">T+</div>
+          <div class="brand-text">
+            <h1>TIMEPLUS <span style="font-size:0.65rem;background:#EFF6FF;color:#2563EB;border:1px solid #BFDBFE;padding:0.1rem 0.4rem;border-radius:9999px;">OS</span></h1>
+            <p>Sistema Operativo Personal con IA</p>
+          </div>
+        </div>
+      </div>
+
+      <div style="display:flex; align-items:center; gap:0.75rem;">
+        <button class="btn-secondary" onclick="window.timeplusRouter && window.timeplusRouter.navigate('admin')">
+          👑 SuperAdmin
+        </button>
+        <button class="btn-primary" onclick="window.timeplusAI && window.timeplusAI.toggleVoice()">
+          🎙️ Hablar con IA
+        </button>
+        <button class="btn-secondary" onclick="timeplusLogout()" style="color:#EF4444;border-color:#FCA5A5;">
+          Salir
+        </button>
+      </div>
+    </header>
+
+    <!-- App Layout -->
+    <div class="app-container" style="flex:1;">
+
+      <!-- Sidebar -->
+      <aside id="app-sidebar" class="app-sidebar">
+        <div class="nav-section-title">Centro de Control</div>
+        <button class="nav-item active" data-route="hoy" onclick="window.timeplusRouter.navigate('hoy')">
+          <span class="icon">🏠</span>
+          <span>HOY (En Vivo)</span>
+          <span class="badge" style="background:#EFF6FF;color:#2563EB;">Activo</span>
+        </button>
+        <button class="nav-item" data-route="agenda" onclick="window.timeplusRouter.navigate('agenda')">
+          <span class="icon">📅</span>
+          <span>Agenda &amp; Categorías</span>
+        </button>
+
+        <div class="nav-section-title" style="margin-top:0.75rem;">Vida &amp; Salud</div>
+        <button class="nav-item" data-route="salud" onclick="window.timeplusRouter.navigate('salud')">
+          <span class="icon">💊</span>
+          <span>Salud &amp; Medicamentos</span>
+          <span class="badge" style="background:#FEFCE8;color:#A16207;">Toma</span>
+        </button>
+        <button class="nav-item" data-route="fitness" onclick="window.timeplusRouter.navigate('fitness')">
+          <span class="icon">🏋️</span>
+          <span>Fitness &amp; Gimnasio</span>
+        </button>
+        <button class="nav-item" data-route="citas" onclick="window.timeplusRouter.navigate('citas')">
+          <span class="icon">🩺</span>
+          <span>Citas Universales</span>
+        </button>
+
+        <div class="nav-section-title" style="margin-top:0.75rem;">Trabajo &amp; Relaciones</div>
+        <button class="nav-item" data-route="reuniones" onclick="window.timeplusRouter.navigate('reuniones')">
+          <span class="icon">💻</span>
+          <span>Reuniones &amp; Salida</span>
+        </button>
+        <button class="nav-item" data-route="proyectos" onclick="window.timeplusRouter.navigate('proyectos')">
+          <span class="icon">💼</span>
+          <span>Proyectos &amp; Tareas</span>
+        </button>
+        <button class="nav-item" data-route="contactos" onclick="window.timeplusRouter.navigate('contactos')">
+          <span class="icon">👥</span>
+          <span>Personas &amp; Contactos</span>
+        </button>
+        <button class="nav-item" data-route="lugares" onclick="window.timeplusRouter.navigate('lugares')">
+          <span class="icon">📍</span>
+          <span>Sedes &amp; Movilidad</span>
+        </button>
+        <button class="nav-item" data-route="viajes" onclick="window.timeplusRouter.navigate('viajes')">
+          <span class="icon">✈️</span>
+          <span>Viajes (Travel)</span>
+        </button>
+
+        <div class="nav-section-title" style="margin-top:0.75rem;">Inteligencia</div>
+        <button class="nav-item" data-route="inbox" onclick="window.timeplusRouter.navigate('inbox')">
+          <span class="icon">📥</span>
+          <span>Bandeja de Entrada IA</span>
+        </button>
+        <button class="nav-item" data-route="estadisticas" onclick="window.timeplusRouter.navigate('estadisticas')">
+          <span class="icon">📊</span>
+          <span>Estadísticas &amp; BI</span>
+        </button>
+        <button class="nav-item" data-route="admin" onclick="window.timeplusRouter.navigate('admin')">
+          <span class="icon">👑</span>
+          <span>Panel SuperAdmin</span>
+        </button>
+      </aside>
+
+      <!-- Dynamic Main Content View -->
+      <main id="main-content-view" class="main-content">
+        <!-- Dynamically filled by app.js router -->
+      </main>
+
     </div>
-  </header>
-
-  <!-- Main Application Layout (Sidebar + Dynamic View Content) -->
-  <div class="app-container">
-    
-    <!-- Sidebar Navigation (Matching 30-Point System Vision) -->
-    <aside id="app-sidebar" class="app-sidebar">
-      <div class="nav-section-title">Centro de Control</div>
-      <button class="nav-item active" data-route="hoy" onclick="window.timeplusRouter.navigate('hoy')">
-        <span class="icon">🏠</span>
-        <span>HOY (En Vivo)</span>
-        <span class="badge" style="background: #EFF6FF; color: #2563EB;">Activo</span>
-      </button>
-      <button class="nav-item" data-route="agenda" onclick="window.timeplusRouter.navigate('agenda')">
-        <span class="icon">📅</span>
-        <span>Agenda & Categorías</span>
-      </button>
-
-      <div class="nav-section-title" style="margin-top: 0.75rem;">Vida & Salud</div>
-      <button class="nav-item" data-route="salud" onclick="window.timeplusRouter.navigate('salud')">
-        <span class="icon">💊</span>
-        <span>Salud & Medicamentos</span>
-        <span class="badge" style="background: #FEFCE8; color: #A16207;">Toma</span>
-      </button>
-      <button class="nav-item" data-route="fitness" onclick="window.timeplusRouter.navigate('fitness')">
-        <span class="icon">🏋️</span>
-        <span>Fitness & Gimnasio</span>
-      </button>
-      <button class="nav-item" data-route="citas" onclick="window.timeplusRouter.navigate('citas')">
-        <span class="icon">🩺</span>
-        <span>Citas Universales</span>
-      </button>
-
-      <div class="nav-section-title" style="margin-top: 0.75rem;">Trabajo & Relaciones</div>
-      <button class="nav-item" data-route="reuniones" onclick="window.timeplusRouter.navigate('reuniones')">
-        <span class="icon">💻</span>
-        <span>Reuniones & Salida</span>
-      </button>
-      <button class="nav-item" data-route="proyectos" onclick="window.timeplusRouter.navigate('proyectos')">
-        <span class="icon">💼</span>
-        <span>Proyectos & Tareas</span>
-      </button>
-      <button class="nav-item" data-route="contactos" onclick="window.timeplusRouter.navigate('contactos')">
-        <span class="icon">👥</span>
-        <span>Personas & Contactos</span>
-      </button>
-      <button class="nav-item" data-route="lugares" onclick="window.timeplusRouter.navigate('lugares')">
-        <span class="icon">📍</span>
-        <span>Sedes & Movilidad</span>
-      </button>
-      <button class="nav-item" data-route="viajes" onclick="window.timeplusRouter.navigate('viajes')">
-        <span class="icon">✈️</span>
-        <span>Viajes (Travel)</span>
-      </button>
-
-      <div class="nav-section-title" style="margin-top: 0.75rem;">Inteligencia</div>
-      <button class="nav-item" data-route="inbox" onclick="window.timeplusRouter.navigate('inbox')">
-        <span class="icon">📥</span>
-        <span>Bandeja de Entrada IA</span>
-      </button>
-      <button class="nav-item" data-route="estadisticas" onclick="window.timeplusRouter.navigate('estadisticas')">
-        <span class="icon">📊</span>
-        <span>Estadísticas & BI</span>
-      </button>
-      <button class="nav-item" data-route="admin" onclick="window.timeplusRouter.navigate('admin')">
-        <span class="icon">👑</span>
-        <span>Panel SuperAdmin</span>
-      </button>
-    </aside>
-
-    <!-- Dynamic Main Content View -->
-    <main id="main-content-view" class="main-content">
-      <!-- Dynamically filled by app.js router -->
-    </main>
-
-  </div>
+  </div><!-- /app-view -->
 
   <!-- Toast Notification Container -->
   <div id="toast-container" class="toast-container"></div>
-
-  <!-- Mobile CSS helper -->
-  <style>
-    @media (max-width: 1024px) {
-      .mobile-only { display: block !important; }
-    }
-  </style>
 
   <!-- Supabase CDN Client -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <!-- Application Modules in Dependency Order -->
-  <script src="js/config.js?v=20260907_rebuild"></script>
-  <script src="js/supabase-client.js?v=20260907_rebuild"></script>
-  <script src="js/store.js?v=20260907_rebuild"></script>
-  <script src="js/ai-engine.js?v=20260907_rebuild"></script>
-  <script src="js/router.js?v=20260907_rebuild"></script>
-  <script src="js/app.js?v=20260907_rebuild"></script>
+  <script src="js/config.js?v=20260907c"></script>
+  <script src="js/supabase-client.js?v=20260907c"></script>
+  <script src="js/store.js?v=20260907c"></script>
+  <script src="js/ai-engine.js?v=20260907c"></script>
+  <script src="js/router.js?v=20260907c"></script>
+  <script src="js/app.js?v=20260907c"></script>
+
+  <!-- Landing Page Logic -->
+  <script>
+    function timeplusShowLoginPanel() {
+      document.getElementById('landing-login-panel').classList.add('is-open');
+      setTimeout(() => {
+        const emailField = document.getElementById('landing-email');
+        if (emailField) emailField.focus();
+      }, 100);
+    }
+
+    function timeplusHideLoginPanel() {
+      document.getElementById('landing-login-panel').classList.remove('is-open');
+    }
+
+    function timeplusQuickFillAdmin() {
+      document.getElementById('landing-email').value = 'ces.rodriguez200@gmail.com';
+      document.getElementById('landing-pass').value = '16278465';
+    }
+
+    function timeplusDoLandingLogin() {
+      const email = document.getElementById('landing-email').value.trim();
+      const pass  = document.getElementById('landing-pass').value;
+
+      if (!email || !pass) { alert('Por favor ingresa correo y contraseña.'); return; }
+      if (!window.timeplusStore) { alert('El sistema aún está cargando. Intenta en un segundo.'); return; }
+
+      try {
+        const user = window.timeplusStore.login(email, pass);
+        // Show app, hide landing
+        document.getElementById('landing-view').style.display = 'none';
+        document.getElementById('app-view').style.display    = 'flex';
+        timeplusHideLoginPanel();
+        const target = user.role === 'admin' ? 'admin' : 'hoy';
+        if (window.timeplusRouter) window.timeplusRouter.navigate(target);
+        if (window.timeplusShowToast) window.timeplusShowToast('¡Bienvenido, ' + user.name + '! 👋');
+      } catch(e) {
+        alert('Credenciales incorrectas. Intenta de nuevo.');
+      }
+    }
+
+    function timeplusLogout() {
+      if (window.timeplusStore && window.timeplusStore.logout) window.timeplusStore.logout();
+      document.getElementById('app-view').style.display    = 'none';
+      document.getElementById('landing-view').style.display = 'block';
+      if (window.timeplusRouter) window.timeplusRouter.navigate('inicio');
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      // Close panel when clicking backdrop
+      const panel = document.getElementById('landing-login-panel');
+      panel.addEventListener('click', (e) => { if (e.target === panel) timeplusHideLoginPanel(); });
+
+      // Auto-login if session persisted ONLY when NOT visiting #inicio
+      setTimeout(() => {
+        if (window.timeplusStore) {
+          const u = window.timeplusStore.getCurrentUser();
+          const hash = window.location.hash || '';
+          if (u && !hash.includes('inicio')) {
+            document.getElementById('landing-view').style.display = 'none';
+            document.getElementById('app-view').style.display    = 'flex';
+            const target = u.role === 'admin' ? 'admin' : 'hoy';
+            if (window.timeplusRouter) window.timeplusRouter.navigate(target);
+          }
+        }
+      }, 150);
+
+      // Mobile menu
+      const menuToggle = document.getElementById('mobile-menu-toggle');
+      const sidebar    = document.getElementById('app-sidebar');
+      if (menuToggle && sidebar) {
+        menuToggle.addEventListener('click', () => sidebar.classList.toggle('open'));
+      }
+    });
+  </script>
 
 </body>
 </html>

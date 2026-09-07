@@ -13,23 +13,49 @@ document.addEventListener('DOMContentLoaded', () => {
   const userPill = document.getElementById('user-pill-display');
   const roleBadge = document.getElementById('role-badge-display');
 
+  function showAppView() {
+    const landing = document.getElementById('landing-view');
+    const app = document.getElementById('app-view');
+    if (landing) landing.style.display = 'none';
+    if (app) app.style.display = 'flex';
+  }
+
+  function showLandingView() {
+    const landing = document.getElementById('landing-view');
+    const app = document.getElementById('app-view');
+    if (landing) landing.style.display = 'block';
+    if (app) app.style.display = 'none';
+  }
+
+  function renderLanding() {
+    showLandingView();
+  }
+
   // --- Router Registration ---
-  router.register('hoy', () => renderToday());
-  router.register('inicio', () => renderToday());
-  router.register('agenda', () => renderAgenda());
-  router.register('salud', () => renderHealth());
-  router.register('fitness', () => renderFitness());
-  router.register('reuniones', () => renderMeetings());
-  router.register('citas', () => renderAppointments());
-  router.register('proyectos', () => renderProjects());
-  router.register('contactos', () => renderContacts());
-  router.register('lugares', () => renderPlaces());
-  router.register('viajes', () => renderTravel());
-  router.register('inbox', () => renderInbox());
-  router.register('estadisticas', () => renderStats());
-  router.register('admin', () => renderAdmin());
-  router.register('login', () => renderLogin());
-  router.register('*', () => renderToday());
+  router.register('hoy', () => { showAppView(); renderToday(); });
+  router.register('inicio', () => renderLanding());
+  router.register('agenda', () => { showAppView(); renderAgenda(); });
+  router.register('salud', () => { showAppView(); renderHealth(); });
+  router.register('fitness', () => { showAppView(); renderFitness(); });
+  router.register('reuniones', () => { showAppView(); renderMeetings(); });
+  router.register('citas', () => { showAppView(); renderAppointments(); });
+  router.register('proyectos', () => { showAppView(); renderProjects(); });
+  router.register('contactos', () => { showAppView(); renderContacts(); });
+  router.register('lugares', () => { showAppView(); renderPlaces(); });
+  router.register('viajes', () => { showAppView(); renderTravel(); });
+  router.register('inbox', () => { showAppView(); renderInbox(); });
+  router.register('estadisticas', () => { showAppView(); renderStats(); });
+  router.register('admin', () => { showAppView(); renderAdmin(); });
+  router.register('login', () => { showAppView(); renderLogin(); });
+  router.register('*', () => {
+    const user = store.getCurrentUser();
+    if (user) {
+      showAppView();
+      renderToday();
+    } else {
+      renderLanding();
+    }
+  });
 
   // Subscribe Store Changes to re-render active route
   store.subscribe(() => {
