@@ -15,6 +15,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // --- Router Registration ---
   router.register('hoy', () => renderToday());
+  router.register('inicio', () => renderToday());
   router.register('agenda', () => renderAgenda());
   router.register('salud', () => renderHealth());
   router.register('fitness', () => renderFitness());
