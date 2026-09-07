@@ -193,18 +193,24 @@ document.addEventListener('DOMContentLoaded', () => {
   function renderCurrentView() {
     const currentUser = store.getCurrentUser();
 
+    // Referencias defensivas a elementos clave
+    const landingEl = viewLanding || document.getElementById('view-landing');
+    const shellEl = appShell || document.getElementById('app-shell');
+    const adminEl = viewAdminDashboard || document.getElementById('view-admin-dashboard') || document.getElementById('view-admin');
+    const homeEl = viewHome || document.getElementById('view-home');
+
     // If no user is logged in, show Landing Page and keep Shell hidden
     // Do NOT close auth modals here — the user may be filling a registration/login form!
     if (!currentUser) {
-      if (viewLanding) viewLanding.classList.remove('hidden');
-      if (appShell) appShell.classList.add('hidden');
+      if (landingEl) landingEl.classList.remove('hidden');
+      if (shellEl) shellEl.classList.add('hidden');
       return;
     }
 
     // User is logged in: show app shell, hide landing and auth modals
-    if (viewLanding) viewLanding.classList.add('hidden');
+    if (landingEl) landingEl.classList.add('hidden');
     closeAllAuthModals();
-    if (appShell) appShell.classList.remove('hidden');
+    if (shellEl) shellEl.classList.remove('hidden');
     updateAuthHeaderUI(currentUser);
 
     // If current user is admin and currentView was home, default to admin-dashboard
@@ -221,14 +227,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
     switch (currentView) {
       case 'admin-dashboard':
-        if (viewAdminDashboard) {
-          viewAdminDashboard.classList.remove('hidden');
+        if (adminEl) {
+          adminEl.classList.remove('hidden');
           renderAdminDashboard();
+        } else if (homeEl) {
+          homeEl.classList.remove('hidden');
+          renderHome();
         }
         break;
       case 'home':
-        if (viewHome) {
-          viewHome.classList.remove('hidden');
+        if (homeEl) {
+          homeEl.classList.remove('hidden');
           renderHome();
         }
         break;
@@ -277,6 +286,15 @@ document.addEventListener('DOMContentLoaded', () => {
         if (viewActivityDetail) {
           viewActivityDetail.classList.remove('hidden');
           renderActivityDetail(selectedActivityId);
+        }
+        break;
+      default:
+        if (currentUser.role === 'admin' && adminEl) {
+          adminEl.classList.remove('hidden');
+          renderAdminDashboard();
+        } else if (homeEl) {
+          homeEl.classList.remove('hidden');
+          renderHome();
         }
         break;
     }

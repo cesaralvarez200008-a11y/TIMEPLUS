@@ -11,6 +11,23 @@
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
 
+  <script>
+    // Bypasses browser cache automatically on new releases
+    (function() {
+      const BUILD_ID = '20260907_v3';
+      try {
+        const lastBuild = localStorage.getItem('TP_LAST_BUILD');
+        if (lastBuild !== BUILD_ID) {
+          localStorage.setItem('TP_LAST_BUILD', BUILD_ID);
+          if (location.search.indexOf('v=' + BUILD_ID) === -1) {
+            const cleanUrl = location.protocol + '//' + location.host + location.pathname + '?v=' + BUILD_ID;
+            window.location.replace(cleanUrl);
+          }
+        }
+      } catch (e) {}
+    })();
+  </script>
+
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   
@@ -2107,11 +2124,11 @@
 
   <!-- Supabase CDN Client -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="js/supabase-client.js?v=20260907_v2"></script>
+  <script src="js/supabase-client.js?v=20260907_v3"></script>
 
   <!-- Application Logic Scripts -->
-  <script src="js/store.js?v=20260907_v2"></script>
-  <script src="js/ai-engine.js?v=20260907_v2"></script>
-  <script src="js/app.js?v=20260907_v2"></script>
+  <script src="js/store.js?v=20260907_v3"></script>
+  <script src="js/ai-engine.js?v=20260907_v3"></script>
+  <script src="js/app.js?v=20260907_v3"></script>
 </body>
 </html>
