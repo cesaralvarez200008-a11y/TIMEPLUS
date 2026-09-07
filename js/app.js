@@ -10,6 +10,9 @@ document.addEventListener('DOMContentLoaded', () => {
   let statsFilter = 'MES'; // 'HOY', 'SEMANA', 'MES', 'AÑO'
   let selectedPlaceId = null;
   let selectedActivityId = null;
+  let _syncInProgress = false;
+  let _calMonthOffset = 0;
+  let _pairTimerInterval = null;
 
   // DOM Containers
   const viewLanding = document.getElementById('view-landing');
@@ -35,9 +38,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Navigation Items
   const navButtons = document.querySelectorAll('.nav-btn');
-
-  // Initialize
-  initApp();
 
   function initApp() {
     renderCurrentView();
@@ -285,19 +285,19 @@ document.addEventListener('DOMContentLoaded', () => {
   // ==========================================
   // VIEW: ADMIN DASHBOARD (QUIEN MANEJA TODO)
   // ==========================================
-  // ==========================================
-  // VIEW: ADMIN DASHBOARD (QUIEN MANEJA TODO)
-  // ==========================================
   async function renderAdminDashboard() {
     // Sincronizar inmediatamente desde Supabase Cloud (Fuente Única de Verdad)
-    await _syncRequestsFromCloud();
+    try {
+      await _syncRequestsFromCloud();
+    } catch (err) {
+      console.warn('Error al sincronizar dashboard de SuperAdmin:', err);
+    }
   }
 
   // ============================================================
   // SYNC DIRECTO DESDE SUPABASE — FUENTE ÚNICA DE VERDAD EN LA NUBE
   // Se lee directamente de Supabase para que cualquier navegador o dispositivo vea exactamente lo mismo
   // ============================================================
-  let _syncInProgress = false;
   async function _syncRequestsFromCloud() {
     if (_syncInProgress) return;
     _syncInProgress = true;
@@ -617,7 +617,6 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // Mini-Calendario Interactivo Septiembre 2026 (Sección 4)
-  let _calMonthOffset = 0;
   function renderMiniCalendar() {
     const daysContainer = document.getElementById('mini-calendar-days');
     const monthTitle = document.getElementById('mini-cal-month-title');
@@ -2286,8 +2285,6 @@ document.addEventListener('DOMContentLoaded', () => {
   // ==========================================
   // SECCIÓN 8: VINCULACIÓN DE DISPOSITIVO (MODAL & COUNTDOWN)
   // ==========================================
-  let _pairTimerInterval = null;
-
   window.timeplusOpenPairModal = () => {
     const modal = document.getElementById('modal-pair-device');
     if (!modal) return;
@@ -2358,4 +2355,13 @@ document.addEventListener('DOMContentLoaded', () => {
     console.log('Filtro aplicado:', filterName);
     navigateTo('agenda');
   };
+
+  // Inicializar la aplicación una vez que todo el script y sus funciones están cargados
+  try {
+    initApp();
+  } catch (err) {
+    console.error('Error al inicializar TIMEPLUS:', err);
+    if (viewLanding) viewLanding.classList.remove('hidden');
+    if (appShell) appShell.classList.add('hidden');
+  }
 });
