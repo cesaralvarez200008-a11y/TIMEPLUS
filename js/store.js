@@ -223,13 +223,98 @@ class TimePlusStore {
     this.saveState();
   }
 
-  // --- Salud: Confirmación de Toma de Medicamentos (Visión 8) ---
+  // --- Salud: Inventario y Seguimiento de Medicamentos (Visión 8) ---
+  getMedications() {
+    const meds = this.state.medications || [];
+    const user = this.getCurrentUser();
+    if (!user) return [];
+    if (user.role === 'admin') return meds;
+    const userEmail = (user.email || '').trim().toLowerCase();
+    return meds.filter(m => m.userEmail && m.userEmail.trim().toLowerCase() === userEmail);
+  }
+
+  addMedication(med) {
+    if (!this.state.medications) this.state.medications = [];
+    if (!med.id) med.id = 'med-' + Date.now();
+    const user = this.getCurrentUser();
+    if (user && user.email) {
+      med.userEmail = user.email.toLowerCase();
+      med.userName = user.name || '';
+    }
+    this.state.medications.push(med);
+
+    // Si tiene hora programada, crear la actividad en agenda para hoy
+    if (med.time) {
+      this.addActivity({
+        id: 'act-' + med.id,
+        title: `Medicamento — ${med.name}`,
+        category: 'salud',
+        time: med.time,
+        date: 'today',
+        duration: '15m',
+        type: 'medicamento',
+        dosage: `${med.dosePerTake || 1} ${med.unit || 'pastilla(s)'}`,
+        medicationId: med.id,
+        confirmedTaken: false,
+        notes: med.instructions || 'Tomar según prescripción'
+      });
+    }
+
+    this.saveState();
+    return med;
+  }
+
+  updateMedication(id, updates) {
+    if (!this.state.medications) return null;
+    const idx = this.state.medications.findIndex(m => m.id === id);
+    if (idx !== -1) {
+      this.state.medications[idx] = { ...this.state.medications[idx], ...updates };
+      this.saveState();
+      return this.state.medications[idx];
+    }
+    return null;
+  }
+
+  deleteMedication(id) {
+    if (!this.state.medications) return;
+    this.state.medications = this.state.medications.filter(m => m.id !== id);
+    this.state.activities = this.state.activities.filter(a => a.medicationId !== id);
+    this.saveState();
+  }
+
+  restockMedication(id, additionalUnits) {
+    if (!this.state.medications) return;
+    const med = this.state.medications.find(m => m.id === id);
+    if (med) {
+      med.currentStock = (Number(med.currentStock) || 0) + Number(additionalUnits);
+      this.saveState();
+      return med;
+    }
+    return null;
+  }
+
   confirmMedication(actId, taken = true) {
-    return this.updateActivity(actId, {
+    const act = this.state.activities.find(a => a.id === actId);
+    let medUpdated = null;
+
+    if (act && taken && !act.confirmedTaken && act.medicationId) {
+      if (this.state.medications) {
+        const med = this.state.medications.find(m => m.id === act.medicationId);
+        if (med) {
+          const dose = Number(med.dosePerTake) || 1;
+          med.currentStock = Math.max(0, (Number(med.currentStock) || 0) - dose);
+          medUpdated = med;
+        }
+      }
+    }
+
+    const updatedAct = this.updateActivity(actId, {
       confirmedTaken: taken,
       takenAt: taken ? new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : null,
       notes: taken ? `Toma confirmada a las ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}` : 'Toma pospuesta/recordar luego.'
     });
+
+    return { activity: updatedAct, medication: medUpdated };
   }
 
   // --- Fitness: Registro de Ejercicio (Visión 9) ---

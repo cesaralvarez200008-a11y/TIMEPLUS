@@ -381,22 +381,66 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // --- 8. SALUD & MEDICAMENTOS (VISIÓN 8) ---
   function renderHealth() {
-    const meds = store.getActivities().filter(a => a.type === 'medicamento');
+    const medActs = store.getActivities().filter(a => a.type === 'medicamento');
+    const trackedMeds = store.getMedications ? store.getMedications() : [];
+    
+    // Alertas de inventario bajo (quedan 3 días o menos o menos de 5 unidades)
+    const lowStockMeds = trackedMeds.filter(m => {
+      const stock = Number(m.currentStock) || 0;
+      const dailyUsage = (Number(m.takesPerDay) || 1) * (Number(m.dosePerTake) || 1);
+      const daysLeft = dailyUsage > 0 ? Math.floor(stock / dailyUsage) : 999;
+      return daysLeft <= 4 || stock <= 3;
+    });
+
     contentEl.innerHTML = `
-      <div style="margin-bottom: 1.5rem;">
-        <h2>Salud & Bienestar — Medicamentos</h2>
-        <p style="font-size: 0.8125rem;">Registro de tomas, dosis y horarios con verificación activa de la IA.</p>
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:1rem;margin-bottom: 1.5rem;">
+        <div>
+          <h2>Salud, Medicamentos & Dispensario</h2>
+          <p style="font-size: 0.8125rem;">Control de tomas diarias, inventario de pastillas del mes y alertas de compra inteligente.</p>
+        </div>
+        <button onclick="window.timeplusOpenAddMedicationModal()" class="btn-primary" style="background:linear-gradient(135deg,#059669,#10b981);box-shadow:0 4px 12px rgba(16,185,129,0.35);display:flex;align-items:center;gap:0.5rem;font-weight:700;">
+          <span>➕</span> Registrar Medicamento / Receta
+        </button>
       </div>
 
-      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1rem;">
-        ${meds.length === 0 ? `
-          <div style="grid-column:1/-1;text-align:center;padding:3rem 1.5rem;background:#F8FAFC;border:1.5px dashed #CBD5E1;border-radius:var(--radius-lg);color:#64748B;">
-            <div style="font-size:2rem;margin-bottom:0.5rem;">💊</div>
-            <p style="font-weight:700;color:#1E293B;">No tienes medicamentos programados.</p>
-            <p style="font-size:0.8rem;margin-top:0.25rem;">Dile a la IA: <em>"Recuérdame tomar mi medicamento a las 8"</em> o agrégalo en tu agenda.</p>
+      <!-- Banner de Alerta de Dispensario / Farmacia si hay stock bajo -->
+      ${lowStockMeds.length > 0 ? `
+        <div style="background:linear-gradient(135deg,rgba(239,68,68,0.12),rgba(245,158,11,0.12));border:1.5px solid #f87171;border-radius:var(--radius-lg);padding:1.25rem;margin-bottom:1.5rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem;">
+          <div style="display:flex;align-items:center;gap:1rem;">
+            <div style="width:46px;height:46px;background:#fee2e2;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.5rem;">
+              🚨
+            </div>
+            <div>
+              <h4 style="color:#b91c1c;margin:0;font-size:0.95rem;">¡Atención de Dispensario! Medicamentos por agotarse</h4>
+              <p style="color:#7f1d1d;font-size:0.8125rem;margin:0.25rem 0 0 0;">
+                Tienes <strong>${lowStockMeds.length}</strong> medicamento(s) que se agotarán en los próximos días: 
+                <strong>${lowStockMeds.map(m => m.name).join(', ')}</strong>. ¡Hora de reabastecer o pedir cita con tu EPS/médico!
+              </p>
+            </div>
           </div>
-        ` : meds.map(m => `
-          <div class="med-card">
+          <button onclick="window.timeplusShowBuyReminder('${lowStockMeds[0].name}')" style="background:#dc2626;color:#fff;border:none;padding:0.6rem 1.1rem;border-radius:8px;font-weight:700;font-size:0.8125rem;cursor:pointer;box-shadow:0 2px 8px rgba(220,38,38,0.3);">
+            🛒 Recordatorio de Compra
+          </button>
+        </div>
+      ` : ''}
+
+      <!-- Pestañas / Bloques: Tomas de Hoy vs Dispensario & Inventario -->
+      <div style="margin-bottom:1.25rem;display:flex;gap:0.5rem;border-bottom:1px solid #E2E8F0;padding-bottom:0.75rem;">
+        <span style="font-weight:700;font-size:0.9rem;color:#1E293B;display:flex;align-items:center;gap:0.4rem;">
+          🕒 Tomas Programadas Hoy (${medActs.length})
+        </span>
+      </div>
+
+      <!-- Cuadrícula de Tomas de Hoy -->
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1rem; margin-bottom: 2rem;">
+        ${medActs.length === 0 ? `
+          <div style="grid-column:1/-1;text-align:center;padding:2.5rem 1.5rem;background:#F8FAFC;border:1.5px dashed #CBD5E1;border-radius:var(--radius-lg);color:#64748B;">
+            <div style="font-size:2rem;margin-bottom:0.5rem;">💊</div>
+            <p style="font-weight:700;color:#1E293B;">No tienes tomas de medicamentos para hoy.</p>
+            <p style="font-size:0.8rem;margin-top:0.25rem;">Registra tu receta en el botón de arriba o pide a la IA: <em>"Recuérdame tomar Losartán a las 8am"</em>.</p>
+          </div>
+        ` : medActs.map(m => `
+          <div class="med-card" style="border-left:4px solid ${m.confirmedTaken ? '#10B981' : '#F59E0B'};">
             <div class="med-header">
               <span style="font-size: 1.5rem;">💊</span>
               <span style="font-size: 0.75rem; font-weight: 800; color: #A16207; background: #FEFCE8; padding: 0.2rem 0.5rem; border-radius: var(--radius-full);">
@@ -405,17 +449,106 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>
             <h4 style="font-size: 1rem; margin-top: 0.25rem;">${m.title}</h4>
             <p style="font-size: 0.75rem;">Dosis: <strong>${m.dosage || '1 dosis'}</strong></p>
-            <p style="font-size: 0.6875rem; color: #64748B;">Estado: ${m.confirmedTaken ? '✅ Tomado hoy' : '⏳ Pendiente'}</p>
+            <p style="font-size: 0.6875rem; color: ${m.confirmedTaken ? '#10B981' : '#D97706'}; font-weight:600;">
+              Estado: ${m.confirmedTaken ? '✅ Tomado hoy (' + (m.takenAt || 'confirmado') + ')' : '⏳ Pendiente por tomar'}
+            </p>
 
-            <div style="background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: var(--radius-md); padding: 0.75rem; margin-top: 0.25rem;">
+            <div style="background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: var(--radius-md); padding: 0.75rem; margin-top: 0.5rem;">
               <span style="font-size: 0.75rem; font-weight: bold; display: block; margin-bottom: 0.5rem;">¿Tomaste este medicamento hoy?</span>
               <div class="med-actions">
-                <button class="btn-confirm-yes" onclick="window.timeplusConfirmMed('${m.id}', true)">✓ Sí, tomado</button>
+                <button class="btn-confirm-yes" onclick="window.timeplusConfirmMed('${m.id}', true)">✓ Sí, tomado (-1 dosis)</button>
                 <button class="btn-confirm-no" onclick="window.timeplusConfirmMed('${m.id}', false)">Recordar después</button>
               </div>
             </div>
           </div>
         `).join('')}
+      </div>
+
+      <!-- SECCIÓN DISPENSARIO & CONTROL DE INVENTARIO DEL MES -->
+      <div style="margin-bottom:1.25rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:0.5rem;border-bottom:1px solid #E2E8F0;padding-bottom:0.75rem;">
+        <div>
+          <h3 style="font-size:1.1rem;margin:0;display:flex;align-items:center;gap:0.5rem;">
+            📦 Dispensario & Control de Stock del Mes
+          </h3>
+          <span style="font-size:0.75rem;color:#64748B;">
+            La IA calcula automáticamente cuántos días de tratamiento te quedan y te avisa antes de que se acaben.
+          </span>
+        </div>
+      </div>
+
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 1rem;">
+        ${trackedMeds.length === 0 ? `
+          <div style="grid-column:1/-1;text-align:center;padding:2.5rem 1.5rem;background:#F8FAFC;border:1.5px dashed #CBD5E1;border-radius:var(--radius-lg);color:#64748B;">
+            <div style="font-size:2rem;margin-bottom:0.5rem;">📦</div>
+            <p style="font-weight:700;color:#1E293B;">Tu dispensario no tiene medicamentos en inventario.</p>
+            <p style="font-size:0.8rem;margin-top:0.25rem;">
+              Registra cuántas pastillas tienes (ej: caja de 30 unidades) y la IA calculará para cuántas semanas te alcanza.
+            </p>
+            <button onclick="window.timeplusOpenAddMedicationModal()" class="btn-primary" style="margin-top:0.75rem;font-size:0.8rem;padding:0.5rem 1rem;">
+              + Agregar Medicamento al Dispensario
+            </button>
+          </div>
+        ` : trackedMeds.map(med => {
+          const stock = Number(med.currentStock) || 0;
+          const initial = Number(med.initialStock) || 30;
+          const takes = Number(med.takesPerDay) || 1;
+          const dose = Number(med.dosePerTake) || 1;
+          const dailyTotal = takes * dose;
+          const daysLeft = dailyTotal > 0 ? Math.floor(stock / dailyTotal) : 0;
+          const percent = Math.min(100, Math.round((stock / initial) * 100));
+          const isCrit = daysLeft <= 4 || stock <= 3;
+          const isWarning = daysLeft <= 7 && !isCrit;
+          const barColor = isCrit ? '#EF4444' : (isWarning ? '#F59E0B' : '#10B981');
+
+          return `
+            <div style="background:#fff;border:1px solid ${isCrit ? '#FCA5A5' : '#E2E8F0'};border-radius:var(--radius-lg);padding:1.25rem;box-shadow:0 1px 3px rgba(0,0,0,0.05);position:relative;">
+              <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:0.75rem;">
+                <div>
+                  <span style="font-size:0.7rem;font-weight:700;color:${barColor};background:${isCrit ? '#FEF2F2' : '#F0FDF4'};padding:0.2rem 0.6rem;border-radius:999px;display:inline-block;margin-bottom:0.35rem;">
+                    ${isCrit ? '🚨 AGOTÁNDOSE PRONTO' : (isWarning ? '⚠️ STOCK MEDIO' : '✅ STOCK ÓPTIMO')}
+                  </span>
+                  <h4 style="margin:0;font-size:1.05rem;color:#0F172A;">${med.name}</h4>
+                  <div style="font-size:0.75rem;color:#64748B;margin-top:0.2rem;">
+                    ${med.instructions || '1 dosis al día'}
+                  </div>
+                </div>
+                <button onclick="window.timeplusDeleteMedication('${med.id}')" title="Eliminar" style="background:transparent;border:none;cursor:pointer;color:#94A3B8;font-size:1rem;">✕</button>
+              </div>
+
+              <!-- Medidor de días restantes -->
+              <div style="background:#F8FAFC;border:1px solid #F1F5F9;border-radius:10px;padding:0.85rem;margin-bottom:1rem;">
+                <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:0.4rem;">
+                  <span style="font-size:0.75rem;color:#475569;font-weight:600;">Disponibles:</span>
+                  <span style="font-size:1.15rem;font-weight:800;color:${isCrit ? '#B91C1C' : '#0F172A'};">
+                    ${stock} <span style="font-size:0.75rem;font-weight:500;color:#64748B;">${med.unit || 'pastillas'}</span>
+                  </span>
+                </div>
+
+                <!-- Barra de progreso -->
+                <div style="width:100%;height:8px;background:#E2E8F0;border-radius:999px;overflow:hidden;margin-bottom:0.5rem;">
+                  <div style="width:${percent}%;height:100%;background:${barColor};border-radius:999px;transition:width .3s;"></div>
+                </div>
+
+                <div style="display:flex;justify-content:space-between;font-size:0.75rem;color:#64748B;">
+                  <span>Consumo: <strong>${dailyTotal} al día</strong></span>
+                  <span style="font-weight:700;color:${barColor};">
+                    ${daysLeft === 0 ? '⛔ ¡Agotado hoy!' : `⏳ Te alcanza para ${daysLeft} día(s)`}
+                  </span>
+                </div>
+              </div>
+
+              <!-- Acciones de Dispensario: Recargar o Pedir Recordatorio -->
+              <div style="display:flex;gap:0.5rem;">
+                <button onclick="window.timeplusRestockPrompt('${med.id}', '${med.name}')" style="flex:1;background:#F1F5F9;border:1px solid #CBD5E1;color:#1E293B;padding:0.5rem;border-radius:8px;font-size:0.75rem;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:0.3rem;">
+                  🔄 + Recargar Caja
+                </button>
+                <button onclick="window.timeplusShowBuyReminder('${med.name}')" style="background:${isCrit ? '#DC2626' : '#6366F1'};color:#fff;border:none;padding:0.5rem 0.85rem;border-radius:8px;font-size:0.75rem;font-weight:600;cursor:pointer;">
+                  🛒 Comprar
+                </button>
+              </div>
+            </div>
+          `;
+        }).join('')}
       </div>
     `;
   }
@@ -1202,8 +1335,233 @@ document.addEventListener('DOMContentLoaded', () => {
   };
 
   window.timeplusConfirmMed = (actId, taken = true) => {
-    store.confirmMedication(actId, taken);
-    window.timeplusShowToast(taken ? '✅ Medicamento confirmado como tomado.' : '⏳ Recordatorio pospuesto.');
+    const res = store.confirmMedication(actId, taken);
+    if (taken) {
+      if (res && res.medication) {
+        const med = res.medication;
+        const daily = (Number(med.takesPerDay) || 1) * (Number(med.dosePerTake) || 1);
+        const days = daily > 0 ? Math.floor(med.currentStock / daily) : 0;
+        window.timeplusShowToast(`✅ Toma confirmada. Te quedan <strong>${med.currentStock}</strong> pastillas (${days} días de tratamiento).`);
+      } else {
+        window.timeplusShowToast('✅ Medicamento confirmado como tomado.');
+      }
+    } else {
+      window.timeplusShowToast('⏳ Recordatorio de medicamento pospuesto.');
+    }
+    const hash = location.hash.replace('#','') || 'hoy';
+    if (hash === 'salud') renderHealth();
+    if (hash === 'hoy' || hash === 'today' || hash === '') renderToday();
+  };
+
+  window.timeplusDeleteMedication = (medId) => {
+    if (confirm('¿Deseas eliminar este medicamento de tu dispensario y agenda?')) {
+      store.deleteMedication(medId);
+      window.timeplusShowToast('🗑️ Medicamento eliminado.');
+      renderHealth();
+    }
+  };
+
+  window.timeplusRestockPrompt = (medId, medName) => {
+    const qtyStr = prompt(`¿Cuántas unidades adicionales vas a ingresar al dispensario para ${medName}? (Ej: 30 pastillas):`, '30');
+    if (qtyStr && !isNaN(qtyStr) && Number(qtyStr) > 0) {
+      store.restockMedication(medId, Number(qtyStr));
+      window.timeplusShowToast(`📦 ¡Dispensario recargado con +${qtyStr} pastillas para ${medName}!`);
+      renderHealth();
+    }
+  };
+
+  window.timeplusShowBuyReminder = (medName) => {
+    const promptMsg = `Comprar repuesto de ${medName} en farmacia / dispensario`;
+    ai.processCommand(`Agendar recordatorio urgente: ${promptMsg} para mañana a las 9:00 AM`);
+    window.timeplusShowToast(`🛒 ¡Recordatorio de compra creado con éxito para "${medName}"!`);
+  };
+
+  window.timeplusOpenAddMedicationModal = () => {
+    if (document.getElementById('tp-add-med-overlay')) return;
+
+    const overlay = document.createElement('div');
+    overlay.id = 'tp-add-med-overlay';
+    overlay.style.cssText = `
+      position:fixed;inset:0;z-index:9999;
+      background:rgba(10,10,30,0.78);backdrop-filter:blur(6px);
+      display:flex;align-items:center;justify-content:center;padding:16px;
+    `;
+
+    overlay.innerHTML = `
+      <div style="
+        background:linear-gradient(145deg,#151c2e,#0d111e);
+        border:1px solid rgba(16,185,129,0.35);
+        border-radius:20px;width:100%;max-width:500px;
+        box-shadow:0 25px 60px rgba(0,0,0,0.6),0 0 0 1px rgba(16,185,129,0.1);
+        overflow:hidden;animation:tpSlideUp .28s cubic-bezier(.34,1.56,.64,1);
+      ">
+        <!-- Header -->
+        <div style="
+          background:linear-gradient(135deg,#059669,#10b981);
+          padding:18px 24px;display:flex;align-items:center;justify-content:space-between;
+        ">
+          <div style="display:flex;align-items:center;gap:12px;">
+            <div style="
+              width:40px;height:40px;background:rgba(255,255,255,0.2);border-radius:12px;
+              display:flex;align-items:center;justify-content:center;font-size:20px;
+            ">💊</div>
+            <div>
+              <div style="color:#fff;font-size:17px;font-weight:700;">Dispensario & Receta Médica</div>
+              <div style="color:rgba(255,255,255,0.8);font-size:12px;">Control de stock y aviso antes de que se acaben</div>
+            </div>
+          </div>
+          <button onclick="window.timeplusCloseAddMedicationModal()" style="
+            background:rgba(255,255,255,0.15);border:none;color:#fff;
+            width:34px;height:34px;border-radius:10px;cursor:pointer;font-size:18px;
+            display:flex;align-items:center;justify-content:center;
+          ">✕</button>
+        </div>
+
+        <!-- Formulario -->
+        <div style="padding:22px;display:flex;flex-direction:column;gap:14px;max-height:68vh;overflow-y:auto;">
+          
+          <div>
+            <label style="color:#6ee7b7;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;display:block;margin-bottom:5px;">
+              💊 Nombre del Medicamento / Tratamiento *
+            </label>
+            <input id="tp-med-name" type="text" placeholder="Ej: Losartán 50mg, Levotiroxina, Omeprazol..." class="login-panel-input" style="width:100%;box-sizing:border-box;" />
+          </div>
+
+          <!-- Cuadrícula: Stock Inicial + Unidad -->
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+            <div>
+              <label style="color:#6ee7b7;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;display:block;margin-bottom:5px;">
+                📦 Pastillas en Caja / Frasco *
+              </label>
+              <input id="tp-med-stock" type="number" value="30" min="1" class="login-panel-input" style="width:100%;box-sizing:border-box;" />
+            </div>
+            <div>
+              <label style="color:#6ee7b7;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;display:block;margin-bottom:5px;">
+                📏 Presentación
+              </label>
+              <select id="tp-med-unit" class="login-panel-input" style="width:100%;box-sizing:border-box;">
+                <option value="pastillas">Pastillas / Tabletas</option>
+                <option value="cápsulas">Cápsulas</option>
+                <option value="gotas">Gotas</option>
+                <option value="sobres">Sobres</option>
+                <option value="inyecciones">Inyecciones</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Cuadrícula: Frecuencia de Toma -->
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+            <div>
+              <label style="color:#6ee7b7;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;display:block;margin-bottom:5px;">
+                ⏰ Dosis por cada toma
+              </label>
+              <input id="tp-med-dose-take" type="number" value="1" min="1" class="login-panel-input" style="width:100%;box-sizing:border-box;" />
+            </div>
+            <div>
+              <label style="color:#6ee7b7;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;display:block;margin-bottom:5px;">
+                🔁 Tomas al día
+              </label>
+              <select id="tp-med-takes-day" class="login-panel-input" style="width:100%;box-sizing:border-box;">
+                <option value="1">1 vez al día</option>
+                <option value="2">2 veces al día (cada 12h)</option>
+                <option value="3">3 veces al día (cada 8h)</option>
+                <option value="4">4 veces al día (cada 6h)</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Hora principal de la toma -->
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+            <div>
+              <label style="color:#6ee7b7;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;display:block;margin-bottom:5px;">
+                🕐 Hora de la toma principal
+              </label>
+              <input id="tp-med-time" type="time" value="08:00" class="login-panel-input" style="width:100%;box-sizing:border-box;" />
+            </div>
+            <div>
+              <label style="color:#6ee7b7;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;display:block;margin-bottom:5px;">
+                🚨 Alerta de Repuesto
+              </label>
+              <div style="padding:10px;background:rgba(245,158,11,0.1);border:1px solid rgba(245,158,11,0.3);border-radius:10px;font-size:11px;color:#fcd34d;">
+                Avisarme cuando queden <strong>4 días</strong> o menos.
+              </div>
+            </div>
+          </div>
+
+          <!-- Instrucciones del médico -->
+          <div>
+            <label style="color:#6ee7b7;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;display:block;margin-bottom:5px;">
+              📝 Indicaciones Médicas
+            </label>
+            <input id="tp-med-instructions" type="text" placeholder="Ej: Tomar en ayunas con abundante agua" class="login-panel-input" style="width:100%;box-sizing:border-box;" />
+          </div>
+
+        </div>
+
+        <!-- Footer -->
+        <div style="
+          padding:16px 24px;border-top:1px solid rgba(16,185,129,0.2);
+          display:flex;gap:12px;justify-content:flex-end;
+          background:rgba(0,0,0,0.25);
+        ">
+          <button onclick="window.timeplusCloseAddMedicationModal()" style="
+            background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.15);
+            color:#94a3b8;padding:10px 18px;border-radius:10px;cursor:pointer;font-size:14px;
+          ">
+            ✕ Cancelar
+          </button>
+          <button onclick="window.timeplusSaveNewMedication()" style="
+            background:linear-gradient(135deg,#059669,#10b981);
+            border:none;color:#fff;padding:10px 22px;border-radius:10px;cursor:pointer;
+            font-size:14px;font-weight:600;
+            box-shadow:0 4px 15px rgba(16,185,129,0.4);
+          ">
+            💾 Guardar en Dispensario
+          </button>
+        </div>
+      </div>
+    `;
+
+    document.body.appendChild(overlay);
+    overlay.addEventListener('click', (e) => { if (e.target === overlay) window.timeplusCloseAddMedicationModal(); });
+    setTimeout(() => document.getElementById('tp-med-name')?.focus(), 100);
+  };
+
+  window.timeplusCloseAddMedicationModal = () => {
+    const el = document.getElementById('tp-add-med-overlay');
+    if (el) el.remove();
+  };
+
+  window.timeplusSaveNewMedication = () => {
+    const name = (document.getElementById('tp-med-name')?.value || '').trim();
+    if (!name) {
+      alert('Por favor indica el nombre del medicamento.');
+      document.getElementById('tp-med-name')?.focus();
+      return;
+    }
+
+    const stock = Number(document.getElementById('tp-med-stock')?.value) || 30;
+    const unit = document.getElementById('tp-med-unit')?.value || 'pastillas';
+    const dosePerTake = Number(document.getElementById('tp-med-dose-take')?.value) || 1;
+    const takesPerDay = Number(document.getElementById('tp-med-takes-day')?.value) || 1;
+    const time = document.getElementById('tp-med-time')?.value || '08:00';
+    const instructions = document.getElementById('tp-med-instructions')?.value || '';
+
+    const newMed = {
+      name,
+      initialStock: stock,
+      currentStock: stock,
+      unit,
+      dosePerTake,
+      takesPerDay,
+      time,
+      instructions
+    };
+
+    store.addMedication(newMed);
+    window.timeplusCloseAddMedicationModal();
+    window.timeplusShowToast(`💊 "${name}" registrado en dispensario (${stock} unidades).`);
+    renderHealth();
   };
 
   window.timeplusResolveConflict = (actId) => {
@@ -1519,15 +1877,33 @@ document.addEventListener('DOMContentLoaded', () => {
       travelTimeMin: 0,
     };
 
-    store.addActivity(newActivity);
+    const act = store.addActivity(newActivity);
+
+    // Si es medicamento y se especificó dosis, asegurar que exista en el dispensario con stock mensual
+    if (category === 'salud' || type === 'medicamento') {
+      if (store.addMedication) {
+        store.addMedication({
+          name: title.replace(/^Medicamento\s*[—–-]\s*/i, ''),
+          initialStock: 30,
+          currentStock: 30,
+          unit: 'pastillas',
+          dosePerTake: 1,
+          takesPerDay: 1,
+          time: time,
+          instructions: dosis || notes || 'Tomar 1 pastilla al día'
+        });
+      }
+    }
+
     window.timeplusCloseNewActivityModal();
     timeplusShowToast('✅ Actividad agendada correctamente');
 
     // Refresh current view
     const hash = location.hash.replace('#','') || 'today';
     if (typeof updateUIForRole === 'function') updateUIForRole();
-    if (typeof renderToday === 'function' && (hash === 'today' || hash === '')) renderToday();
+    if (typeof renderToday === 'function' && (hash === 'today' || hash === 'hoy' || hash === '')) renderToday();
     if (typeof renderAgenda === 'function' && hash === 'agenda') renderAgenda();
+    if (typeof renderHealth === 'function' && hash === 'salud') renderHealth();
   };
 
   window.timeplusFilterAdminClients = (query) => {
