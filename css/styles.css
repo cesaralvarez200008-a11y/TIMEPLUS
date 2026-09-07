@@ -14,12 +14,36 @@
 
 body {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-  background-color: #F1F5F9;
+  background-color: #F8FAFC !important;
   color: var(--text-main);
   margin: 0;
   padding: 0;
+  min-height: 100vh;
+  width: 100%;
+  display: block !important;
   overflow-x: hidden;
 }
+
+/* Master display locks: Guarantee landing is always visible if not authenticated */
+#view-landing {
+  display: flex !important;
+  flex-direction: column !important;
+  width: 100% !important;
+  min-height: 100vh !important;
+  position: relative !important;
+  z-index: 10 !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
+#view-landing.hidden {
+  display: none !important;
+}
+
+#app-shell.hidden {
+  display: none !important;
+}
+
 
 /* Custom Scrollbars */
 .custom-scroll::-webkit-scrollbar {

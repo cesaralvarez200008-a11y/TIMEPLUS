@@ -14,7 +14,7 @@
   <script>
     // Bypasses browser cache automatically on new releases
     (function() {
-      const BUILD_ID = '20260907_v4';
+      const BUILD_ID = '20260907_v5';
       try {
         const lastBuild = localStorage.getItem('TP_LAST_BUILD');
         if (lastBuild !== BUILD_ID) {
@@ -120,14 +120,30 @@
     .active\:scale-95:active { transform: scale(0.95); }
     .cursor-pointer { cursor: pointer; }
 
+    /* Master display locks: Guarantee landing is always visible if not authenticated */
+    #view-landing {
+      display: flex !important;
+      flex-direction: column !important;
+      width: 100% !important;
+      min-height: 100vh !important;
+      background-color: #F8FAFC !important;
+      position: relative !important;
+      z-index: 10 !important;
+      opacity: 1 !important;
+      visibility: visible !important;
+    }
+    #view-landing.hidden { display: none !important; }
+    #app-shell.hidden { display: none !important; }
+
     /* Navbar hero primary button */
-    #view-landing header { background: rgba(255,255,255,0.9); backdrop-filter: blur(12px); border-bottom: 1px solid #E2E8F0; padding: 0.875rem 1rem; }
+    #view-landing header { background: rgba(255,255,255,0.95); backdrop-filter: blur(12px); border-bottom: 1px solid #E2E8F0; padding: 0.875rem 1rem; width: 100%; display: flex; align-items: center; justify-content: space-between; }
+    #view-landing section { width: 100%; display: flex; flex-direction: column; align-items: center; }
     #view-landing section h1 { font-size: clamp(1.8rem, 5vw, 3.75rem); font-weight: 900; color: #0F172A; }
     #view-landing section p { color: #475569; max-width: 42rem; margin-top: 1.25rem; line-height: 1.6; }
   </style>
 
   <!-- Custom Styles -->
-  <link rel="stylesheet" href="css/styles.css?v=20260907_v4">
+  <link rel="stylesheet" href="css/styles.css?v=20260907_v5">
 </head>
 <body class="bg-slate-100 text-slate-900 min-h-screen flex flex-col antialiased selection:bg-blue-600 selection:text-white">
 
@@ -2219,11 +2235,11 @@
 
   <!-- Supabase CDN Client -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="js/supabase-client.js?v=20260907_v4"></script>
+  <script src="js/supabase-client.js?v=20260907_v5"></script>
 
   <!-- Application Logic Scripts -->
-  <script src="js/store.js?v=20260907_v4"></script>
-  <script src="js/ai-engine.js?v=20260907_v4"></script>
-  <script src="js/app.js?v=20260907_v4"></script>
+  <script src="js/store.js?v=20260907_v5"></script>
+  <script src="js/ai-engine.js?v=20260907_v5"></script>
+  <script src="js/app.js?v=20260907_v5"></script>
 </body>
 </html>
