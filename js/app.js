@@ -48,8 +48,8 @@ document.addEventListener('DOMContentLoaded', () => {
       window.timeplusSupabase.subscribeClientRequests(() => {
         const user = store.getCurrentUser();
         if (user && user.role === 'admin') {
-          renderAdminDashboard._fetchingCloud = false;
-          renderAdminDashboard();
+          _syncInProgress = false;
+          _syncRequestsFromCloud();
         }
       });
     }
@@ -60,18 +60,14 @@ document.addEventListener('DOMContentLoaded', () => {
       renderCurrentView();
     });
 
-    // Auto-polling cada 5s: si el admin está logueado, sincronizar datos
-    // desde localStorage para ver solicitudes nuevas en tiempo real.
+    // Auto-polling cada 4s: si el SuperAdmin está en pantalla, sincronizar DIRECTAMENTE desde Supabase Cloud
     setInterval(() => {
       const user = store.getCurrentUser();
       if (user && user.role === 'admin') {
-        store.reloadFromStorage();
-        if (typeof renderAdminDashboard === 'function') {
-          renderAdminDashboard._fetchingCloud = false;
-          renderAdminDashboard();
-        }
+        _syncInProgress = false;
+        _syncRequestsFromCloud();
       }
-    }, 5000);
+    }, 4000);
   }
 
   function updateClock() {
@@ -267,151 +263,17 @@ document.addEventListener('DOMContentLoaded', () => {
   // ==========================================
   // VIEW: ADMIN DASHBOARD (QUIEN MANEJA TODO)
   // ==========================================
+  // ==========================================
+  // VIEW: ADMIN DASHBOARD (QUIEN MANEJA TODO)
+  // ==========================================
   async function renderAdminDashboard() {
-    // 1. Renderizar solicitudes pendientes de aprobación (Google / Outlook / Registro)
-    const requestsTbody = document.getElementById('admin-requests-table-body');
-    const badgePending = document.getElementById('badge-pending-count');
-    const requests = store.getClientRequests ? store.getClientRequests() : [];
-    const pendingList = requests.filter(r => !r.status || r.status.toLowerCase() === 'pendiente');
-
-    if (badgePending) {
-      badgePending.textContent = `${pendingList.length} pendientes`;
-      badgePending.className = pendingList.length > 0
-        ? 'text-[10px] font-black px-2.5 py-0.5 bg-amber-100 text-amber-800 rounded-full animate-pulse'
-        : 'text-[10px] font-black px-2.5 py-0.5 bg-slate-100 text-slate-500 rounded-full';
-    }
-
-    if (requestsTbody) {
-      requestsTbody.innerHTML = '';
-      if (pendingList.length === 0) {
-        requestsTbody.innerHTML = `
-          <tr>
-            <td colspan="5" class="py-6 text-center text-xs text-slate-400 font-medium">
-              ✨ No hay solicitudes pendientes. Todos los clientes registrados han sido procesados.
-            </td>
-          </tr>
-        `;
-      } else {
-        pendingList.forEach(req => {
-          const tr = document.createElement('tr');
-          tr.className = 'hover:bg-amber-50/40 transition-colors';
-          // Normalizar campos que pueden venir de Supabase (created_at) o localStorage (requestedAt)
-          const providerLabel = req.provider || 'Correo Corporativo';
-          const isGoogle = providerLabel.toLowerCase().includes('google');
-          const fechaDisplay = req.requestedAt || (req.created_at ? new Date(req.created_at).toLocaleString('es', { dateStyle: 'short', timeStyle: 'short' }) : 'Reciente');
-          tr.innerHTML = `
-            <td class="py-3.5">
-              <div class="font-extrabold text-slate-900">${req.name || req.email}</div>
-              <div class="text-[11px] text-slate-400 font-mono">${req.email}</div>
-            </td>
-            <td class="py-3.5">
-              <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-bold ${isGoogle ? 'bg-blue-50 text-blue-700 border border-blue-200' : 'bg-sky-50 text-sky-700 border border-sky-200'}">
-                ${isGoogle ? '🌐' : '📫'} ${providerLabel}
-              </span>
-            </td>
-            <td class="py-3.5">
-              <span class="font-bold text-indigo-700">${req.plan || 'TIMEPLUS Connect Pro'}</span>
-            </td>
-            <td class="py-3.5 text-[11px] text-slate-400 font-medium">${fechaDisplay}</td>
-            <td class="py-3.5 text-right space-x-1.5">
-              <button class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold text-xs shadow-sm transition-all active:scale-95"
-                      onclick="window.timeplusApproveClient('${req.id}')">
-                ✓ Aprobar
-              </button>
-              <button class="px-2.5 py-1.5 bg-slate-100 hover:bg-red-50 text-slate-500 hover:text-red-600 rounded-xl font-bold text-xs transition-colors"
-                      onclick="window.timeplusRejectClient('${req.id}')">
-                ✕ Rechazar
-              </button>
-            </td>
-          `;
-          requestsTbody.appendChild(tr);
-        });
-      }
-    }
-
-    // Fetch DIRECTO desde Supabase Cloud — sin flags, sin debounce
-    // Esta función es la fuente de verdad para las solicitudes
-    _syncRequestsFromCloud();
-
-    // 2. Renderizar clientes aprobados con licencias activas
-    const tbody = document.getElementById('admin-clients-table-body');
-    const badgeActive = document.getElementById('badge-active-clients-count');
-    if (!tbody) return;
-
-    let clients = store.getClientsList();
-
-    if (badgeActive) badgeActive.textContent = `${clients.length} clientes activos`;
-    tbody.innerHTML = '';
-
-    // Actualizar métricas KPI reales y dinámicas
-    const kpiClientsEl = document.getElementById('kpi-admin-clients');
-    const kpiLicensesEl = document.getElementById('kpi-admin-licenses');
-    const kpiPlacesEl = document.getElementById('kpi-admin-places');
-    const kpiQueriesEl = document.getElementById('kpi-admin-queries');
-
-    const totalPlacesReal = clients.reduce((acc, c) => acc + (c.placesCount || 0), 0);
-    const totalQueriesReal = clients.reduce((acc, c) => acc + (c.iaQueriesCount || 0), 0);
-    const activeClientsCount = clients.filter(c => c.status === 'Activo').length;
-    const licenseRate = clients.length > 0 ? Math.round((activeClientsCount / clients.length) * 100) : 0;
-
-    if (kpiClientsEl) kpiClientsEl.textContent = clients.length;
-    if (kpiLicensesEl) kpiLicensesEl.textContent = `${licenseRate}%`;
-    if (kpiPlacesEl) kpiPlacesEl.textContent = totalPlacesReal;
-    if (kpiQueriesEl) kpiQueriesEl.textContent = totalQueriesReal;
-
-    if (clients.length === 0) {
-      tbody.innerHTML = `
-        <tr>
-          <td colspan="6" class="py-8 text-center text-slate-400">
-            <div class="space-y-1">
-              <span class="text-2xl block mb-1">👥</span>
-              <p class="font-bold text-xs text-slate-600">No hay clientes activos registrados</p>
-              <p class="text-[11px] text-slate-400">Cuando un cliente solicite un plan y lo apruebes, aparecerá aquí.</p>
-            </div>
-          </td>
-        </tr>
-      `;
-    } else {
-      clients.forEach(client => {
-        const tr = document.createElement('tr');
-        tr.className = 'hover:bg-slate-50 transition-colors';
-        tr.innerHTML = `
-          <td class="py-3.5">
-            <div class="font-bold text-slate-800">${client.name}</div>
-            <div class="text-[11px] text-slate-400 font-mono">${client.email}</div>
-          </td>
-          <td class="py-3.5">
-            <span class="font-semibold text-slate-700">${client.plan}</span>
-            <span class="block text-[10px] text-slate-400">Desde ${client.acquiredDate}</span>
-          </td>
-          <td class="py-3.5">
-            <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700">
-              <span>●</span> ${client.status}
-            </span>
-          </td>
-          <td class="py-3.5 font-bold font-mono text-slate-800">${client.activitiesCount}</td>
-          <td class="py-3.5 font-bold font-mono text-blue-600">${client.placesCount} lugares</td>
-          <td class="py-3.5">
-            <div class="flex items-center gap-1.5">
-              <button class="px-2.5 py-1 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-xl font-bold text-[11px] transition-colors"
-                      onclick="window.timeplusSimulateClient('${client.name}')">
-                Ver como cliente →
-              </button>
-              <button class="px-2.5 py-1 bg-red-50 hover:bg-red-100 text-red-700 rounded-xl font-bold text-[11px] transition-colors flex items-center gap-1"
-                      onclick="window.timeplusDeleteClient('${client.email}', '${client.name}')" title="Eliminar cliente">
-                <span>🗑️</span> Eliminar
-              </button>
-            </div>
-          </td>
-        `;
-        tbody.appendChild(tr);
-      });
-    }
+    // Sincronizar inmediatamente desde Supabase Cloud (Fuente Única de Verdad)
+    await _syncRequestsFromCloud();
   }
 
   // ============================================================
-  // SYNC DIRECTO DESDE SUPABASE — fuente de verdad de solicitudes
-  // Se llama cada vez que se renderiza el dashboard
+  // SYNC DIRECTO DESDE SUPABASE — FUENTE ÚNICA DE VERDAD EN LA NUBE
+  // Se lee directamente de Supabase para que cualquier navegador o dispositivo vea exactamente lo mismo
   // ============================================================
   let _syncInProgress = false;
   async function _syncRequestsFromCloud() {
@@ -425,49 +287,179 @@ document.addEventListener('DOMContentLoaded', () => {
       }
 
       const cloudData = await window.timeplusSupabase.getClientRequests();
-      console.log('☁️ Supabase client_requests recibidos:', cloudData.length, cloudData);
+      console.log('☁️ Supabase client_requests en tiempo real:', cloudData ? cloudData.length : 0, cloudData);
 
-      if (!Array.isArray(cloudData) || cloudData.length === 0) {
+      if (!Array.isArray(cloudData)) {
         _syncInProgress = false;
         return;
       }
 
-      // Merge: añadir al store local solo los que no existen aún
-      const allLocalReqs = store.getClientRequests ? store.getClientRequests() : [];
-      let hasNew = false;
+      // Separar directamente de Supabase: Pendientes vs Aprobados
+      const pendingList = cloudData.filter(r => (r.status || '').toLowerCase() === 'pendiente');
+      const approvedList = cloudData.filter(r => (r.status || '').toLowerCase() === 'aprobado');
 
-      cloudData.forEach(p => {
-        const emailLower = (p.email || '').toLowerCase();
-        const found = allLocalReqs.some(r => (r.email || '').toLowerCase() === emailLower);
-        if (!found) {
-          store.addClientRequest(
-            p.name || p.email,
-            p.email,
-            p.provider || 'Google Workspace',
-            p.plan || 'TIMEPLUS Connect Pro',
-            p.password || ''
-          );
-          hasNew = true;
+      // 1. RENDERIZAR TABLA DE SOLICITUDES PENDIENTES
+      const requestsTbody = document.getElementById('admin-requests-table-body');
+      const badgePending = document.getElementById('badge-pending-count');
+
+      if (badgePending) {
+        badgePending.textContent = `${pendingList.length} pendientes`;
+        badgePending.className = pendingList.length > 0
+          ? 'text-[10px] font-black px-2.5 py-0.5 bg-amber-100 text-amber-800 rounded-full animate-pulse'
+          : 'text-[10px] font-black px-2.5 py-0.5 bg-slate-100 text-slate-500 rounded-full';
+      }
+
+      if (requestsTbody) {
+        requestsTbody.innerHTML = '';
+        if (pendingList.length === 0) {
+          requestsTbody.innerHTML = `
+            <tr>
+              <td colspan="5" class="py-6 text-center text-xs text-slate-400 font-medium">
+                ✨ No hay solicitudes pendientes. Todos los clientes registrados han sido procesados.
+              </td>
+            </tr>
+          `;
+        } else {
+          pendingList.forEach(req => {
+            const tr = document.createElement('tr');
+            tr.className = 'hover:bg-amber-50/40 transition-colors';
+            const providerLabel = req.provider || 'Correo Corporativo';
+            const isGoogle = providerLabel.toLowerCase().includes('google');
+            const fechaDisplay = req.created_at ? new Date(req.created_at).toLocaleString('es', { dateStyle: 'short', timeStyle: 'short' }) : (req.requestedAt || 'Reciente');
+            
+            // Datos adicionales (Teléfono, Ciudad, Fecha de Nacimiento)
+            const phoneBadge = req.phone ? `<span class="inline-block text-[10px] text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200 mt-0.5">📞 ${req.phone}</span>` : '';
+            const cityBadge = req.city ? `<span class="inline-block text-[10px] text-slate-600 bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200 mt-0.5">📍 ${req.city}</span>` : '';
+            const bdayBadge = req.birthday ? `<span class="inline-block text-[10px] text-purple-700 bg-purple-50 px-1.5 py-0.5 rounded border border-purple-200 mt-0.5">🎂 ${req.birthday}</span>` : '';
+
+            tr.innerHTML = `
+              <td class="py-3.5">
+                <div class="font-extrabold text-slate-900">${req.name || req.email}</div>
+                <div class="text-[11px] text-slate-400 font-mono">${req.email}</div>
+                <div class="flex flex-wrap gap-1 mt-1">
+                  ${phoneBadge}
+                  ${cityBadge}
+                  ${bdayBadge}
+                </div>
+              </td>
+              <td class="py-3.5">
+                <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-bold ${isGoogle ? 'bg-blue-50 text-blue-700 border border-blue-200' : 'bg-sky-50 text-sky-700 border border-sky-200'}">
+                  ${isGoogle ? '🌐' : '📫'} ${providerLabel}
+                </span>
+              </td>
+              <td class="py-3.5">
+                <span class="font-bold text-indigo-700">${req.plan || 'TIMEPLUS Connect Pro'}</span>
+              </td>
+              <td class="py-3.5 text-[11px] text-slate-400 font-medium">${fechaDisplay}</td>
+              <td class="py-3.5 text-right space-x-1.5">
+                <button class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold text-xs shadow-sm transition-all active:scale-95"
+                        onclick="window.timeplusApproveClient('${req.email}')">
+                  ✓ Aprobar
+                </button>
+                <button class="px-2.5 py-1.5 bg-slate-100 hover:bg-red-50 text-slate-500 hover:text-red-600 rounded-xl font-bold text-xs transition-colors"
+                        onclick="window.timeplusRejectClient('${req.email}')">
+                  ✕ Rechazar
+                </button>
+              </td>
+            `;
+            requestsTbody.appendChild(tr);
+          });
         }
-      });
+      }
 
-      // Si hay solicitudes nuevas → re-renderizar SOLO la tabla de requests
-      if (hasNew) {
-        const requestsTbody = document.getElementById('admin-requests-table-body');
-        const badgePending = document.getElementById('badge-pending-count');
-        const allReqs = store.getClientRequests ? store.getClientRequests() : [];
-        const pending = allReqs.filter(r => !r.status || r.status.toLowerCase() === 'pendiente');
+      // 2. RENDERIZAR TABLA DE CLIENTES APROBADOS CON LICENCIA ACTIVA
+      const tbody = document.getElementById('admin-clients-table-body');
+      const badgeActive = document.getElementById('badge-active-clients-count');
 
-        if (badgePending) {
-          badgePending.textContent = `${pending.length} pendientes`;
-          badgePending.className = pending.length > 0
-            ? 'text-[10px] font-black px-2.5 py-0.5 bg-amber-100 text-amber-800 rounded-full animate-pulse'
-            : 'text-[10px] font-black px-2.5 py-0.5 bg-slate-100 text-slate-500 rounded-full';
+      // Sincronizar clientes aprobados en store local para simulaciones
+      const localClients = approvedList.map(c => ({
+        id: c.id,
+        name: c.name,
+        email: c.email,
+        password: c.password || '123456',
+        plan: c.plan || 'TIMEPLUS Connect Pro',
+        status: 'Activo',
+        acquiredDate: c.created_at ? new Date(c.created_at).toLocaleDateString('es') : 'Reciente',
+        activitiesCount: 0,
+        placesCount: 0,
+        iaQueriesCount: 0
+      }));
+      if (store.data.auth) {
+        store.data.auth.clientsList = localClients;
+        store.saveData();
+      }
+
+      if (badgeActive) badgeActive.textContent = `${approvedList.length} clientes activos`;
+
+      // Métricas KPI reales desde Supabase Cloud
+      const kpiClientsEl = document.getElementById('kpi-admin-clients');
+      const kpiLicensesEl = document.getElementById('kpi-admin-licenses');
+      const kpiPlacesEl = document.getElementById('kpi-admin-places');
+      const kpiQueriesEl = document.getElementById('kpi-admin-queries');
+
+      if (kpiClientsEl) kpiClientsEl.textContent = approvedList.length;
+      if (kpiLicensesEl) kpiLicensesEl.textContent = approvedList.length > 0 ? '100%' : '0%';
+      if (kpiPlacesEl) kpiPlacesEl.textContent = '0';
+      if (kpiQueriesEl) kpiQueriesEl.textContent = '0';
+
+      if (tbody) {
+        tbody.innerHTML = '';
+        if (approvedList.length === 0) {
+          tbody.innerHTML = `
+            <tr>
+              <td colspan="6" class="py-8 text-center text-slate-400">
+                <div class="space-y-1">
+                  <span class="text-2xl block mb-1">👥</span>
+                  <p class="font-bold text-xs text-slate-600">No hay clientes activos registrados</p>
+                  <p class="text-[11px] text-slate-400">Cuando un cliente solicite un plan y lo apruebes en Supabase, aparecerá aquí.</p>
+                </div>
+              </td>
+            </tr>
+          `;
+        } else {
+          approvedList.forEach(client => {
+            const tr = document.createElement('tr');
+            tr.className = 'hover:bg-slate-50 transition-colors';
+            const fechaAdq = client.created_at ? new Date(client.created_at).toLocaleDateString('es') : 'Reciente';
+            tr.innerHTML = `
+              <td class="py-3.5">
+                <div class="font-bold text-slate-800">${client.name}</div>
+                <div class="text-[11px] text-slate-400 font-mono">${client.email}</div>
+              </td>
+              <td class="py-3.5">
+                <span class="font-semibold text-slate-700">${client.plan}</span>
+                <span class="block text-[10px] text-slate-400">Desde ${fechaAdq}</span>
+              </td>
+              <td class="py-3.5">
+                <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700">
+                  <span>●</span> Activo
+                </span>
+              </td>
+              <td class="py-3.5 font-bold font-mono text-slate-800">0</td>
+              <td class="py-3.5 font-bold font-mono text-blue-600">0 lugares</td>
+              <td class="py-3.5">
+                <div class="flex items-center gap-1.5">
+                  <button class="px-2.5 py-1 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-xl font-bold text-[11px] transition-colors"
+                          onclick="window.timeplusSimulateClient('${client.name}')">
+                    Ver como cliente →
+                  </button>
+                  <button class="px-2.5 py-1 bg-red-50 hover:bg-red-100 text-red-700 rounded-xl font-bold text-[11px] transition-colors flex items-center gap-1"
+                          onclick="window.timeplusDeleteClient('${client.email}', '${client.name}')" title="Eliminar cliente">
+                    <span>🗑️</span> Eliminar
+                  </button>
+                </div>
+              </td>
+            `;
+            tbody.appendChild(tr);
+          });
         }
-
-        if (requestsTbody) {
-          requestsTbody.innerHTML = '';
-          if (pending.length === 0) {
+      }
+    } catch (err) {
+      console.warn('Error en _syncRequestsFromCloud:', err);
+    } finally {
+      _syncInProgress = false;
+    }
+  }
             requestsTbody.innerHTML = `<tr><td colspan="5" class="py-6 text-center text-xs text-slate-400 font-medium">✨ No hay solicitudes pendientes.</td></tr>`;
           } else {
             pending.forEach(req => {
@@ -1583,8 +1575,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   };
 
-  // Formulario de login para cliente aprobado (Valida Correo + Contraseña)
-  window.timeplusHandleClientApprovedLogin = () => {
+  // Formulario de login para cliente aprobado (Valida Correo + Contraseña directo en Supabase Cloud)
+  window.timeplusHandleClientApprovedLogin = async () => {
     const emailInput = document.getElementById('client-login-email');
     const passInput = document.getElementById('client-login-password');
     const msgEl = document.getElementById('client-login-msg');
@@ -1594,11 +1586,75 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (!email || !pass) return;
 
+    if (msgEl) {
+      msgEl.className = 'text-[11px] font-semibold p-2.5 rounded-xl text-center bg-blue-50 text-blue-700 border border-blue-200 block';
+      msgEl.textContent = '⏳ Verificando autorización en Supabase Cloud...';
+    }
+
+    // 1. Consultar directamente en Supabase Cloud (Fuente Única de Verdad)
+    let cloudRecord = null;
+    if (window.timeplusSupabase && typeof window.timeplusSupabase.checkClientLogin === 'function') {
+      try {
+        cloudRecord = await window.timeplusSupabase.checkClientLogin(email);
+      } catch (err) {
+        console.warn('Error consultando login en Supabase:', err);
+      }
+    }
+
+    // Si encontramos el registro en Supabase Cloud
+    if (cloudRecord) {
+      const statusLower = (cloudRecord.status || '').toLowerCase();
+      if (statusLower !== 'aprobado') {
+        if (msgEl) {
+          msgEl.className = 'text-[11px] font-semibold p-2.5 rounded-xl text-center bg-amber-50 text-amber-800 border border-amber-200 block';
+          msgEl.textContent = `Tu solicitud está en estado: "${cloudRecord.status || 'Pendiente'}". El SuperAdmin aún debe aprobarla para que puedas ingresar.`;
+        }
+        return;
+      }
+
+      // Validar contraseña
+      if (cloudRecord.password && cloudRecord.password !== pass) {
+        if (msgEl) {
+          msgEl.className = 'text-[11px] font-semibold p-2.5 rounded-xl text-center bg-red-50 text-red-700 border border-red-200 block';
+          msgEl.textContent = '❌ La contraseña ingresada es incorrecta.';
+        }
+        return;
+      }
+
+      // Sincronizar en store local para la sesión activa
+      const clientData = {
+        id: cloudRecord.id || ('cli-' + Date.now()),
+        name: cloudRecord.name,
+        email: cloudRecord.email,
+        password: cloudRecord.password,
+        plan: cloudRecord.plan,
+        status: 'Activo',
+        acquiredDate: 'Hoy'
+      };
+      if (store.data && store.data.auth) {
+        if (!store.data.auth.clientsList) store.data.auth.clientsList = [];
+        const idx = store.data.auth.clientsList.findIndex(c => c.email.toLowerCase() === email.toLowerCase());
+        if (idx !== -1) store.data.auth.clientsList[idx] = clientData;
+        else store.data.auth.clientsList.unshift(clientData);
+        store.saveData();
+      }
+
+      if (msgEl) {
+        msgEl.className = 'text-[11px] font-semibold p-2.5 rounded-xl text-center bg-emerald-50 text-emerald-700 block';
+        msgEl.textContent = `✓ ¡Acceso autorizado! Bienvenido ${cloudRecord.name} (${cloudRecord.plan}). Iniciando tu agenda...`;
+      }
+      setTimeout(() => {
+        store.login(cloudRecord.email);
+        renderCurrentView();
+      }, 500);
+      return;
+    }
+
+    // Fallback local en store
     const clients = store.getClientsList();
     const approved = clients.find(c => c.email.toLowerCase() === email.toLowerCase());
 
     if (approved) {
-      // Si el cliente tiene contraseña guardada, validarla (o permitir clave por defecto)
       if (approved.password && approved.password !== pass) {
         if (msgEl) {
           msgEl.className = 'text-[11px] font-semibold p-2.5 rounded-xl text-center bg-red-50 text-red-700 border border-red-200 block';
@@ -1618,7 +1674,7 @@ document.addEventListener('DOMContentLoaded', () => {
     } else {
       if (msgEl) {
         msgEl.className = 'text-[11px] font-semibold p-2.5 rounded-xl text-center bg-amber-50 text-amber-800 border border-amber-200 block';
-        msgEl.textContent = `El correo "${email}" aún no tiene aprobación activa del SuperAdmin. Si ya enviaste la solicitud, espera a que sea aprobada.`;
+        msgEl.textContent = `El correo "${email}" aún no tiene aprobación activa del SuperAdmin en la nube. Si ya enviaste la solicitud, espera a que sea aprobada.`;
       }
     }
   };
@@ -1773,36 +1829,49 @@ document.addEventListener('DOMContentLoaded', () => {
   };
 
   // SuperAdmin Aprueba un cliente (Sincronizado con Supabase Cloud)
-  window.timeplusApproveClient = async (reqId) => {
-    const req = store.getClientRequests().find(r => r.id === reqId);
-    store.approveClientRequest(reqId);
-    renderAdminDashboard();
+  window.timeplusApproveClient = async (emailOrId) => {
+    const email = (emailOrId || '').includes('@') ? emailOrId : (store.getClientRequests().find(r => r.id === emailOrId)?.email || emailOrId);
 
-    // Actualizar estado en Supabase Cloud
-    if (req && window.timeplusSupabase && typeof window.timeplusSupabase.updateClientRequestStatus === 'function') {
+    // 1. Actualizar estado en Supabase Cloud PRIMERO (Fuente Única de Verdad)
+    if (window.timeplusSupabase && typeof window.timeplusSupabase.updateClientRequestStatus === 'function') {
       try {
-        await window.timeplusSupabase.updateClientRequestStatus(req.email, 'Aprobado');
-        console.log('✅ Solicitud aprobada en Supabase Cloud:', req.email);
+        await window.timeplusSupabase.updateClientRequestStatus(email, 'Aprobado');
+        console.log('✅ Solicitud aprobada en Supabase Cloud:', email);
       } catch (err) {
         console.warn('Error al aprobar cliente en Supabase:', err);
       }
     }
+
+    // 2. Sincronizar en store local si existe id
+    const req = store.getClientRequests().find(r => r.id === emailOrId || r.email === email);
+    if (req) {
+      store.approveClientRequest(req.id);
+    }
+
+    // 3. Re-renderizar desde la nube
+    _syncInProgress = false;
+    await _syncRequestsFromCloud();
   };
 
   // SuperAdmin Rechaza un cliente
-  window.timeplusRejectClient = async (reqId) => {
-    const req = store.getClientRequests().find(r => r.id === reqId);
-    if (confirm(`¿Seguro que deseas rechazar la solicitud de ${req ? req.name : 'este usuario'}?`)) {
-      store.rejectClientRequest(reqId);
-      renderAdminDashboard();
-
-      if (req && window.timeplusSupabase && typeof window.timeplusSupabase.updateClientRequestStatus === 'function') {
+  window.timeplusRejectClient = async (emailOrId) => {
+    const email = (emailOrId || '').includes('@') ? emailOrId : (store.getClientRequests().find(r => r.id === emailOrId)?.email || emailOrId);
+    if (confirm(`¿Seguro que deseas rechazar la solicitud de ${email}?`)) {
+      if (window.timeplusSupabase && typeof window.timeplusSupabase.updateClientRequestStatus === 'function') {
         try {
-          await window.timeplusSupabase.updateClientRequestStatus(req.email, 'Rechazado');
+          await window.timeplusSupabase.updateClientRequestStatus(email, 'Rechazado');
         } catch (err) {
           console.warn('Error al actualizar rechazo en Supabase:', err);
         }
       }
+
+      const req = store.getClientRequests().find(r => r.id === emailOrId || r.email === email);
+      if (req) {
+        store.rejectClientRequest(req.id);
+      }
+
+      _syncInProgress = false;
+      await _syncRequestsFromCloud();
     }
   };
 
@@ -1812,18 +1881,20 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!confirm(`¿Eliminar al cliente "${displayName}" (${email})? Se revocará su acceso de inmediato.`)) {
       return;
     }
-    store.deleteClient(email);
-    renderAdminDashboard();
-
-    // Eliminar también de la nube Supabase si está disponible
-    if (window.timeplusSupabase && window.timeplusSupabase.client) {
+    
+    // Eliminar de Supabase Cloud
+    if (window.timeplusSupabase && typeof window.timeplusSupabase.deleteClientRequest === 'function') {
       try {
-        await window.timeplusSupabase.client.from('profiles').delete().eq('email', email);
-        console.log('🗑️ Cliente eliminado de Supabase Cloud:', email);
+        await window.timeplusSupabase.deleteClientRequest(email);
+        console.log('🗑️ Cliente eliminado de Supabase client_requests:', email);
       } catch (err) {
         console.warn('Error al eliminar cliente en Supabase:', err);
       }
     }
+
+    store.deleteClient(email);
+    _syncInProgress = false;
+    await _syncRequestsFromCloud();
   };
 
   // SuperAdmin Elimina TODOS los clientes

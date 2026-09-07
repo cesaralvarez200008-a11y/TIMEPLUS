@@ -128,18 +128,39 @@ window.timeplusSupabase = {
         return existing;
       }
 
-      // Insertar nueva solicitud
-      const { data, error } = await supabaseClient
+      // Preparar objeto de inserción
+      const basePayload = {
+        name: req.name,
+        email: req.email,
+        password: req.password || '',
+        provider: req.provider || 'Google Workspace',
+        plan: req.plan || 'TIMEPLUS Connect Pro',
+        status: 'Pendiente'
+      };
+
+      const fullPayload = {
+        ...basePayload,
+        phone: req.phone || null,
+        birthday: req.birthday || null,
+        city: req.city || null
+      };
+
+      // Intentar primero con los nuevos campos (phone, birthday, city)
+      let { data, error } = await supabaseClient
         .from('client_requests')
-        .insert({
-          name: req.name,
-          email: req.email,
-          password: req.password || '',
-          provider: req.provider || 'Google Workspace',
-          plan: req.plan || 'TIMEPLUS Connect Pro',
-          status: 'Pendiente'
-        })
+        .insert(fullPayload)
         .select();
+
+      // Si falla porque las columnas no existen aún en la base de datos, fallback a basePayload
+      if (error && error.message && error.message.includes('column')) {
+        console.warn('Columnas adicionales no presentes en tabla, insertando datos base:', error.message);
+        const res = await supabaseClient
+          .from('client_requests')
+          .insert(basePayload)
+          .select();
+        data = res.data;
+        error = res.error;
+      }
 
       if (error) {
         console.warn('❌ Error al insertar client_request en Supabase:', error.message, error);
@@ -166,6 +187,37 @@ window.timeplusSupabase = {
       return !error;
     } catch (e) {
       return false;
+    }
+  },
+
+  async deleteClientRequest(emailOrId) {
+    if (!supabaseClient) return false;
+    try {
+      let query = supabaseClient.from('client_requests').delete();
+      if (emailOrId.includes('@')) {
+        query = query.eq('email', emailOrId);
+      } else {
+        query = query.eq('id', emailOrId);
+      }
+      const { error } = await query;
+      return !error;
+    } catch (e) {
+      return false;
+    }
+  },
+
+  async checkClientLogin(email) {
+    if (!supabaseClient) return null;
+    try {
+      const { data, error } = await supabaseClient
+        .from('client_requests')
+        .select('*')
+        .eq('email', email.trim().toLowerCase())
+        .maybeSingle();
+      if (error || !data) return null;
+      return data;
+    } catch (e) {
+      return null;
     }
   },
 
