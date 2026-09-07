@@ -128,14 +128,28 @@ class TimePlusStore {
     this.saveState();
   }
 
-  // --- Activities Management (Visión 1, 2, 4, 10, 11, 12, 13) ---
+  // --- Activities Management con Aislamiento por Cliente ---
   getActivities() {
-    return this.state.activities || [];
+    const acts = this.state.activities || [];
+    const user = this.getCurrentUser();
+    if (!user) return [];
+    if (user.role === 'admin') return acts; // SuperAdmin controla y ve todo
+    // Cliente solo ve sus propios datos
+    const userEmail = (user.email || '').toLowerCase();
+    return acts.filter(a => !a.userEmail || a.userEmail.toLowerCase() === userEmail);
   }
 
   addActivity(activity) {
     if (!activity.id) activity.id = 'act-' + Date.now();
     if (!activity.date) activity.date = 'today';
+
+    const user = this.getCurrentUser();
+    if (user && user.email) {
+      activity.userEmail = user.email.toLowerCase();
+      activity.userId = user.id;
+      activity.userName = user.name;
+    }
+
     this.state.activities.push(activity);
     
     // Si tiene lugar asociado, registrar visita

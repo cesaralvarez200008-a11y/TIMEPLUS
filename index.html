@@ -271,8 +271,11 @@
       </div>
 
       <div style="display:flex; align-items:center; gap:0.75rem;">
-        <button class="btn-secondary" onclick="window.timeplusRouter && window.timeplusRouter.navigate('admin')">
-          👑 SuperAdmin
+        <div id="header-user-badge" style="display:flex; align-items:center; gap:0.4rem; background:#F8FAFC; border:1px solid #E2E8F0; padding:0.35rem 0.75rem; border-radius:9999px; font-size:0.75rem;">
+          <!-- Llenado dinámicamente según sea SuperAdmin o Cliente -->
+        </div>
+        <button id="header-admin-btn" class="btn-secondary" onclick="window.timeplusRouter && window.timeplusRouter.navigate('admin')" style="display:none;">
+          👑 Panel SuperAdmin
         </button>
         <button class="btn-primary" onclick="window.timeplusAI && window.timeplusAI.toggleVoice()">
           🎙️ Hablar con IA
@@ -345,10 +348,25 @@
           <span class="icon">📊</span>
           <span>Estadísticas &amp; BI</span>
         </button>
-        <button class="nav-item" data-route="admin" onclick="window.timeplusRouter.navigate('admin')">
-          <span class="icon">👑</span>
-          <span>Panel SuperAdmin</span>
-        </button>
+        <!-- Sección de Mi Cuenta (Solo visible para Clientes) -->
+        <div id="sidebar-client-section" style="display:none; margin-top:0.75rem;">
+          <div class="nav-section-title">Mi Cuenta de Cliente</div>
+          <button class="nav-item" data-route="perfil" onclick="window.timeplusRouter.navigate('perfil')">
+            <span class="icon">👤</span>
+            <span>Mi Perfil &amp; Mis Datos</span>
+            <span class="badge" style="background:#DCFCE7;color:#15803D;">Cliente</span>
+          </button>
+        </div>
+
+        <!-- Sección de Control Maestro (Solo visible para SuperAdmin) -->
+        <div id="sidebar-admin-section" style="display:none; margin-top:0.75rem;">
+          <div class="nav-section-title" style="color:#D97706;">Control Maestro</div>
+          <button class="nav-item" data-route="admin" onclick="window.timeplusRouter.navigate('admin')">
+            <span class="icon">👑</span>
+            <span>Panel SuperAdmin</span>
+            <span class="badge" style="background:#FEF3C7;color:#B45309;">Controla Todo</span>
+          </button>
+        </div>
       </aside>
 
       <!-- Dynamic Main Content View -->

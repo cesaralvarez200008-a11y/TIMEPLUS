@@ -27,6 +27,47 @@ document.addEventListener('DOMContentLoaded', () => {
     if (app) app.style.display = 'none';
   }
 
+  function updateUIForRole(user) {
+    const headerUserBadge  = document.getElementById('header-user-badge');
+    const headerAdminBtn   = document.getElementById('header-admin-btn');
+    const sidebarAdminSec  = document.getElementById('sidebar-admin-section');
+    const sidebarClientSec = document.getElementById('sidebar-client-section');
+
+    if (!user) {
+      if (headerUserBadge) headerUserBadge.innerHTML = '';
+      if (headerAdminBtn) headerAdminBtn.style.display = 'none';
+      if (sidebarAdminSec) sidebarAdminSec.style.display = 'none';
+      if (sidebarClientSec) sidebarClientSec.style.display = 'none';
+      return;
+    }
+
+    if (user.role === 'admin') {
+      // Vista SuperAdmin: Controla todo
+      if (headerUserBadge) {
+        headerUserBadge.innerHTML = `
+          <span>👑</span>
+          <strong style="color:#D97706;">SuperAdmin Maestro</strong>
+          <span style="background:#FEF3C7;color:#B45309;padding:0.1rem 0.4rem;border-radius:9999px;font-size:0.6875rem;font-weight:800;">Control Total</span>
+        `;
+      }
+      if (headerAdminBtn) headerAdminBtn.style.display = 'inline-flex';
+      if (sidebarAdminSec) sidebarAdminSec.style.display = 'block';
+      if (sidebarClientSec) sidebarClientSec.style.display = 'none';
+    } else {
+      // Vista Cliente: Solo ve sus datos, NADA de SuperAdmin
+      if (headerUserBadge) {
+        headerUserBadge.innerHTML = `
+          <span>👤</span>
+          <strong style="color:#0F172A;">${user.name || 'Cliente'}</strong>
+          <span style="background:#DCFCE7;color:#15803D;padding:0.1rem 0.4rem;border-radius:9999px;font-size:0.6875rem;font-weight:700;">Cliente Pro</span>
+        `;
+      }
+      if (headerAdminBtn) headerAdminBtn.style.display = 'none';
+      if (sidebarAdminSec) sidebarAdminSec.style.display = 'none';
+      if (sidebarClientSec) sidebarClientSec.style.display = 'block';
+    }
+  }
+
   function requireAuth(viewFn, requireAdmin = false) {
     const user = store.getCurrentUser();
     if (!user) {
@@ -39,6 +80,7 @@ document.addEventListener('DOMContentLoaded', () => {
       router.navigate('hoy');
       return;
     }
+    updateUIForRole(user);
     showAppView();
     viewFn();
   }
@@ -46,6 +88,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // --- Router Registration con Guardia de Seguridad Estricta ---
   router.register('hoy', () => requireAuth(renderToday));
   router.register('inicio', () => renderLanding());
+  router.register('perfil', () => requireAuth(renderProfile));
   router.register('agenda', () => requireAuth(renderAgenda));
   router.register('salud', () => requireAuth(renderHealth));
   router.register('fitness', () => requireAuth(renderFitness));
@@ -71,8 +114,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Subscribe Store Changes to re-render active route
   store.subscribe(() => {
+    updateUIForRole(store.getCurrentUser());
     router.handleRouting();
   });
+
+  // Inicializar UI de rol al cargar
+  updateUIForRole(store.getCurrentUser());
 
   // Escuchar Realtime de Supabase para actualizar Admin si está activo
   if (supabase) {
@@ -103,7 +150,9 @@ document.addEventListener('DOMContentLoaded', () => {
               Buenos días, ${user ? user.name : 'Usuario'} 👋
             </h2>
             <p style="font-size: 0.8125rem; margin-top: 0.25rem;">
-              Tu Centro de Control personal impulsado por Inteligencia Artificial.
+              ${user && user.role === 'admin' 
+                ? '👑 <strong>Modo SuperAdmin Maestro</strong> — Control total de la plataforma y Centro de Control general.'
+                : `👤 Espacio personal de cliente — Plan: <strong>${user ? (user.plan || 'TIMEPLUS Connect Pro') : 'Personal'}</strong> (Tus datos privados)`}
             </p>
           </div>
           <div style="display: flex; gap: 0.5rem;">
@@ -603,7 +652,7 @@ document.addEventListener('DOMContentLoaded', () => {
     `;
   }
 
-  // --- PANEL SUPERADMIN MAESTRO (SUPABASE CLOUD LIVE) ---
+  // --- 1. VISTA SUPERADMIN: CONTROLA TODO ---
   async function renderAdmin() {
     const user = store.getCurrentUser();
     if (!user || user.role !== 'admin') {
@@ -616,19 +665,73 @@ document.addEventListener('DOMContentLoaded', () => {
         <div>
           <div style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.75rem; font-weight: 800; color: #FBBF24;">
             <span>👑</span> <span>PANEL MAESTRO GENERAL</span>
+            <span style="background: rgba(245, 158, 11, 0.2); color: #FDE68A; padding: 0.15rem 0.5rem; border-radius: 9999px;">SuperAdmin Activo</span>
           </div>
           <h2 style="font-size: 1.75rem; color: #fff; margin-top: 0.25rem;">Control Total de TIMEPLUS</h2>
-          <p style="color: #94A3B8; font-size: 0.8125rem;">SuperAdmin: ${user.email} | Supabase Cloud en Vivo</p>
+          <p style="color: #94A3B8; font-size: 0.8125rem;">SuperAdmin: ${user.email} | Nube de Supabase Cloud en Vivo</p>
         </div>
-        <button class="btn-primary" style="background: #4F46E5;" onclick="window.timeplusRouter.navigate('hoy')">
-          Ver Centro de Control Personal →
-        </button>
+        <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+          <button class="btn-primary" style="background: #16A34A;" onclick="window.timeplusAddClientPrompt()">
+            <span>➕</span> Registrar Cliente Manual
+          </button>
+          <button class="btn-primary" style="background: #4F46E5;" onclick="window.timeplusRouter.navigate('hoy')">
+            Ver Centro de Control →
+          </button>
+        </div>
       </div>
 
-      <div class="timeline-card">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
-          <h3>Solicitudes de Clientes en Supabase Cloud</h3>
-          <button class="btn-secondary" onclick="window.timeplusRefreshAdmin()">🔄 Actualizar</button>
+      <!-- Métricas Globales de Control de Plataforma -->
+      <div class="grid-cols-4" style="margin-top: 1.5rem;" id="admin-kpi-cards">
+        <div class="stat-card">
+          <div class="stat-card-top">
+            <div class="stat-card-icon" style="background: #EFF6FF; color: #1D4ED8;">👥</div>
+            <div class="stat-card-value" id="kpi-total-clients" style="color: #1D4ED8;">-</div>
+          </div>
+          <div class="stat-card-title">Total Solicitudes</div>
+          <div class="stat-card-desc">Clientes en Supabase Cloud</div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-card-top">
+            <div class="stat-card-icon" style="background: #DCFCE7; color: #15803D;">✅</div>
+            <div class="stat-card-value" id="kpi-approved-clients" style="color: #15803D;">-</div>
+          </div>
+          <div class="stat-card-title">Clientes Aprobados</div>
+          <div class="stat-card-desc">Con acceso activo al sistema</div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-card-top">
+            <div class="stat-card-icon" style="background: #FEF3C7; color: #B45309;">⏳</div>
+            <div class="stat-card-value" id="kpi-pending-clients" style="color: #B45309;">-</div>
+          </div>
+          <div class="stat-card-title">Pendientes de Aprobación</div>
+          <div class="stat-card-desc">Esperando tu confirmación</div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-card-top">
+            <div class="stat-card-icon" style="background: #FAF5FF; color: #7E22CE;">⚡</div>
+            <div class="stat-card-value" style="color: #7E22CE;">100%</div>
+          </div>
+          <div class="stat-card-title">Estado Plataforma</div>
+          <div class="stat-card-desc">Supabase en Tiempo Real</div>
+        </div>
+      </div>
+
+      <!-- Tabla Maestra de Gestión de Clientes -->
+      <div class="timeline-card" style="margin-top: 1.5rem;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; flex-wrap: wrap; gap: 0.75rem;">
+          <div>
+            <h3>Gestión y Control de Clientes</h3>
+            <p style="font-size: 0.75rem; color: #64748B;">Aprueba o revoca el acceso de cualquier cliente con 1 clic.</p>
+          </div>
+          <div style="display: flex; gap: 0.5rem; align-items: center;">
+            <input type="text" id="admin-client-filter" placeholder="Buscar por nombre o correo..."
+                   oninput="window.timeplusFilterAdminClients(this.value)"
+                   style="padding: 0.45rem 0.75rem; border: 1px solid #E2E8F0; border-radius: var(--radius-md); font-size: 0.75rem; width: 14rem;">
+            <button class="btn-secondary" onclick="window.timeplusRefreshAdmin()">🔄 Refrescar</button>
+          </div>
         </div>
 
         <div id="admin-requests-table-container">
@@ -637,58 +740,204 @@ document.addEventListener('DOMContentLoaded', () => {
       </div>
     `;
 
-    // Cargar datos reales de Supabase
+    // Cargar datos de Supabase y calcular KPIs
     if (supabase) {
       const requests = await supabase.getClientRequests();
-      const container = document.getElementById('admin-requests-table-container');
-      if (!container) return;
+      window._allAdminRequests = requests;
 
-      if (requests.length === 0) {
-        container.innerHTML = `<p style="font-size: 0.8125rem; color: #64748B;">No hay solicitudes pendientes en este momento.</p>`;
-        return;
-      }
+      // Actualizar KPIs
+      const approvedCount = requests.filter(r => (r.status || '').trim().toLowerCase() === 'aprobado').length;
+      const pendingCount = requests.filter(r => (r.status || '').trim().toLowerCase() !== 'aprobado').length;
 
-      container.innerHTML = `
-        <table class="admin-table">
-          <thead>
+      const elTotal = document.getElementById('kpi-total-clients');
+      const elApp = document.getElementById('kpi-approved-clients');
+      const elPend = document.getElementById('kpi-pending-clients');
+      if (elTotal) elTotal.innerText = requests.length;
+      if (elApp) elApp.innerText = approvedCount;
+      if (elPend) elPend.innerText = pendingCount;
+
+      renderAdminTableRows(requests);
+    }
+  }
+
+  function renderAdminTableRows(requests) {
+    const container = document.getElementById('admin-requests-table-container');
+    if (!container) return;
+
+    if (!requests || requests.length === 0) {
+      container.innerHTML = `<p style="font-size: 0.8125rem; color: #64748B; padding: 1.5rem 0; text-align: center;">No se encontraron solicitudes de clientes.</p>`;
+      return;
+    }
+
+    container.innerHTML = `
+      <table class="admin-table">
+        <thead>
+          <tr>
+            <th>Cliente</th>
+            <th>Email</th>
+            <th>Plan</th>
+            <th>Fecha</th>
+            <th>Estado</th>
+            <th>Acciones de Control</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${requests.map(r => {
+            const isAprobado = (r.status || '').trim().toLowerCase() === 'aprobado';
+            const dateStr = r.created_at ? new Date(r.created_at).toLocaleDateString('es-CO', { day: '2-digit', month: 'short' }) : 'Reciente';
+            return `
             <tr>
-              <th>Cliente</th>
-              <th>Email</th>
-              <th>Plan</th>
-              <th>Estado</th>
-              <th>Acciones</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${requests.map(r => {
-              const isAprobado = (r.status || '').trim().toLowerCase() === 'aprobado';
-              return `
-              <tr>
-                <td><strong>${r.name || 'Sin nombre'}</strong></td>
-                <td>${r.email}</td>
-                <td><span class="timeline-badge" style="background: #EFF6FF; color: #1D4ED8;">${r.plan || 'Free'}</span></td>
-                <td>
-                  <span class="timeline-badge" style="background: ${isAprobado ? '#DCFCE7' : '#FEF3C7'}; color: ${isAprobado ? '#15803D' : '#B45309'}; font-weight: 800;">
-                    ${isAprobado ? 'Aprobado' : (r.status || 'Pendiente')}
-                  </span>
-                </td>
-                <td>
+              <td>
+                <div style="display: flex; align-items: center; gap: 0.5rem;">
+                  <div style="width: 1.75rem; height: 1.75rem; border-radius: 50%; background: #EFF6FF; color: #2563EB; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 0.75rem;">
+                    ${(r.name || 'C').charAt(0).toUpperCase()}
+                  </div>
+                  <strong>${r.name || 'Sin nombre'}</strong>
+                </div>
+              </td>
+              <td>${r.email}</td>
+              <td><span class="timeline-badge" style="background: #EFF6FF; color: #1D4ED8;">${r.plan || 'Connect Pro'}</span></td>
+              <td style="font-size: 0.75rem; color: #64748B;">${dateStr}</td>
+              <td>
+                <span class="timeline-badge" style="background: ${isAprobado ? '#DCFCE7' : '#FEF3C7'}; color: ${isAprobado ? '#15803D' : '#B45309'}; font-weight: 800;">
+                  ${isAprobado ? '✅ Aprobado' : '⏳ ' + (r.status || 'Pendiente')}
+                </span>
+              </td>
+              <td>
+                <div style="display: flex; gap: 0.35rem; align-items: center;">
                   ${!isAprobado ? `
-                    <button class="btn-primary" style="padding: 0.25rem 0.65rem; font-size: 0.6875rem;" onclick="window.timeplusApproveRequest('${r.id}')">
-                      ✓ Aprobar
+                    <button class="btn-primary" style="padding: 0.3rem 0.75rem; font-size: 0.6875rem; background: #16A34A;" onclick="window.timeplusApproveRequest('${r.id}')">
+                      ✓ Aprobar Acceso
                     </button>
                   ` : `
-                    <button class="btn-secondary" style="padding: 0.25rem 0.65rem; font-size: 0.6875rem; color: #DC2626; border-color: #FCA5A5;" onclick="window.timeplusRevokeRequest('${r.id}')">
-                      Revocar acceso
+                    <button class="btn-secondary" style="padding: 0.3rem 0.65rem; font-size: 0.6875rem; color: #DC2626; border-color: #FCA5A5;" onclick="window.timeplusRevokeRequest('${r.id}')">
+                      Revocar
                     </button>
                   `}
-                </td>
-              </tr>
-            `;}).join('')}
-          </tbody>
-        </table>
-      `;
+                  <button class="btn-secondary" style="padding: 0.3rem 0.5rem; font-size: 0.6875rem;" onclick="window.timeplusInspectClient('${r.id}')" title="Ver detalles del cliente">
+                    🔍 Detalle
+                  </button>
+                </div>
+              </td>
+            </tr>
+          `;}).join('')}
+        </tbody>
+      </table>
+    `;
+  }
+
+  // --- 2. VISTA DE CLIENTE: MÓDULO DE CLIENTES (SOLO VEN SUS DATOS) ---
+  function renderProfile() {
+    const user = store.getCurrentUser();
+    if (!user) {
+      showLandingView();
+      return;
     }
+
+    // Calcular datos exclusivos de este cliente
+    const acts = store.getActivities();
+    const meds = acts.filter(a => a.type === 'medicamento');
+    const workouts = acts.filter(a => a.category === 'fitness');
+    const meetings = acts.filter(a => a.type && a.type.startsWith('reunion'));
+
+    contentEl.innerHTML = `
+      <div style="margin-bottom: 1.5rem;">
+        <div style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.75rem; font-weight: 800; color: #2563EB;">
+          <span>👤</span> <span>MÓDULO DE CLIENTE</span>
+        </div>
+        <h2 style="font-size: 1.75rem; margin-top: 0.25rem;">Mi Perfil &amp; Mis Datos Privados</h2>
+        <p style="font-size: 0.8125rem; color: #64748B;">
+          Espacio seguro. Tu cuenta está aislada: únicamente tú tienes acceso a tus actividades, salud y datos.
+        </p>
+      </div>
+
+      <!-- Tarjeta de Identidad del Cliente -->
+      <div class="timeline-card" style="padding: 2rem;">
+        <div style="display: flex; align-items: center; gap: 1.25rem; flex-wrap: wrap;">
+          <div style="width: 4.5rem; height: 4.5rem; border-radius: 50%; background: linear-gradient(135deg, #2563EB, #4F46E5); color: #fff; font-size: 2rem; font-weight: 900; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 14px rgba(37, 99, 235, 0.3);">
+            ${(user.name || 'C').charAt(0).toUpperCase()}
+          </div>
+          <div style="flex: 1;">
+            <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
+              <h3 style="font-size: 1.5rem; font-weight: 900;">${user.name || 'Cliente TIMEPLUS'}</h3>
+              <span class="timeline-badge" style="background: #DCFCE7; color: #15803D; font-weight: 800;">
+                ✅ Cuenta Aprobada por SuperAdmin
+              </span>
+            </div>
+            <p style="color: #64748B; font-size: 0.875rem; margin-top: 0.25rem;">
+              ✉️ <strong>Correo:</strong> ${user.email} &nbsp;|&nbsp; 📋 <strong>Plan:</strong> ${user.plan || 'TIMEPLUS Connect Pro'}
+            </p>
+            <p style="font-size: 0.75rem; color: #94A3B8; margin-top: 0.25rem;">
+              ID de Cliente: <code>${user.id || 'usr-active'}</code> &nbsp;|&nbsp; Rol: <strong>Cliente Autorizado</strong>
+            </p>
+          </div>
+        </div>
+
+        <!-- Alerta de Aislamiento y Privacidad -->
+        <div style="background: #F0FDF4; border: 1px solid #BBF7D0; border-radius: var(--radius-md); padding: 1rem; margin-top: 1.5rem; display: flex; align-items: center; gap: 0.75rem;">
+          <span style="font-size: 1.5rem;">🔒</span>
+          <div style="font-size: 0.75rem; color: #166534;">
+            <strong>Aislamiento de Datos Garantizado:</strong>
+            Tu cuenta tiene partición de datos exclusiva. Ningún otro cliente puede visualizar tus actividades, medicamentos, proyectos ni historial.
+          </div>
+        </div>
+      </div>
+
+      <!-- Resumen de Datos Privados del Cliente -->
+      <div style="margin-top: 1.5rem;">
+        <h3 style="font-size: 1.125rem; margin-bottom: 0.75rem;">Resumen de Mis Datos en el Sistema</h3>
+        <div class="grid-cols-4">
+          <div class="stat-card" onclick="window.timeplusRouter.navigate('agenda')">
+            <div class="stat-card-top">
+              <div class="stat-card-icon" style="background: #EFF6FF; color: #1D4ED8;">📅</div>
+              <div class="stat-card-value" style="color: #1D4ED8;">${acts.length}</div>
+            </div>
+            <div class="stat-card-title">Mis Actividades</div>
+            <div class="stat-card-desc">Solo visibles por ti</div>
+          </div>
+
+          <div class="stat-card" onclick="window.timeplusRouter.navigate('salud')">
+            <div class="stat-card-top">
+              <div class="stat-card-icon" style="background: #FEFCE8; color: #A16207;">💊</div>
+              <div class="stat-card-value" style="color: #A16207;">${meds.length}</div>
+            </div>
+            <div class="stat-card-title">Mis Medicamentos</div>
+            <div class="stat-card-desc">Recordatorios activos</div>
+          </div>
+
+          <div class="stat-card" onclick="window.timeplusRouter.navigate('fitness')">
+            <div class="stat-card-top">
+              <div class="stat-card-icon" style="background: #FFF7ED; color: #C2410C;">🏋️</div>
+              <div class="stat-card-value" style="color: #C2410C;">${workouts.length}</div>
+            </div>
+            <div class="stat-card-title">Mis Entrenamientos</div>
+            <div class="stat-card-desc">Historial personal</div>
+          </div>
+
+          <div class="stat-card" onclick="window.timeplusRouter.navigate('reuniones')">
+            <div class="stat-card-top">
+              <div class="stat-card-icon" style="background: #F5F3FF; color: #7E22CE;">💻</div>
+              <div class="stat-card-value" style="color: #7E22CE;">${meetings.length}</div>
+            </div>
+            <div class="stat-card-title">Mis Reuniones</div>
+            <div class="stat-card-desc">Enlaces y agenda</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Acciones de Cuenta de Cliente -->
+      <div style="display: flex; gap: 0.75rem; margin-top: 1.5rem; flex-wrap: wrap;">
+        <button class="btn-primary" onclick="window.timeplusRouter.navigate('hoy')">
+          Ir a mi Centro de Control HOY →
+        </button>
+        <button class="btn-secondary" onclick="window.timeplusAI.toggleVoice()">
+          🎙️ Dictar a la IA
+        </button>
+        <button class="btn-secondary" onclick="timeplusLogout()" style="color: #EF4444; border-color: #FCA5A5;">
+          Cerrar Sesión Segura
+        </button>
+      </div>
+    `;
   }
 
   // --- LOGIN / AUTENTICACIÓN ---
@@ -817,6 +1066,60 @@ document.addEventListener('DOMContentLoaded', () => {
     const title = prompt('¿Qué actividad deseas agendar? (Ej: "Reunión con Juan a las 5:00 p. m."):');
     if (title && title.trim()) {
       ai.processCommand(title.trim());
+    }
+  };
+
+  window.timeplusFilterAdminClients = (query) => {
+    const q = (query || '').trim().toLowerCase();
+    const all = window._allAdminRequests || [];
+    if (!q) {
+      renderAdminTableRows(all);
+      return;
+    }
+    const filtered = all.filter(r => 
+      (r.name || '').toLowerCase().includes(q) || 
+      (r.email || '').toLowerCase().includes(q) ||
+      (r.plan || '').toLowerCase().includes(q)
+    );
+    renderAdminTableRows(filtered);
+  };
+
+  window.timeplusInspectClient = (id) => {
+    const all = window._allAdminRequests || [];
+    const client = all.find(r => r.id === id);
+    if (!client) return;
+
+    const isApp = (client.status || '').trim().toLowerCase() === 'aprobado';
+    alert(
+      `📋 DETALLE DE CLIENTE EN SUPABASE CLOUD:\n\n` +
+      `• Nombre: ${client.name || 'Sin nombre'}\n` +
+      `• Correo: ${client.email}\n` +
+      `• Plan: ${client.plan || 'TIMEPLUS Connect Pro'}\n` +
+      `• Estado actual: ${isApp ? '✅ APROBADO' : '⏳ PENDIENTE'}\n` +
+      `• ID de registro: ${client.id}\n` +
+      `• Fecha de solicitud: ${client.created_at ? new Date(client.created_at).toLocaleString() : 'N/A'}\n\n` +
+      (isApp 
+        ? `Este cliente tiene acceso habilitado y solo ve sus propios datos.` 
+        : `Este cliente tiene el acceso bloqueado hasta que hagas clic en "Aprobar Acceso".`)
+    );
+  };
+
+  window.timeplusAddClientPrompt = async () => {
+    const name = prompt('Nombre del nuevo cliente:');
+    if (!name || !name.trim()) return;
+    const email = prompt('Correo electrónico del cliente:');
+    if (!email || !email.trim()) return;
+    const plan = prompt('Plan del cliente (Presiona Enter para TIMEPLUS Connect Pro):') || 'TIMEPLUS Connect Pro';
+
+    if (supabase) {
+      window.timeplusShowToast('Registrando cliente en Supabase Cloud...');
+      const res = await supabase.registerClientRequest(name.trim(), email.trim(), plan);
+      if (res.ok) {
+        window.timeplusShowToast('✅ Cliente registrado en Supabase Cloud.');
+        renderAdmin();
+      } else {
+        alert('Error: ' + res.error);
+      }
     }
   };
 
