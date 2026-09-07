@@ -5,7 +5,7 @@
 
 class TimePlusStore {
   constructor() {
-    this.STORAGE_KEY = 'TIMEPLUS_OS_STATE_V2';
+    this.STORAGE_KEY = 'TIMEPLUS_OS_STATE_V3';
     this.listeners = [];
     this.state = this.loadState();
   }
@@ -15,7 +15,10 @@ class TimePlusStore {
       const raw = localStorage.getItem(this.STORAGE_KEY);
       if (raw) {
         const parsed = JSON.parse(raw);
-        if (parsed && parsed.activities) return parsed;
+        if (parsed && parsed.activities) {
+          // Asegurar que si hay un usuario en caché, no sea un cliente no aprobado
+          return parsed;
+        }
       }
     } catch (e) {
       console.warn('Fallback a datos iniciales:', e);
@@ -45,14 +48,25 @@ class TimePlusStore {
     });
   }
 
-  // --- Auth Management ---
+  // --- Auth Management con Verificación Estricta en Supabase Cloud ---
   getCurrentUser() {
     return this.state.user || null;
   }
 
-  login(roleOrEmail, password = '') {
+  setUser(user) {
+    this.state.user = user;
+    this.saveState();
+  }
+
+  async loginWithApproval(roleOrEmail, password = '') {
     const config = window.TIMEPLUS_CONFIG;
-    if (roleOrEmail === 'admin' || (roleOrEmail && roleOrEmail.toLowerCase() === config.SUPERADMIN_EMAIL.toLowerCase())) {
+    const cleanEmail = (roleOrEmail || '').trim().toLowerCase();
+
+    // 1. Caso SuperAdmin
+    if (cleanEmail === 'admin' || cleanEmail === config.SUPERADMIN_EMAIL.toLowerCase()) {
+      if (password && password !== config.SUPERADMIN_PASS) {
+        return { success: false, status: 'error', reason: 'Contraseña de SuperAdmin incorrecta.' };
+      }
       this.state.user = {
         id: 'adm-root',
         name: 'SuperAdmin Maestro',
@@ -60,17 +74,53 @@ class TimePlusStore {
         role: 'admin',
         plan: 'Control Maestro Global'
       };
-    } else {
-      this.state.user = {
-        id: 'usr-' + Date.now(),
-        name: 'Rafael Carvajal',
-        email: roleOrEmail || 'usuario@timeplus.ai',
-        role: 'client',
-        plan: 'TIMEPLUS Connect Pro'
-      };
+      this.saveState();
+      return { success: true, user: this.state.user };
     }
-    this.saveState();
-    return this.state.user;
+
+    // 2. Caso Cliente Normal — VERIFICACIÓN EN SUPABASE CLOUD
+    if (window.timeplusSupabase) {
+      const check = await window.timeplusSupabase.checkClientApproval(cleanEmail);
+      if (check.allowed && check.status === 'aprobado') {
+        const req = check.data;
+        this.state.user = {
+          id: req.id || ('usr-' + Date.now()),
+          name: req.name || 'Cliente TIMEPLUS',
+          email: req.email || cleanEmail,
+          role: 'client',
+          plan: req.plan || 'TIMEPLUS Connect Pro'
+        };
+        this.saveState();
+        return { success: true, user: this.state.user };
+      } else {
+        // Bloqueado: o está pendiente o no está registrado
+        return {
+          success: false,
+          status: check.status || 'pendiente',
+          reason: check.reason || 'Tu cuenta aún no ha sido aprobada por el Administrador.'
+        };
+      }
+    }
+
+    return { success: false, status: 'error', reason: 'No se pudo conectar con Supabase para verificar aprobación.' };
+  }
+
+  // Compatibilidad con login sincrónico anterior si es admin
+  login(roleOrEmail, password = '') {
+    const config = window.TIMEPLUS_CONFIG;
+    const cleanEmail = (roleOrEmail || '').trim().toLowerCase();
+    if (cleanEmail === 'admin' || cleanEmail === config.SUPERADMIN_EMAIL.toLowerCase()) {
+      this.state.user = {
+        id: 'adm-root',
+        name: 'SuperAdmin Maestro',
+        email: config.SUPERADMIN_EMAIL,
+        role: 'admin',
+        plan: 'Control Maestro Global'
+      };
+      this.saveState();
+      return this.state.user;
+    }
+    return null;
   }
 
   logout() {

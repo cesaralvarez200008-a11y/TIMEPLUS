@@ -27,25 +27,37 @@ document.addEventListener('DOMContentLoaded', () => {
     if (app) app.style.display = 'none';
   }
 
-  function renderLanding() {
-    showLandingView();
+  function requireAuth(viewFn, requireAdmin = false) {
+    const user = store.getCurrentUser();
+    if (!user) {
+      showLandingView();
+      window.timeplusShowToast('🔒 Inicia sesión con una cuenta aprobada para acceder.');
+      return;
+    }
+    if (requireAdmin && user.role !== 'admin') {
+      window.timeplusShowToast('👑 Solo el SuperAdmin puede acceder al panel maestro.');
+      router.navigate('hoy');
+      return;
+    }
+    showAppView();
+    viewFn();
   }
 
-  // --- Router Registration ---
-  router.register('hoy', () => { showAppView(); renderToday(); });
+  // --- Router Registration con Guardia de Seguridad Estricta ---
+  router.register('hoy', () => requireAuth(renderToday));
   router.register('inicio', () => renderLanding());
-  router.register('agenda', () => { showAppView(); renderAgenda(); });
-  router.register('salud', () => { showAppView(); renderHealth(); });
-  router.register('fitness', () => { showAppView(); renderFitness(); });
-  router.register('reuniones', () => { showAppView(); renderMeetings(); });
-  router.register('citas', () => { showAppView(); renderAppointments(); });
-  router.register('proyectos', () => { showAppView(); renderProjects(); });
-  router.register('contactos', () => { showAppView(); renderContacts(); });
-  router.register('lugares', () => { showAppView(); renderPlaces(); });
-  router.register('viajes', () => { showAppView(); renderTravel(); });
-  router.register('inbox', () => { showAppView(); renderInbox(); });
-  router.register('estadisticas', () => { showAppView(); renderStats(); });
-  router.register('admin', () => { showAppView(); renderAdmin(); });
+  router.register('agenda', () => requireAuth(renderAgenda));
+  router.register('salud', () => requireAuth(renderHealth));
+  router.register('fitness', () => requireAuth(renderFitness));
+  router.register('reuniones', () => requireAuth(renderMeetings));
+  router.register('citas', () => requireAuth(renderAppointments));
+  router.register('proyectos', () => requireAuth(renderProjects));
+  router.register('contactos', () => requireAuth(renderContacts));
+  router.register('lugares', () => requireAuth(renderPlaces));
+  router.register('viajes', () => requireAuth(renderTravel));
+  router.register('inbox', () => requireAuth(renderInbox));
+  router.register('estadisticas', () => requireAuth(renderStats));
+  router.register('admin', () => requireAuth(renderAdmin, true));
   router.register('login', () => { showAppView(); renderLogin(); });
   router.register('*', () => {
     const user = store.getCurrentUser();
@@ -648,25 +660,31 @@ document.addEventListener('DOMContentLoaded', () => {
             </tr>
           </thead>
           <tbody>
-            ${requests.map(r => `
+            ${requests.map(r => {
+              const isAprobado = (r.status || '').trim().toLowerCase() === 'aprobado';
+              return `
               <tr>
                 <td><strong>${r.name || 'Sin nombre'}</strong></td>
                 <td>${r.email}</td>
                 <td><span class="timeline-badge" style="background: #EFF6FF; color: #1D4ED8;">${r.plan || 'Free'}</span></td>
                 <td>
-                  <span class="timeline-badge" style="background: ${r.status === 'aprobado' ? '#DCFCE7' : '#FEF3C7'}; color: ${r.status === 'aprobado' ? '#15803D' : '#B45309'};">
-                    ${r.status || 'pendiente'}
+                  <span class="timeline-badge" style="background: ${isAprobado ? '#DCFCE7' : '#FEF3C7'}; color: ${isAprobado ? '#15803D' : '#B45309'}; font-weight: 800;">
+                    ${isAprobado ? 'Aprobado' : (r.status || 'Pendiente')}
                   </span>
                 </td>
                 <td>
-                  ${r.status !== 'aprobado' ? `
+                  ${!isAprobado ? `
                     <button class="btn-primary" style="padding: 0.25rem 0.65rem; font-size: 0.6875rem;" onclick="window.timeplusApproveRequest('${r.id}')">
                       ✓ Aprobar
                     </button>
-                  ` : '<span style="color: #16A34A; font-size: 0.75rem;">Aprobado</span>'}
+                  ` : `
+                    <button class="btn-secondary" style="padding: 0.25rem 0.65rem; font-size: 0.6875rem; color: #DC2626; border-color: #FCA5A5;" onclick="window.timeplusRevokeRequest('${r.id}')">
+                      Revocar acceso
+                    </button>
+                  `}
                 </td>
               </tr>
-            `).join('')}
+            `;}).join('')}
           </tbody>
         </table>
       `;
@@ -746,19 +764,36 @@ document.addEventListener('DOMContentLoaded', () => {
     window.timeplusShowToast('✓ Mensaje convertido en actividad de agenda.');
   };
 
-  window.timeplusDoLogin = () => {
+  window.timeplusDoLogin = async () => {
     const email = document.getElementById('login-email-input').value.trim();
     const pass = document.getElementById('login-pass-input').value;
-    const user = store.login(email, pass);
-    window.timeplusShowToast(`¡Bienvenido, ${user.name}!`);
-    router.navigate(user.role === 'admin' ? 'admin' : 'hoy');
+    window.timeplusShowToast('Verificando autorización en Supabase Cloud...');
+
+    const result = await store.loginWithApproval(email, pass);
+    if (result.success) {
+      window.timeplusShowToast(`¡Bienvenido, ${result.user.name}! 👋`);
+      router.navigate(result.user.role === 'admin' ? 'admin' : 'hoy');
+    } else {
+      alert(`⛔ ACCESO DENEGADO:\n\n${result.reason}`);
+      window.timeplusShowToast(`⛔ ${result.reason}`);
+    }
   };
 
   window.timeplusApproveRequest = async (id) => {
     if (supabase) {
       const ok = await supabase.updateRequestStatus(id, 'aprobado');
       if (ok) {
-        window.timeplusShowToast('✅ Solicitud de cliente aprobada en Supabase Cloud.');
+        window.timeplusShowToast('✅ Solicitud aprobada con éxito en Supabase Cloud.');
+        renderAdmin();
+      }
+    }
+  };
+
+  window.timeplusRevokeRequest = async (id) => {
+    if (supabase) {
+      const ok = await supabase.updateRequestStatus(id, 'pendiente');
+      if (ok) {
+        window.timeplusShowToast('⚠️ Acceso revocado a estado PENDIENTE.');
         renderAdmin();
       }
     }

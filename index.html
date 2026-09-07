@@ -12,7 +12,7 @@
   <meta http-equiv="Expires" content="0">
 
   <!-- Native Stylesheet (Zero CDN) -->
-  <link rel="stylesheet" href="css/timeplus-os.css?v=20260907c">
+  <link rel="stylesheet" href="css/timeplus-os.css?v=20260907_auth_strict">
 </head>
 <body>
 
@@ -37,8 +37,8 @@
       </ul>
 
       <div class="landing-nav-actions">
-        <button class="btn-nav-link" onclick="timeplusShowLoginPanel()">Iniciar sesión</button>
-        <button class="btn-nav-cta" onclick="timeplusShowLoginPanel()">Crear cuenta →</button>
+        <button class="btn-nav-link" onclick="timeplusShowLoginPanel('login')">Iniciar sesión</button>
+        <button class="btn-nav-cta" onclick="timeplusShowLoginPanel('register')">Crear cuenta →</button>
       </div>
     </nav>
 
@@ -59,7 +59,7 @@
         </p>
 
         <div class="hero-cta-buttons">
-          <button class="btn-hero-primary" onclick="timeplusShowLoginPanel()">
+          <button class="btn-hero-primary" onclick="timeplusShowLoginPanel('register')">
             Comenzar gratis →
           </button>
           <button class="btn-hero-secondary" onclick="timeplusShowLoginPanel()">
@@ -180,33 +180,70 @@
       </div>
     </section>
 
-    <!-- LOGIN PANEL (oculto por defecto) -->
+    <!-- LOGIN / REGISTRO PANEL (oculto por defecto) -->
     <div id="landing-login-panel">
       <div class="login-panel-box">
         <button class="login-panel-close" onclick="timeplusHideLoginPanel()">✕</button>
 
-        <div style="text-align:center; margin-bottom:1.75rem;">
+        <div style="text-align:center; margin-bottom:1.25rem;">
           <div class="login-panel-logo">T</div>
-          <h2 style="font-size:1.375rem;font-weight:900;">Iniciar Sesión</h2>
-          <p style="font-size:0.8125rem;color:#64748B;margin-top:0.25rem;">Accede a tu Sistema Operativo Personal</p>
+          <h2 id="modal-title" style="font-size:1.375rem;font-weight:900;">Acceso a TIMEPLUS</h2>
+          <p id="modal-sub" style="font-size:0.8125rem;color:#64748B;margin-top:0.25rem;">Sistema Operativo Personal con IA</p>
         </div>
 
-        <form onsubmit="event.preventDefault(); timeplusDoLandingLogin();" style="display:flex;flex-direction:column;gap:1rem;">
+        <!-- Pestañas Ingreso / Registro -->
+        <div style="display:flex;background:#F1F5F9;padding:0.25rem;border-radius:0.625rem;margin-bottom:1.25rem;gap:0.25rem;">
+          <button id="tab-login-btn" onclick="timeplusSwitchModalTab('login')" style="flex:1;padding:0.5rem;font-size:0.75rem;font-weight:800;border:none;border-radius:0.5rem;cursor:pointer;background:#ffffff;color:#2563EB;box-shadow:0 1px 3px rgba(0,0,0,0.1);">
+            Iniciar Sesión
+          </button>
+          <button id="tab-register-btn" onclick="timeplusSwitchModalTab('register')" style="flex:1;padding:0.5rem;font-size:0.75rem;font-weight:700;border:none;border-radius:0.5rem;cursor:pointer;background:transparent;color:#64748B;">
+            Solicitar Cuenta
+          </button>
+        </div>
+
+        <!-- Formulario Iniciar Sesión -->
+        <form id="form-landing-login" onsubmit="event.preventDefault(); timeplusDoLandingLogin();" style="display:flex;flex-direction:column;gap:1rem;">
           <div>
             <label style="font-size:0.75rem;font-weight:700;display:block;margin-bottom:0.35rem;">Correo electrónico</label>
-            <input type="email" id="landing-email" placeholder="correo@ejemplo.com" class="login-panel-input">
+            <input type="email" id="landing-email" placeholder="correo@ejemplo.com" class="login-panel-input" required>
           </div>
           <div>
             <label style="font-size:0.75rem;font-weight:700;display:block;margin-bottom:0.35rem;">Contraseña</label>
-            <input type="password" id="landing-pass" placeholder="••••••••" class="login-panel-input">
+            <input type="password" id="landing-pass" placeholder="••••••••" class="login-panel-input" required>
           </div>
-          <button type="submit" class="login-panel-submit">
+          <button type="submit" id="btn-submit-login" class="login-panel-submit">
             Ingresar →
           </button>
         </form>
 
+        <!-- Formulario Solicitar Cuenta (Registro en Supabase) -->
+        <form id="form-landing-register" onsubmit="event.preventDefault(); timeplusDoLandingRegister();" style="display:none;flex-direction:column;gap:0.875rem;">
+          <div>
+            <label style="font-size:0.75rem;font-weight:700;display:block;margin-bottom:0.35rem;">Nombre Completo</label>
+            <input type="text" id="reg-name" placeholder="Ej: Rafael Carvajal" class="login-panel-input" required>
+          </div>
+          <div>
+            <label style="font-size:0.75rem;font-weight:700;display:block;margin-bottom:0.35rem;">Correo electrónico</label>
+            <input type="email" id="reg-email" placeholder="correo@ejemplo.com" class="login-panel-input" required>
+          </div>
+          <div>
+            <label style="font-size:0.75rem;font-weight:700;display:block;margin-bottom:0.35rem;">Plan Deseado</label>
+            <select id="reg-plan" class="login-panel-input" style="background:#fff;">
+              <option value="TIMEPLUS Connect Pro">TIMEPLUS Connect Pro (Recomendado)</option>
+              <option value="TIMEPLUS Enterprise">TIMEPLUS Enterprise</option>
+              <option value="TIMEPLUS Basic">TIMEPLUS Básico</option>
+            </select>
+          </div>
+          <div style="background:#EFF6FF;border:1px solid #BFDBFE;border-radius:0.5rem;padding:0.6rem;font-size:0.6875rem;color:#1E40AF;">
+            ℹ️ Tu solicitud quedará en estado <strong>PENDIENTE</strong> en Supabase Cloud hasta ser aprobada por el SuperAdmin.
+          </div>
+          <button type="submit" id="btn-submit-register" class="login-panel-submit" style="background:linear-gradient(135deg,#16A34A,#15803D);">
+            Enviar Solicitud al SuperAdmin →
+          </button>
+        </form>
+
         <div style="margin-top:1.25rem;text-align:center;font-size:0.75rem;color:#64748B;">
-          <span>Acceso Admin: </span>
+          <span>Acceso Directo Admin: </span>
           <button onclick="timeplusQuickFillAdmin()" style="background:none;border:none;color:#2563EB;font-weight:700;cursor:pointer;font-size:0.75rem;">ces.rodriguez200@gmail.com</button>
         </div>
       </div>
@@ -329,20 +366,21 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <!-- Application Modules in Dependency Order -->
-  <script src="js/config.js?v=20260907c"></script>
-  <script src="js/supabase-client.js?v=20260907c"></script>
-  <script src="js/store.js?v=20260907c"></script>
-  <script src="js/ai-engine.js?v=20260907c"></script>
-  <script src="js/router.js?v=20260907c"></script>
-  <script src="js/app.js?v=20260907c"></script>
+  <script src="js/config.js?v=20260907_auth_strict"></script>
+  <script src="js/supabase-client.js?v=20260907_auth_strict"></script>
+  <script src="js/store.js?v=20260907_auth_strict"></script>
+  <script src="js/ai-engine.js?v=20260907_auth_strict"></script>
+  <script src="js/router.js?v=20260907_auth_strict"></script>
+  <script src="js/app.js?v=20260907_auth_strict"></script>
 
-  <!-- Landing Page Logic -->
+  <!-- Landing Page Logic con Verificación de Aprobación en Supabase -->
   <script>
-    function timeplusShowLoginPanel() {
+    function timeplusShowLoginPanel(defaultTab = 'login') {
+      timeplusSwitchModalTab(defaultTab);
       document.getElementById('landing-login-panel').classList.add('is-open');
       setTimeout(() => {
-        const emailField = document.getElementById('landing-email');
-        if (emailField) emailField.focus();
+        const field = defaultTab === 'register' ? document.getElementById('reg-name') : document.getElementById('landing-email');
+        if (field) field.focus();
       }, 100);
     }
 
@@ -350,29 +388,112 @@
       document.getElementById('landing-login-panel').classList.remove('is-open');
     }
 
+    function timeplusSwitchModalTab(tab) {
+      const loginForm = document.getElementById('form-landing-login');
+      const regForm   = document.getElementById('form-landing-register');
+      const tabLogin  = document.getElementById('tab-login-btn');
+      const tabReg    = document.getElementById('tab-register-btn');
+      const title     = document.getElementById('modal-title');
+      const sub       = document.getElementById('modal-sub');
+
+      if (tab === 'login') {
+        loginForm.style.display = 'flex';
+        regForm.style.display   = 'none';
+        tabLogin.style.background = '#ffffff';
+        tabLogin.style.color      = '#2563EB';
+        tabLogin.style.fontWeight = '800';
+        tabLogin.style.boxShadow  = '0 1px 3px rgba(0,0,0,0.1)';
+
+        tabReg.style.background   = 'transparent';
+        tabReg.style.color        = '#64748B';
+        tabReg.style.fontWeight   = '700';
+        tabReg.style.boxShadow    = 'none';
+
+        title.innerText = 'Iniciar Sesión';
+        sub.innerText   = 'Accede a tu Sistema Operativo Personal';
+      } else {
+        loginForm.style.display = 'none';
+        regForm.style.display   = 'flex';
+        tabReg.style.background   = '#ffffff';
+        tabReg.style.color        = '#16A34A';
+        tabReg.style.fontWeight   = '800';
+        tabReg.style.boxShadow    = '0 1px 3px rgba(0,0,0,0.1)';
+
+        tabLogin.style.background = 'transparent';
+        tabLogin.style.color      = '#64748B';
+        tabLogin.style.fontWeight = '700';
+        tabLogin.style.boxShadow  = 'none';
+
+        title.innerText = 'Solicitar Cuenta';
+        sub.innerText   = 'Regístrate para aprobación del SuperAdmin';
+      }
+    }
+
     function timeplusQuickFillAdmin() {
+      timeplusSwitchModalTab('login');
       document.getElementById('landing-email').value = 'ces.rodriguez200@gmail.com';
       document.getElementById('landing-pass').value = '16278465';
     }
 
-    function timeplusDoLandingLogin() {
+    async function timeplusDoLandingLogin() {
       const email = document.getElementById('landing-email').value.trim();
       const pass  = document.getElementById('landing-pass').value;
 
       if (!email || !pass) { alert('Por favor ingresa correo y contraseña.'); return; }
       if (!window.timeplusStore) { alert('El sistema aún está cargando. Intenta en un segundo.'); return; }
 
+      const submitBtn = document.getElementById('btn-submit-login');
+      if (submitBtn) { submitBtn.innerText = 'Verificando con Supabase...'; submitBtn.disabled = true; }
+
       try {
-        const user = window.timeplusStore.login(email, pass);
-        // Show app, hide landing
-        document.getElementById('landing-view').style.display = 'none';
-        document.getElementById('app-view').style.display    = 'flex';
-        timeplusHideLoginPanel();
-        const target = user.role === 'admin' ? 'admin' : 'hoy';
-        if (window.timeplusRouter) window.timeplusRouter.navigate(target);
-        if (window.timeplusShowToast) window.timeplusShowToast('¡Bienvenido, ' + user.name + '! 👋');
+        const result = await window.timeplusStore.loginWithApproval(email, pass);
+        if (submitBtn) { submitBtn.innerText = 'Ingresar →'; submitBtn.disabled = false; }
+
+        if (result.success) {
+          const user = result.user;
+          document.getElementById('landing-view').style.display = 'none';
+          document.getElementById('app-view').style.display    = 'flex';
+          timeplusHideLoginPanel();
+
+          const target = user.role === 'admin' ? 'admin' : 'hoy';
+          if (window.timeplusRouter) window.timeplusRouter.navigate(target);
+          if (window.timeplusShowToast) window.timeplusShowToast(`¡Bienvenido, ${user.name}! 👋`);
+        } else {
+          alert(`⛔ ACCESO DENEGADO:\n\n${result.reason}`);
+          if (window.timeplusShowToast) window.timeplusShowToast(`⛔ ${result.reason}`);
+        }
       } catch(e) {
-        alert('Credenciales incorrectas. Intenta de nuevo.');
+        if (submitBtn) { submitBtn.innerText = 'Ingresar →'; submitBtn.disabled = false; }
+        alert('Error al verificar credenciales: ' + e.message);
+      }
+    }
+
+    async function timeplusDoLandingRegister() {
+      const name  = document.getElementById('reg-name').value.trim();
+      const email = document.getElementById('reg-email').value.trim();
+      const plan  = document.getElementById('reg-plan').value;
+
+      if (!name || !email) { alert('Por favor completa todos los campos.'); return; }
+      if (!window.timeplusSupabase) { alert('Supabase no disponible en este momento.'); return; }
+
+      const submitBtn = document.getElementById('btn-submit-register');
+      if (submitBtn) { submitBtn.innerText = 'Registrando en Supabase...'; submitBtn.disabled = true; }
+
+      try {
+        const res = await window.timeplusSupabase.registerClientRequest(name, email, plan);
+        if (submitBtn) { submitBtn.innerText = 'Enviar Solicitud al SuperAdmin →'; submitBtn.disabled = false; }
+
+        if (res.ok) {
+          alert(`✅ SOLICITUD ENVIADA:\n\n${res.message}\n\nEl SuperAdmin revisará tu solicitud en el panel maestro. Una vez aprobada, podrás acceder.`);
+          timeplusSwitchModalTab('login');
+          document.getElementById('landing-email').value = email;
+          document.getElementById('landing-pass').value = '';
+        } else {
+          alert(`Error al registrar solicitud: ${res.error}`);
+        }
+      } catch(e) {
+        if (submitBtn) { submitBtn.innerText = 'Enviar Solicitud al SuperAdmin →'; submitBtn.disabled = false; }
+        alert('Error conectando con la nube: ' + e.message);
       }
     }
 
@@ -384,16 +505,33 @@
     }
 
     document.addEventListener('DOMContentLoaded', () => {
-      // Close panel when clicking backdrop
+      // Cerrar panel modal al hacer clic afuera
       const panel = document.getElementById('landing-login-panel');
       panel.addEventListener('click', (e) => { if (e.target === panel) timeplusHideLoginPanel(); });
 
-      // Auto-login if session persisted ONLY when NOT visiting #inicio
-      setTimeout(() => {
+      // Verificación estricta de sesión existente en Supabase Cloud
+      setTimeout(async () => {
         if (window.timeplusStore) {
           const u = window.timeplusStore.getCurrentUser();
           const hash = window.location.hash || '';
+
           if (u && !hash.includes('inicio')) {
+            // Si es cliente, verificar en Supabase si sigue aprobado
+            if (u.role === 'client' && window.timeplusSupabase) {
+              const check = await window.timeplusSupabase.checkClientApproval(u.email);
+              if (!check.allowed || check.status !== 'aprobado') {
+                // No está aprobado: expulsar y limpiar sesión
+                window.timeplusStore.logout();
+                document.getElementById('landing-view').style.display = 'block';
+                document.getElementById('app-view').style.display    = 'none';
+                if (window.timeplusShowToast) {
+                  window.timeplusShowToast('🔒 Tu cuenta está pendiente de aprobación por el SuperAdmin.');
+                }
+                return;
+              }
+            }
+
+            // Aprobado o SuperAdmin: permitir paso al dashboard
             document.getElementById('landing-view').style.display = 'none';
             document.getElementById('app-view').style.display    = 'flex';
             const target = u.role === 'admin' ? 'admin' : 'hoy';

@@ -22,13 +22,7 @@ window.TIMEPLUS_CONFIG = {
   },
 
   INITIAL_DATA: {
-    user: {
-      id: 'usr-1',
-      name: 'Rafael Carvajal',
-      email: 'usuario@timeplus.ai',
-      role: 'client', // 'client' | 'admin'
-      plan: 'TIMEPLUS Connect Pro'
-    },
+    user: null, // Ningún usuario pre-autenticado; requiere aprobación en Supabase
     activities: [
       {
         id: 'act-1',
