@@ -596,70 +596,127 @@
         ✕
       </button>
 
-      <div class="text-center space-y-2 mb-6">
-        <div class="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-gradient-to-tr from-blue-600 to-indigo-600 text-white text-xl font-black shadow-lg shadow-blue-500/25">
-          ✨
+      <!-- FORMULARIO DE REGISTRO -->
+      <div id="panel-reg-form">
+        <div class="text-center space-y-2 mb-6">
+          <div class="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-gradient-to-tr from-blue-600 to-indigo-600 text-white text-xl font-black shadow-lg shadow-blue-500/25">
+            ✨
+          </div>
+          <div class="inline-block px-3 py-1 rounded-full bg-blue-50 border border-blue-200 text-blue-800 text-[10px] font-black uppercase tracking-wider">
+            2. Quien Adquiere la App
+          </div>
+          <h2 class="text-2xl font-black text-slate-900 tracking-tight">Adquirir Plan TIMEPLUS</h2>
+          <p class="text-xs text-slate-500 font-medium max-w-sm mx-auto">
+            Crea tu cuenta y el SuperAdmin activará tu licencia en minutos.
+          </p>
         </div>
-        <div class="inline-block px-3 py-1 rounded-full bg-blue-50 border border-blue-200 text-blue-800 text-[10px] font-black uppercase tracking-wider">
-          2. Quien Adquiere la App
+
+        <form id="form-client-register" onsubmit="event.preventDefault(); window.timeplusHandleClientRegistration();" class="space-y-3">
+          
+          <!-- Nombre -->
+          <div>
+            <label class="block text-[11px] font-bold text-slate-700 mb-1">Nombre Completo o Empresa *</label>
+            <input type="text" id="client-reg-name" placeholder="Ej. Dr. Andrés Peña o Clínica Norte" required
+                   class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-800 focus:outline-none focus:border-blue-500 focus:bg-white transition-all shadow-inner">
+          </div>
+
+          <!-- Email -->
+          <div>
+            <label class="block text-[11px] font-bold text-slate-700 mb-1">Correo Electrónico (Google, Outlook o Corporativo) *</label>
+            <input type="email" id="client-reg-email" placeholder="usuario@gmail.com o empresa@correo.com" required
+                   class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-800 focus:outline-none focus:border-blue-500 focus:bg-white transition-all shadow-inner">
+          </div>
+
+          <!-- Teléfono + Fecha de Nacimiento -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            <div>
+              <label class="block text-[11px] font-bold text-slate-700 mb-1">Teléfono / WhatsApp</label>
+              <input type="tel" id="client-reg-phone" placeholder="+57 300 000 0000"
+                     class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-800 focus:outline-none focus:border-blue-500 focus:bg-white transition-all shadow-inner">
+            </div>
+            <div>
+              <label class="block text-[11px] font-bold text-slate-700 mb-1">Fecha de Nacimiento</label>
+              <input type="date" id="client-reg-birthday"
+                     class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-800 focus:outline-none focus:border-blue-500 focus:bg-white transition-all shadow-inner">
+            </div>
+          </div>
+
+          <!-- Ciudad -->
+          <div>
+            <label class="block text-[11px] font-bold text-slate-700 mb-1">Ciudad / País</label>
+            <input type="text" id="client-reg-city" placeholder="Ej. Bogotá, Colombia"
+                   class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-800 focus:outline-none focus:border-blue-500 focus:bg-white transition-all shadow-inner">
+          </div>
+
+          <!-- Plan -->
+          <div>
+            <label class="block text-[11px] font-bold text-slate-700 mb-1">Plan que deseas Adquirir</label>
+            <select id="client-reg-plan" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-800 focus:outline-none focus:border-blue-500 focus:bg-white transition-all shadow-inner">
+              <option value="TIMEPLUS Connect Pro">TIMEPLUS Connect Pro ($9.99/mes) — Todo conectado con IA</option>
+              <option value="TIMEPLUS Médico &amp; Citas">TIMEPLUS Médico & Citas ($14.99/mes) — Citas y Pacientes</option>
+              <option value="TIMEPLUS Corporativo">TIMEPLUS Corporativo ($29.99/mes) — Equipos y Empresas</option>
+              <option value="TIMEPLUS Académico">TIMEPLUS Académico ($4.99/mes) — Universidad y Entregas</option>
+              <option value="TIMEPLUS Free">TIMEPLUS Free (Plan Básico Gratuito)</option>
+            </select>
+          </div>
+
+          <!-- Contraseñas -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            <div>
+              <label class="block text-[11px] font-bold text-slate-700 mb-1">Crea tu Contraseña *</label>
+              <input type="password" id="client-reg-pass" placeholder="••••••••" required minlength="6"
+                     class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-800 focus:outline-none focus:border-blue-500 focus:bg-white transition-all shadow-inner">
+            </div>
+            <div>
+              <label class="block text-[11px] font-bold text-slate-700 mb-1">Confirmar Contraseña *</label>
+              <input type="password" id="client-reg-pass-confirm" placeholder="••••••••" required minlength="6"
+                     class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-800 focus:outline-none focus:border-blue-500 focus:bg-white transition-all shadow-inner">
+            </div>
+          </div>
+
+          <div id="client-reg-msg" class="hidden text-[11px] font-semibold p-2.5 rounded-xl text-center"></div>
+
+          <button type="submit" class="w-full py-3.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-extrabold text-xs rounded-xl shadow-lg shadow-blue-500/25 transition-all flex items-center justify-center gap-1.5 active:scale-95">
+            <span>🔒</span> <span>Crear Cuenta y Solicitar Activación</span> <span>→</span>
+          </button>
+        </form>
+
+        <div class="mt-6 pt-5 border-t border-slate-100 text-center">
+          <p class="text-xs text-slate-500">
+            ¿Ya tienes una cuenta aprobada?
+            <button onclick="window.timeplusOpenClientModal()" class="font-extrabold text-blue-600 hover:text-blue-800 underline ml-1">
+              Iniciar Sesión como Cliente aquí 🔑
+            </button>
+          </p>
         </div>
-        <h2 class="text-2xl font-black text-slate-900 tracking-tight">Adquirir Plan TIMEPLUS</h2>
-        <p class="text-xs text-slate-500 font-medium max-w-sm mx-auto">
-          Elige el plan adecuado para tu empresa o actividad personal y crea tu contraseña.
-        </p>
       </div>
 
-      <form id="form-client-register" onsubmit="event.preventDefault(); window.timeplusHandleClientRegistration();" class="space-y-3">
+      <!-- PANTALLA DE BIENVENIDA (aparece tras registro exitoso) -->
+      <div id="panel-reg-welcome" class="hidden text-center space-y-5 py-4">
+        <div class="text-6xl animate-bounce">🎉</div>
         <div>
-          <label class="block text-[11px] font-bold text-slate-700 mb-1">Nombre Completo o Empresa</label>
-          <input type="text" id="client-reg-name" placeholder="Ej. Dr. Andrés Peña o Clínica Norte" required
-                 class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-800 focus:outline-none focus:border-blue-500 focus:bg-white transition-all shadow-inner">
+          <h2 class="text-2xl font-black text-slate-900 tracking-tight" id="welcome-reg-title">¡Bienvenido!</h2>
+          <p class="text-sm text-slate-500 font-medium mt-1" id="welcome-reg-subtitle"></p>
         </div>
-
-        <div>
-          <label class="block text-[11px] font-bold text-slate-700 mb-1">Correo Electrónico (Google, Outlook o Corporativo)</label>
-          <input type="email" id="client-reg-email" placeholder="usuario@gmail.com o empresa@correo.com" required
-                 class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-800 focus:outline-none focus:border-blue-500 focus:bg-white transition-all shadow-inner">
-        </div>
-
-        <div>
-          <label class="block text-[11px] font-bold text-slate-700 mb-1">Plan que deseas Adquirir</label>
-          <select id="client-reg-plan" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-800 focus:outline-none focus:border-blue-500 focus:bg-white transition-all shadow-inner">
-            <option value="TIMEPLUS Connect Pro">TIMEPLUS Connect Pro ($9.99/mes) — Todo conectado con IA</option>
-            <option value="TIMEPLUS Médico & Citas">TIMEPLUS Médico & Citas ($14.99/mes) — Citas y Pacientes</option>
-            <option value="TIMEPLUS Corporativo">TIMEPLUS Corporativo ($29.99/mes) — Equipos y Empresas</option>
-            <option value="TIMEPLUS Académico">TIMEPLUS Académico ($4.99/mes) — Universidad y Entregas</option>
-            <option value="TIMEPLUS Free">TIMEPLUS Free (Plan Básico Gratuito)</option>
-          </select>
-        </div>
-
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
-          <div>
-            <label class="block text-[11px] font-bold text-slate-700 mb-1">Crea tu Contraseña</label>
-            <input type="password" id="client-reg-pass" placeholder="••••••••" required minlength="6"
-                   class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-800 focus:outline-none focus:border-blue-500 focus:bg-white transition-all shadow-inner">
+        <div class="bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-200 rounded-2xl p-5 text-left space-y-2">
+          <div class="flex items-center gap-2 text-xs font-bold text-blue-800">
+            <span>📋</span> <span>Resumen de tu solicitud</span>
           </div>
-          <div>
-            <label class="block text-[11px] font-bold text-slate-700 mb-1">Confirmar Contraseña</label>
-            <input type="password" id="client-reg-pass-confirm" placeholder="••••••••" required minlength="6"
-                   class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-800 focus:outline-none focus:border-blue-500 focus:bg-white transition-all shadow-inner">
+          <div class="text-xs text-slate-600 space-y-1.5 pt-1">
+            <div class="flex justify-between"><span class="font-semibold text-slate-500">Nombre:</span><span class="font-bold text-slate-800" id="welcome-reg-name">—</span></div>
+            <div class="flex justify-between"><span class="font-semibold text-slate-500">Correo:</span><span class="font-bold text-slate-800 font-mono text-[10px]" id="welcome-reg-email">—</span></div>
+            <div class="flex justify-between"><span class="font-semibold text-slate-500">Plan:</span><span class="font-bold text-indigo-700" id="welcome-reg-plan">—</span></div>
+            <div class="flex justify-between" id="welcome-reg-city-row"><span class="font-semibold text-slate-500">Ciudad:</span><span class="font-bold text-slate-800" id="welcome-reg-city">—</span></div>
+            <div class="flex justify-between" id="welcome-reg-bday-row"><span class="font-semibold text-slate-500">Cumpleaños:</span><span class="font-bold text-slate-800" id="welcome-reg-bday">—</span></div>
           </div>
         </div>
-
-        <div id="client-reg-msg" class="hidden text-[11px] font-semibold p-2.5 rounded-xl text-center"></div>
-
-        <button type="submit" class="w-full py-3.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-extrabold text-xs rounded-xl shadow-lg shadow-blue-500/25 transition-all flex items-center justify-center gap-1.5 active:scale-95">
-          <span>🔒</span> <span>Crear Cuenta y Solicitar Activación</span> <span>→</span>
+        <div class="bg-amber-50 border border-amber-200 rounded-2xl p-4">
+          <p class="text-xs font-bold text-amber-800">⏳ Próximo paso</p>
+          <p class="text-xs text-amber-700 mt-1">El SuperAdmin revisará tu solicitud. Cuando sea aprobada, recibirás acceso completo a TIMEPLUS con tu correo y contraseña.</p>
+        </div>
+        <button onclick="window.timeplusCloseAuthModal()" class="w-full py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-extrabold text-xs rounded-xl transition-all">
+          Entendido, esperar aprobación ✓
         </button>
-      </form>
-
-      <div class="mt-6 pt-5 border-t border-slate-100 text-center">
-        <p class="text-xs text-slate-500">
-          ¿Ya tienes una cuenta aprobada?
-          <button onclick="window.timeplusOpenClientModal()" class="font-extrabold text-blue-600 hover:text-blue-800 underline ml-1">
-            Iniciar Sesión como Cliente aquí 🔑
-          </button>
-        </p>
       </div>
 
     </div>
@@ -1431,11 +1488,11 @@
 
   <!-- Supabase CDN Client -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="js/supabase-client.js?v=20260906_8"></script>
+  <script src="js/supabase-client.js?v=20260906_9"></script>
 
   <!-- Application Logic Scripts -->
-  <script src="js/store.js?v=20260906_8"></script>
-  <script src="js/ai-engine.js?v=20260906_8"></script>
-  <script src="js/app.js?v=20260906_8"></script>
+  <script src="js/store.js?v=20260906_9"></script>
+  <script src="js/ai-engine.js?v=20260906_9"></script>
+  <script src="js/app.js?v=20260906_9"></script>
 </body>
 </html>

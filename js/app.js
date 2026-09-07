@@ -1421,6 +1421,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
   window.timeplusCloseAuthModal = () => {
     closeAllAuthModals();
+    // Resetear formulario de registro para la próxima apertura
+    const panelForm = document.getElementById('panel-reg-form');
+    const panelWelcome = document.getElementById('panel-reg-welcome');
+    if (panelForm) panelForm.classList.remove('hidden');
+    if (panelWelcome) panelWelcome.classList.add('hidden');
+    // Ocultar filas opcionales para que se muestren de nuevo la próxima vez
+    const cityRow = document.getElementById('welcome-reg-city-row');
+    const bdayRow = document.getElementById('welcome-reg-bday-row');
+    if (cityRow) cityRow.classList.remove('hidden');
+    if (bdayRow) bdayRow.classList.remove('hidden');
   };
 
   // Compatibilidad con invocaciones existentes
@@ -1635,6 +1645,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const passInput = document.getElementById('client-reg-pass');
     const passConfirmInput = document.getElementById('client-reg-pass-confirm');
     const planSelect = document.getElementById('client-reg-plan');
+    const phoneInput = document.getElementById('client-reg-phone');
+    const birthdayInput = document.getElementById('client-reg-birthday');
+    const cityInput = document.getElementById('client-reg-city');
     const msgEl = document.getElementById('client-reg-msg');
 
     const name = nameInput ? nameInput.value.trim() : '';
@@ -1642,6 +1655,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const pass = passInput ? passInput.value : '';
     const passConfirm = passConfirmInput ? passConfirmInput.value : '';
     const plan = planSelect ? planSelect.value : 'TIMEPLUS Connect Pro';
+    const phone = phoneInput ? phoneInput.value.trim() : '';
+    const birthday = birthdayInput ? birthdayInput.value : '';
+    const city = cityInput ? cityInput.value.trim() : '';
 
     if (!email || !name || !pass) return;
 
@@ -1668,6 +1684,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     const provider = email.includes('gmail') ? 'Google Workspace' : (email.includes('outlook') || email.includes('hotmail') ? 'Microsoft Outlook' : 'Correo Corporativo');
+    const firstName = name.split(' ')[0];
 
     // 1. Guardar en localStorage local
     store.addClientRequest(name, email, provider, plan, pass);
@@ -1676,7 +1693,9 @@ document.addEventListener('DOMContentLoaded', () => {
     let savedToCloud = false;
     if (window.timeplusSupabase && typeof window.timeplusSupabase.addClientRequest === 'function') {
       try {
-        const result = await window.timeplusSupabase.addClientRequest({ name, email, password: pass, provider, plan });
+        const result = await window.timeplusSupabase.addClientRequest({
+          name, email, password: pass, provider, plan, phone, birthday, city
+        });
         savedToCloud = !!result;
         console.log('☁️ Resultado Supabase addClientRequest:', result);
       } catch (e) {
@@ -1688,21 +1707,69 @@ document.addEventListener('DOMContentLoaded', () => {
     if (window.timeplusSupabase && window.timeplusSupabase.client) {
       window.timeplusSupabase.client.auth.signUp({
         email, password: pass,
-        options: { data: { full_name: name, plan } }
+        options: { data: { full_name: name, plan, phone, birthday, city } }
       }).then(({ error }) => {
         if (error) console.warn('Nota Auth signUp (no crítico):', error.message);
       }).catch(() => {});
     }
 
-    if (msgEl) {
-      msgEl.className = 'text-[11px] font-semibold p-2.5 rounded-xl text-center bg-emerald-50 text-emerald-700 block';
-      msgEl.textContent = `✅ Solicitud enviada${savedToCloud ? ' y guardada en la nube' : ' localmente'}. En cuanto el SuperAdmin apruebe tu plan "${plan}", podrás ingresar.`;
+    // 4. Mostrar pantalla de bienvenida personalizada
+    const panelForm = document.getElementById('panel-reg-form');
+    const panelWelcome = document.getElementById('panel-reg-welcome');
+
+    if (panelForm && panelWelcome) {
+      panelForm.classList.add('hidden');
+      panelWelcome.classList.remove('hidden');
+
+      // Rellenar datos en el panel de bienvenida
+      const titleEl = document.getElementById('welcome-reg-title');
+      const subtitleEl = document.getElementById('welcome-reg-subtitle');
+      if (titleEl) titleEl.textContent = `¡Bienvenido, ${firstName}! 🎉`;
+      if (subtitleEl) subtitleEl.textContent = savedToCloud
+        ? 'Tu solicitud fue enviada exitosamente a la nube.'
+        : 'Tu solicitud fue registrada. El SuperAdmin la revisará pronto.';
+
+      const elName = document.getElementById('welcome-reg-name');
+      const elEmail = document.getElementById('welcome-reg-email');
+      const elPlan = document.getElementById('welcome-reg-plan');
+      const elCity = document.getElementById('welcome-reg-city');
+      const elBday = document.getElementById('welcome-reg-bday');
+      const cityRow = document.getElementById('welcome-reg-city-row');
+      const bdayRow = document.getElementById('welcome-reg-bday-row');
+
+      if (elName) elName.textContent = name;
+      if (elEmail) elEmail.textContent = email;
+      if (elPlan) elPlan.textContent = plan;
+
+      if (city && elCity) {
+        elCity.textContent = city;
+      } else if (cityRow) {
+        cityRow.classList.add('hidden');
+      }
+
+      if (birthday && elBday) {
+        // Formatear fecha de nacimiento de forma legible
+        const bdayDate = new Date(birthday + 'T12:00:00');
+        elBday.textContent = bdayDate.toLocaleDateString('es', { day: 'numeric', month: 'long', year: 'numeric' });
+      } else if (bdayRow) {
+        bdayRow.classList.add('hidden');
+      }
+    } else {
+      // Fallback si los paneles no existen
+      if (msgEl) {
+        msgEl.className = 'text-[11px] font-semibold p-2.5 rounded-xl text-center bg-emerald-50 text-emerald-700 block';
+        msgEl.textContent = `✅ ¡Bienvenido, ${firstName}! Tu solicitud fue enviada${savedToCloud ? ' y guardada en la nube' : ''}. El SuperAdmin activará tu acceso pronto.`;
+      }
     }
 
+    // Limpiar formulario
     if (nameInput) nameInput.value = '';
     if (emailInput) emailInput.value = '';
     if (passInput) passInput.value = '';
     if (passConfirmInput) passConfirmInput.value = '';
+    if (phoneInput) phoneInput.value = '';
+    if (birthdayInput) birthdayInput.value = '';
+    if (cityInput) cityInput.value = '';
   };
 
   // SuperAdmin Aprueba un cliente (Sincronizado con Supabase Cloud)
