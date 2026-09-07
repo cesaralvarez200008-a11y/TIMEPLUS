@@ -175,15 +175,15 @@ class TimePlusStore {
     return true;
   }
 
-  // --- Activities Management con Aislamiento por Cliente ---
+  // --- Activities Management con Aislamiento Estricto por Cliente ---
   getActivities() {
     const acts = this.state.activities || [];
     const user = this.getCurrentUser();
     if (!user) return [];
     if (user.role === 'admin') return acts; // SuperAdmin controla y ve todo
-    // Cliente solo ve sus propios datos
-    const userEmail = (user.email || '').toLowerCase();
-    return acts.filter(a => !a.userEmail || a.userEmail.toLowerCase() === userEmail);
+    // Cliente solo ve sus propias actividades (en blanco si acaba de registrarse)
+    const userEmail = (user.email || '').trim().toLowerCase();
+    return acts.filter(a => a.userEmail && a.userEmail.trim().toLowerCase() === userEmail);
   }
 
   addActivity(activity) {
@@ -241,6 +241,7 @@ class TimePlusStore {
     this.state.fitnessSummary.activeHours += (workout.durationHours || 1);
     this.state.fitnessSummary.caloriesBurned += (workout.calories || 450);
 
+    const user = this.getCurrentUser();
     const act = {
       id: 'fit-' + Date.now(),
       title: workout.title || 'Entrenamiento Registrado',
@@ -249,22 +250,44 @@ class TimePlusStore {
       date: 'today',
       duration: workout.duration || '1h',
       type: 'fitness',
-      exercises: workout.exercises || []
+      exercises: workout.exercises || [],
+      userEmail: user ? user.email.toLowerCase() : null
     };
     return this.addActivity(act);
   }
 
   getFitnessSummary() {
-    return this.state.fitnessSummary || { weeklyWorkouts: 4, targetWorkouts: 5, activeHours: 5.5, caloriesBurned: 2450 };
+    const user = this.getCurrentUser();
+    if (user && user.role === 'client') {
+      const clientWorkouts = this.getActivities().filter(a => a.category === 'fitness');
+      const hours = clientWorkouts.reduce((acc, w) => acc + (parseFloat(w.duration) || 1), 0);
+      return {
+        weeklyWorkouts: clientWorkouts.length,
+        targetWorkouts: 5,
+        activeHours: hours,
+        caloriesBurned: clientWorkouts.length * 450
+      };
+    }
+    return this.state.fitnessSummary || { weeklyWorkouts: 0, targetWorkouts: 5, activeHours: 0, caloriesBurned: 0 };
   }
 
   // --- Contactos (Visión 6) ---
   getContacts() {
-    return this.state.contacts || [];
+    const contacts = this.state.contacts || [];
+    const user = this.getCurrentUser();
+    if (!user) return [];
+    if (user.role === 'admin') return contacts;
+    const userEmail = (user.email || '').trim().toLowerCase();
+    return contacts.filter(c => c.userEmail && c.userEmail.trim().toLowerCase() === userEmail);
   }
 
   addContact(contact) {
     if (!contact.id) contact.id = 'cnt-' + Date.now();
+    const user = this.getCurrentUser();
+    if (user && user.email) {
+      contact.userEmail = user.email.toLowerCase();
+    }
+    if (!this.state.contacts) this.state.contacts = [];
     this.state.contacts.push(contact);
     this.saveState();
     return contact;
@@ -272,7 +295,20 @@ class TimePlusStore {
 
   // --- Lugares y Movilidad (Visión 15 & 3) ---
   getPlaces() {
-    return this.state.places || [];
+    const places = this.state.places || [];
+    const user = this.getCurrentUser();
+    if (!user) return [];
+    if (user.role === 'admin') return places;
+    const userEmail = (user.email || '').trim().toLowerCase();
+    const userPlaces = places.filter(p => p.userEmail && p.userEmail.trim().toLowerCase() === userEmail);
+    if (userPlaces.length === 0 && (user.addrHome || user.addrGym || user.addrWork)) {
+      const autoPlaces = [];
+      if (user.addrHome) autoPlaces.push({ id: 'plc-home', name: 'Casa / Residencia', address: user.addrHome, visitsCount: 1, avgTravelTime: 'Punto Base' });
+      if (user.addrWork) autoPlaces.push({ id: 'plc-work', name: 'Trabajo / Estudio', address: user.addrWork, visitsCount: 0, avgTravelTime: '~20 min' });
+      if (user.addrGym) autoPlaces.push({ id: 'plc-gym', name: 'Gimnasio Habitual', address: user.addrGym, visitsCount: 0, avgTravelTime: '~15 min' });
+      return autoPlaces;
+    }
+    return userPlaces;
   }
 
   recordPlaceVisit(placeId) {
@@ -315,11 +351,24 @@ class TimePlusStore {
 
   // --- Bandeja de Entrada IA (Visión 18) ---
   getInbox() {
-    return this.state.inbox || [];
+    const inbox = this.state.inbox || [];
+    const user = this.getCurrentUser();
+    if (!user) return [];
+    if (user.role === 'admin') return inbox;
+    const userEmail = (user.email || '').trim().toLowerCase();
+    return inbox.filter(i => i.userEmail && i.userEmail.trim().toLowerCase() === userEmail);
   }
 
   addInboxItem(text, source = 'audio') {
-    const item = { id: 'inb-' + Date.now(), text, source, date: 'Hoy' };
+    const user = this.getCurrentUser();
+    const item = { 
+      id: 'inb-' + Date.now(), 
+      text, 
+      source, 
+      date: 'Hoy',
+      userEmail: user ? user.email.toLowerCase() : null
+    };
+    if (!this.state.inbox) this.state.inbox = [];
     this.state.inbox.unshift(item);
     this.saveState();
     return item;

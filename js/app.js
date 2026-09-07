@@ -133,6 +133,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const user = store.getCurrentUser();
     const acts = store.getActivities().filter(a => a.date === 'today');
     const conflicts = store.detectConflicts();
+    const meds = acts.filter(a => a.type === 'medicamento');
+    const medsTaken = meds.filter(a => a.confirmedTaken).length;
+    const fit = store.getFitnessSummary();
+    const places = store.getPlaces();
 
     const dateStr = new Intl.DateTimeFormat('es-CO', {
       weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'
@@ -212,7 +216,7 @@ document.addEventListener('DOMContentLoaded', () => {
         </div>
       ` : ''}
 
-      <!-- 4 KPI Metrics Cards -->
+      <!-- 4 KPI Metrics Cards Dinámicos -->
       <div class="grid-cols-4" style="margin-top: 1.5rem;">
         <div class="stat-card" onclick="window.timeplusRouter.navigate('agenda')">
           <div class="stat-card-top">
@@ -220,34 +224,34 @@ document.addEventListener('DOMContentLoaded', () => {
             <div class="stat-card-value" style="color: var(--cat-trabajo-text);">${acts.length}</div>
           </div>
           <div class="stat-card-title">Actividades de Hoy</div>
-          <div class="stat-card-desc">Eventos, citas y trabajo</div>
+          <div class="stat-card-desc">${acts.length === 0 ? 'Sin eventos agendados' : 'Eventos, citas y trabajo'}</div>
         </div>
 
         <div class="stat-card" onclick="window.timeplusRouter.navigate('salud')">
           <div class="stat-card-top">
             <div class="stat-card-icon" style="background: var(--cat-salud-bg); color: var(--cat-salud-text);">💊</div>
-            <div class="stat-card-value" style="color: var(--cat-salud-text);">1 / 1</div>
+            <div class="stat-card-value" style="color: var(--cat-salud-text);">${meds.length === 0 ? '0' : `${medsTaken} / ${meds.length}`}</div>
           </div>
           <div class="stat-card-title">Salud & Medicamentos</div>
-          <div class="stat-card-desc">Toma confirmada</div>
+          <div class="stat-card-desc">${meds.length === 0 ? 'Sin tomas agendadas' : (medsTaken === meds.length ? 'Toma confirmada' : 'Tomas pendientes')}</div>
         </div>
 
         <div class="stat-card" onclick="window.timeplusRouter.navigate('fitness')">
           <div class="stat-card-top">
             <div class="stat-card-icon" style="background: var(--cat-fitness-bg); color: var(--cat-fitness-text);">🏋️</div>
-            <div class="stat-card-value" style="color: var(--cat-fitness-text);">4 / 5</div>
+            <div class="stat-card-value" style="color: var(--cat-fitness-text);">${fit.weeklyWorkouts} / ${fit.targetWorkouts}</div>
           </div>
           <div class="stat-card-title">Días de Gimnasio</div>
-          <div class="stat-card-desc">Meta semanal casi lista</div>
+          <div class="stat-card-desc">${fit.weeklyWorkouts === 0 ? 'Sin registros esta semana' : 'Meta semanal en progreso'}</div>
         </div>
 
         <div class="stat-card" onclick="window.timeplusRouter.navigate('lugares')">
           <div class="stat-card-top">
             <div class="stat-card-icon" style="background: var(--cat-personal-bg); color: var(--cat-personal-text);">📍</div>
-            <div class="stat-card-value" style="color: var(--cat-personal-text);">3</div>
+            <div class="stat-card-value" style="color: var(--cat-personal-text);">${places.length}</div>
           </div>
           <div class="stat-card-title">Sedes Frecuentes</div>
-          <div class="stat-card-desc">Conteo de visitas activo</div>
+          <div class="stat-card-desc">${places.length === 0 ? 'Registra tus puntos clave' : 'Conteo de visitas activo'}</div>
         </div>
       </div>
 
@@ -264,7 +268,23 @@ document.addEventListener('DOMContentLoaded', () => {
         </div>
 
         <div class="timeline-list">
-          ${acts.map(a => renderTimelineItem(a)).join('')}
+          ${acts.length === 0 ? `
+            <div style="text-align:center; padding: 3rem 1.5rem; background: #F8FAFC; border: 1.5px dashed #CBD5E1; border-radius: var(--radius-lg); margin-top: 0.5rem;">
+              <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">✨</div>
+              <h4 style="font-size: 1.1rem; font-weight: 900; color: #1E293B; margin-bottom: 0.35rem;">¡Tu agenda está libre y en blanco!</h4>
+              <p style="font-size: 0.8125rem; color: #64748B; max-width: 26rem; margin: 0 auto 1.25rem;">
+                No tienes actividades agendadas aún. Pídele a la IA de TIMEPLUS que organice tu día con voz o texto.
+              </p>
+              <div style="display: flex; gap: 0.5rem; justify-content: center; flex-wrap: wrap;">
+                <button class="btn-primary" onclick="window.timeplusOpenNewActivityModal()">
+                  <span>＋</span> Agendar Primera Actividad
+                </button>
+                <button class="btn-secondary" onclick="window.timeplusAI.toggleVoice()">
+                  🎙️ Hablar con la IA
+                </button>
+              </div>
+            </div>
+          ` : acts.map(a => renderTimelineItem(a)).join('')}
         </div>
       </div>
     `;
@@ -347,7 +367,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
       <div class="timeline-card">
         <div class="timeline-list">
-          ${acts.map(a => renderTimelineItem(a)).join('')}
+          ${acts.length === 0 ? `
+            <div style="text-align:center;padding:3rem 1.5rem;color:#64748B;">
+              <div style="font-size:2rem;margin-bottom:0.5rem;">📅</div>
+              <p style="font-weight:700;color:#1E293B;">No tienes actividades registradas en tu agenda.</p>
+              <p style="font-size:0.8rem;margin-top:0.25rem;">Usa el botón superior "+ Nueva Actividad" para comenzar.</p>
+            </div>
+          ` : acts.map(a => renderTimelineItem(a)).join('')}
         </div>
       </div>
     `;
@@ -363,7 +389,13 @@ document.addEventListener('DOMContentLoaded', () => {
       </div>
 
       <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1rem;">
-        ${meds.map(m => `
+        ${meds.length === 0 ? `
+          <div style="grid-column:1/-1;text-align:center;padding:3rem 1.5rem;background:#F8FAFC;border:1.5px dashed #CBD5E1;border-radius:var(--radius-lg);color:#64748B;">
+            <div style="font-size:2rem;margin-bottom:0.5rem;">💊</div>
+            <p style="font-weight:700;color:#1E293B;">No tienes medicamentos programados.</p>
+            <p style="font-size:0.8rem;margin-top:0.25rem;">Dile a la IA: <em>"Recuérdame tomar mi medicamento a las 8"</em> o agrégalo en tu agenda.</p>
+          </div>
+        ` : meds.map(m => `
           <div class="med-card">
             <div class="med-header">
               <span style="font-size: 1.5rem;">💊</span>
@@ -423,7 +455,13 @@ document.addEventListener('DOMContentLoaded', () => {
       <div class="timeline-card" style="margin-top: 1.5rem;">
         <h3 style="margin-bottom: 1rem;">Historial de Entrenamientos Recientes</h3>
         <div class="timeline-list">
-          ${workouts.map(w => `
+          ${workouts.length === 0 ? `
+            <div style="text-align:center;padding:2.5rem 1rem;color:#64748B;">
+              <div style="font-size:2rem;margin-bottom:0.5rem;">🏋️</div>
+              <p style="font-weight:700;color:#1E293B;">Sin entrenamientos registrados esta semana.</p>
+              <p style="font-size:0.8rem;margin-top:0.25rem;">Usa el botón "🎙️ Dictar Rutina" para registrar tu sesión con IA.</p>
+            </div>
+          ` : workouts.map(w => `
             <div class="timeline-item">
               <div class="timeline-time">${w.time}</div>
               <div class="timeline-content">
@@ -451,7 +489,13 @@ document.addEventListener('DOMContentLoaded', () => {
       </div>
 
       <div class="grid-cols-2">
-        ${contacts.map(c => `
+        ${contacts.length === 0 ? `
+          <div style="grid-column: 1/-1; text-align: center; padding: 3rem 1.5rem; background: #F8FAFC; border: 1.5px dashed #CBD5E1; border-radius: var(--radius-lg); color: #64748B;">
+            <div style="font-size: 2.25rem; margin-bottom: 0.5rem;">👥</div>
+            <p style="font-weight: 700; color: #1E293B;">No tienes personas ni contactos registrados aún.</p>
+            <p style="font-size: 0.8rem; margin-top: 0.25rem;">Al agendar reuniones con la IA, tus contactos se vincularán automáticamente.</p>
+          </div>
+        ` : contacts.map(c => `
           <div class="stat-card" style="cursor: default;">
             <div style="display: flex; align-items: center; gap: 0.75rem;">
               <div class="stat-card-icon" style="background: var(--primary-light); color: var(--primary); font-weight: 900;">
@@ -488,7 +532,13 @@ document.addEventListener('DOMContentLoaded', () => {
       </div>
 
       <div class="grid-cols-4">
-        ${places.map(p => `
+        ${places.length === 0 ? `
+          <div style="grid-column: 1/-1; text-align: center; padding: 3rem 1.5rem; background: #F8FAFC; border: 1.5px dashed #CBD5E1; border-radius: var(--radius-lg); color: #64748B;">
+            <div style="font-size: 2.25rem; margin-bottom: 0.5rem;">📍</div>
+            <p style="font-weight: 700; color: #1E293B;">No tienes sedes ni lugares registrados aún.</p>
+            <p style="font-size: 0.8rem; margin-top: 0.25rem;">Configura tu casa, trabajo y gimnasio en <a href="#/perfil" style="color:var(--primary);font-weight:700;">Mi Perfil</a> para activar el cálculo de rutas.</p>
+          </div>
+        ` : places.map(p => `
           <div class="stat-card">
             <div class="stat-card-top">
               <span style="font-size: 1.5rem;">📍</span>
@@ -509,34 +559,50 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // --- 7. PROYECTOS & TAREAS (VISIÓN 7) ---
   function renderProjects() {
+    const user = store.getCurrentUser();
+    const acts = store.getActivities().filter(a => a.category === 'trabajo' || (a.subtasks && a.subtasks.length > 0));
+
     contentEl.innerHTML = `
       <div style="margin-bottom: 1.5rem;">
         <h2>Proyectos & Entregables</h2>
         <p style="font-size: 0.8125rem;">Gestión de objetivos divididos en fases y subtareas.</p>
       </div>
 
-      <div class="timeline-card">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-          <h3>Proyecto: Implementación AuditPlus 2026</h3>
-          <span class="timeline-badge" style="background: #EFF6FF; color: #1D4ED8;">En progreso (60%)</span>
+      ${user && user.role === 'client' && acts.length === 0 ? `
+        <div class="timeline-card" style="text-align: center; padding: 3rem 1.5rem; background: #F8FAFC; border: 1.5px dashed #CBD5E1; border-radius: var(--radius-lg);">
+          <div style="font-size: 2.25rem; margin-bottom: 0.5rem;">💼</div>
+          <h4 style="font-size: 1.1rem; font-weight: 800; color: #1E293B; margin-bottom: 0.35rem;">No tienes proyectos ni entregables registrados</h4>
+          <p style="font-size: 0.8125rem; color: #64748B; max-width: 26rem; margin: 0 auto 1.25rem;">
+            Pídele a la IA de TIMEPLUS: <em>"Crea una entrega para mi proyecto con subtareas"</em> o agrega una nueva actividad.
+          </p>
+          <button class="btn-primary" onclick="window.timeplusOpenNewActivityModal()">
+            <span>＋</span> Crear Tarea o Proyecto
+          </button>
         </div>
-        <p style="font-size: 0.75rem; margin-bottom: 1rem;">Entrega final programada para el 30 de septiembre.</p>
+      ` : `
+        <div class="timeline-card">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+            <h3>Proyecto: Implementación AuditPlus 2026</h3>
+            <span class="timeline-badge" style="background: #EFF6FF; color: #1D4ED8;">En progreso (60%)</span>
+          </div>
+          <p style="font-size: 0.75rem; margin-bottom: 1rem;">Entrega final programada para el 30 de septiembre.</p>
 
-        <div style="display: flex; flex-direction: column; gap: 0.5rem;">
-          <label style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.8125rem;">
-            <input type="checkbox" checked disabled> <span>Reunión de alineación con cliente (Completado)</span>
-          </label>
-          <label style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.8125rem;">
-            <input type="checkbox" checked disabled> <span>Enviar propuesta y cotización de módulo de salud</span>
-          </label>
-          <label style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.8125rem;">
-            <input type="checkbox"> <span>Revisar contrato marco legal con abogados</span>
-          </label>
-          <label style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.8125rem;">
-            <input type="checkbox"> <span>Entrega del informe de auditoría final</span>
-          </label>
+          <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+            <label style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.8125rem;">
+              <input type="checkbox" checked disabled> <span>Reunión de alineación con cliente (Completado)</span>
+            </label>
+            <label style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.8125rem;">
+              <input type="checkbox" checked disabled> <span>Enviar propuesta y cotización de módulo de salud</span>
+            </label>
+            <label style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.8125rem;">
+              <input type="checkbox"> <span>Revisar contrato marco legal con abogados</span>
+            </label>
+            <label style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.8125rem;">
+              <input type="checkbox"> <span>Entrega del informe de auditoría final</span>
+            </label>
+          </div>
         </div>
-      </div>
+      `}
     `;
   }
 
@@ -551,7 +617,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
       <div class="timeline-card">
         <div class="timeline-list">
-          ${meetings.map(m => renderTimelineItem(m)).join('')}
+          ${meetings.length === 0 ? `
+            <div style="text-align:center;padding:3rem 1.5rem;color:#64748B;">
+              <div style="font-size:2rem;margin-bottom:0.5rem;">💻</div>
+              <p style="font-weight:700;color:#1E293B;">No tienes reuniones programadas.</p>
+              <p style="font-size:0.8rem;margin-top:0.25rem;">Dile a la IA: <em>"Agéndame una reunión virtual con Juan a las 4"</em>.</p>
+            </div>
+          ` : meetings.map(m => renderTimelineItem(m)).join('')}
         </div>
       </div>
     `;
@@ -568,7 +640,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
       <div class="timeline-card">
         <div class="timeline-list">
-          ${apps.map(a => renderTimelineItem(a)).join('')}
+          ${apps.length === 0 ? `
+            <div style="text-align:center;padding:3rem 1.5rem;color:#64748B;">
+              <div style="font-size:2rem;margin-bottom:0.5rem;">🩺</div>
+              <p style="font-weight:700;color:#1E293B;">No tienes citas programadas.</p>
+              <p style="font-size:0.8rem;margin-top:0.25rem;">Registra citas médicas o personales con hora y lugar para calcular tiempos de salida.</p>
+            </div>
+          ` : apps.map(a => renderTimelineItem(a)).join('')}
         </div>
       </div>
     `;
@@ -576,23 +654,49 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // --- 14. VIAJES (VISIÓN 14) ---
   function renderTravel() {
+    const user = store.getCurrentUser();
     contentEl.innerHTML = `
       <div style="margin-bottom: 1.5rem;">
         <h2>Viajes & Itinerarios (Travel)</h2>
         <p style="font-size: 0.8125rem;">Itinerarios completos organizados por la IA: vuelos, hoteles y desplazamientos.</p>
       </div>
 
-      <div class="timeline-card">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-          <h3>✈️ Próximo Viaje: Medellín (Gira Empresarial)</h3>
-          <span class="timeline-badge" style="background: #EFF6FF; color: #1D4ED8;">Viernes 11 de Septiembre</span>
+      ${user && user.role === 'client' ? `
+        <div class="timeline-card" style="text-align: center; padding: 3rem 1.5rem; background: #F8FAFC; border: 1.5px dashed #CBD5E1; border-radius: var(--radius-lg); color: #64748B;">
+          <div style="font-size: 2.25rem; margin-bottom: 0.5rem;">✈️</div>
+          <h4 style="font-size: 1.1rem; font-weight: 800; color: #1E293B; margin-bottom: 0.35rem;">No tienes viajes programados</h4>
+          <p style="font-size: 0.8125rem; color: #64748B; max-width: 26rem; margin: 0 auto 1.25rem;">
+            Dile a la IA: <em>"Viajo a Cartagena el próximo viernes a las 8am"</em> para estructurar tu itinerario.
+          </p>
         </div>
-        <div style="font-size: 0.8125rem; display: flex; flex-direction: column; gap: 0.5rem;">
-          <p>🛫 <strong>Vuelo Avianca AV9342:</strong> BOG → MDE (Salida: 07:15 a. m.)</p>
-          <p>🏨 <strong>Hotel:</strong> The Click Clack Hotel Medellín (Check-in 14:00)</p>
-          <p>💼 <strong>Reunión Clave:</strong> 15:30 con Junta Directiva en El Poblado</p>
+      ` : `
+        <div class="timeline-card">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+            <h3>✈️ Próximo Viaje: Medellín (Gira Empresarial)</h3>
+            <span class="timeline-badge" style="background: #F3E8FF; color: #7E22CE;">18 - 21 Sep</span>
+          </div>
+          <p style="font-size: 0.75rem; margin-bottom: 1rem;">Itinerario sugerido por TIMEPLUS Travel AI.</p>
+
+          <div class="timeline-list">
+            <div class="timeline-item">
+              <div class="timeline-time">05:30</div>
+              <div class="timeline-badge" style="background: #EFF6FF; color: #2563EB;">✈️ Vuelo</div>
+              <div class="timeline-content">
+                <div class="timeline-title">Salida hacia el Aeropuerto El Dorado</div>
+                <div class="timeline-sub"><span>🚗 Uber programado (40 min)</span></div>
+              </div>
+            </div>
+            <div class="timeline-item">
+              <div class="timeline-time">07:15</div>
+              <div class="timeline-badge" style="background: #EFF6FF; color: #2563EB;">✈️ Vuelo</div>
+              <div class="timeline-content">
+                <div class="timeline-title">Vuelo AV9312 Bogotá ➔ Medellín (MDE)</div>
+                <div class="timeline-sub"><span>Avianca · Asiento 12C</span></div>
+              </div>
+            </div>
+          </div>
         </div>
-      </div>
+      `}
     `;
   }
 
@@ -607,7 +711,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
       <div class="timeline-card">
         <div class="timeline-list">
-          ${inbox.map(item => `
+          ${inbox.length === 0 ? `
+            <div style="text-align:center;padding:3rem 1.5rem;color:#64748B;">
+              <div style="font-size:2rem;margin-bottom:0.5rem;">📥</div>
+              <p style="font-weight:700;color:#1E293B;">Bandeja limpia sin notas pendientes.</p>
+              <p style="font-size:0.8rem;margin-top:0.25rem;">Envía notas de voz o escribe a la IA para capturar ideas rápidamente.</p>
+            </div>
+          ` : inbox.map(item => `
             <div class="timeline-item" style="justify-content: space-between; align-items: center;">
               <div>
                 <span class="timeline-badge" style="background: #F1F5F9; color: #475569;">${item.source.toUpperCase()}</span>
