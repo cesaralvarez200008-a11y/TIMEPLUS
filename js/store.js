@@ -87,9 +87,15 @@ class TimePlusStore {
         if (req.notes) {
           try { extra = JSON.parse(req.notes); } catch(e) {}
         }
+        // Componer nombre completo desde los 4 campos si están disponibles
+        const fn1 = extra.firstName || '';
+        const fn2 = extra.secondName || '';
+        const ln1 = extra.lastName1 || extra.lastName || '';
+        const ln2 = extra.lastName2 || '';
+        const computedName = [fn1, fn2, ln1, ln2].filter(Boolean).join(' ') || req.name || 'Cliente TIMEPLUS';
         this.state.user = {
           id: req.id || ('usr-' + Date.now()),
-          name: req.name || 'Cliente TIMEPLUS',
+          name: computedName,
           email: req.email || cleanEmail,
           phone: req.phone || extra.phone || '',
           birthDate: req.birth_date || extra.birthDate || '',
@@ -98,8 +104,11 @@ class TimePlusStore {
           plan: req.plan || 'TIMEPLUS Connect Pro',
           userType: extra.userType || 'Estudiante',
           personType: extra.personType || 'Natural',
-          firstName: extra.firstName || '',
-          lastName: extra.lastName || '',
+          firstName: fn1,
+          secondName: fn2,
+          lastName: ln1,
+          lastName1: ln1,
+          lastName2: ln2,
           docType: extra.docType || 'CC',
           docNumber: extra.docNumber || '',
           gender: extra.gender || '',

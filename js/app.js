@@ -1273,6 +1273,9 @@ document.addEventListener('DOMContentLoaded', () => {
                    oninput="window.timeplusFilterAdminClients(this.value)"
                    style="padding: 0.45rem 0.75rem; border: 1px solid #E2E8F0; border-radius: var(--radius-md); font-size: 0.75rem; width: 14rem;">
             <button class="btn-secondary" onclick="window.timeplusRefreshAdmin()">🔄 Refrescar</button>
+            <button class="btn-primary" onclick="window.timeplusExportCSV()" style="background: linear-gradient(135deg, #16A34A, #15803D); padding: 0.45rem 1rem; font-size: 0.75rem; display:flex; align-items:center; gap:0.3rem;">
+              📥 Exportar CSV
+            </button>
           </div>
         </div>
 
@@ -2329,6 +2332,130 @@ document.addEventListener('DOMContentLoaded', () => {
       (r.plan || '').toLowerCase().includes(q)
     );
     renderAdminTableRows(filtered);
+  };
+
+  // Exportar Base de Datos a CSV con columnas separadas por cada celda y atributo
+  window.timeplusExportCSV = async () => {
+    let requests = window._allAdminRequests;
+    if (!requests || requests.length === 0) {
+      if (supabase) {
+        requests = await supabase.getClientRequests();
+      }
+    }
+    if (!requests || requests.length === 0) {
+      alert('No hay datos de clientes registrados para exportar.');
+      return;
+    }
+
+    const headers = [
+      'ID Cliente',
+      'Estado',
+      'Primer Nombre',
+      'Segundo Nombre',
+      'Primer Apellido',
+      'Segundo Apellido',
+      'Nombre Completo',
+      'Correo Electrónico',
+      'Celular / WhatsApp',
+      'Tipo de Persona',
+      'Tipo Documento',
+      'Número Documento',
+      'Fecha Nacimiento',
+      'Género',
+      'País',
+      'Ciudad Base',
+      'Dirección Casa',
+      'Dirección Trabajo',
+      'Dirección Familiar',
+      'Sede Gimnasio',
+      'Nivel Educativo',
+      'Institución',
+      'Programa / Carrera',
+      'Semestre',
+      'Áreas de Interés',
+      'Objetivo IA',
+      'Plan Contratado',
+      'Disponibilidad Horaria',
+      'Preferencia Notificación',
+      'Zona Horaria',
+      'Fecha de Registro'
+    ];
+
+    const escapeCell = (val) => {
+      if (val === null || val === undefined) return '""';
+      const str = String(val).replace(/"/g, '""');
+      return `"${str}"`;
+    };
+
+    const rows = requests.map(r => {
+      let extra = {};
+      if (r.notes) {
+        try {
+          extra = typeof r.notes === 'string' ? JSON.parse(r.notes) : r.notes;
+        } catch(e) {
+          extra = {};
+        }
+      }
+
+      const fn1 = extra.firstName || (r.name ? r.name.split(' ')[0] : '') || '';
+      const fn2 = extra.secondName || '';
+      const ln1 = extra.lastName1 || extra.lastName || (r.name ? (r.name.split(' ').slice(1).join(' ') || '') : '') || '';
+      const ln2 = extra.lastName2 || '';
+      const fullName = [fn1, fn2, ln1, ln2].filter(Boolean).join(' ') || r.name || '';
+      const status = (r.status || 'pendiente').toUpperCase();
+      const regDate = r.created_at ? new Date(r.created_at).toLocaleString('es-CO') : '';
+
+      return [
+        escapeCell(r.id || ''),
+        escapeCell(status),
+        escapeCell(fn1),
+        escapeCell(fn2),
+        escapeCell(ln1),
+        escapeCell(ln2),
+        escapeCell(fullName),
+        escapeCell(r.email || ''),
+        escapeCell(extra.phone || r.phone || ''),
+        escapeCell(extra.personType || 'Natural'),
+        escapeCell(extra.docType || 'CC'),
+        escapeCell(extra.docNumber || ''),
+        escapeCell(extra.birthDate || ''),
+        escapeCell(extra.gender || ''),
+        escapeCell(extra.country || 'Colombia'),
+        escapeCell(extra.city || ''),
+        escapeCell(extra.addrHome || ''),
+        escapeCell(extra.addrWork || ''),
+        escapeCell(extra.addrFamily || ''),
+        escapeCell(extra.addrGym || ''),
+        escapeCell(extra.academicLevel || ''),
+        escapeCell(extra.institution || ''),
+        escapeCell(extra.program || ''),
+        escapeCell(extra.semester || ''),
+        escapeCell(extra.interests || ''),
+        escapeCell(extra.learningGoal || ''),
+        escapeCell(r.plan || extra.plan || 'TIMEPLUS Connect Pro'),
+        escapeCell(extra.availability || ''),
+        escapeCell(extra.notifyPref || 'WhatsApp'),
+        escapeCell(extra.timezone || 'America/Bogota'),
+        escapeCell(regDate)
+      ].join(';'); // Usamos punto y coma ';' que es el delimitador estándar para Excel en español
+    });
+
+    // Añadimos BOM UTF-8 (\uFEFF) para que Excel reconozca tildes, ñ y caracteres latinos automáticamente
+    const csvContent = '\uFEFF' + [headers.map(escapeCell).join(';'), ...rows].join('\r\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    const now = new Date().toISOString().split('T')[0];
+    link.setAttribute('href', url);
+    link.setAttribute('download', `TIMEPLUS_Clientes_${now}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+
+    if (window.timeplusShowToast) {
+      window.timeplusShowToast(`📥 Archivo CSV descargado con ${requests.length} clientes en celdas separadas.`);
+    }
   };
 
   window.timeplusInspectClient = (id) => {
