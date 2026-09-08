@@ -138,6 +138,27 @@ document.addEventListener('DOMContentLoaded', () => {
     const fit = store.getFitnessSummary();
     const places = store.getPlaces();
 
+    // Cálculo inteligente de Próximo Compromiso y Tiempo Disponible
+    const now = new Date();
+    const currentMinutes = now.getHours() * 60 + now.getMinutes();
+
+    // Ordenar actividades cronológicamente
+    const sortedActs = [...acts].sort((a, b) => {
+      const [hA, mA] = (a.time || '00:00').split(':').map(Number);
+      const [hB, mB] = (b.time || '00:00').split(':').map(Number);
+      return (hA * 60 + mA) - (hB * 60 + mB);
+    });
+
+    // Próxima actividad pendiente hoy
+    const nextAct = sortedActs.find(a => {
+      const [h, m] = (a.time || '00:00').split(':').map(Number);
+      return (h * 60 + m) >= currentMinutes && !a.confirmedTaken;
+    }) || sortedActs[0] || null;
+
+    // Horas libres estimadas de una jornada típica de 16h despierto
+    const busyHours = acts.length * 0.75;
+    const freeHours = Math.max(1, Math.round(14 - busyHours));
+
     const dateStr = new Intl.DateTimeFormat('es-CO', {
       weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'
     }).format(new Date());
@@ -255,6 +276,105 @@ document.addEventListener('DOMContentLoaded', () => {
         </div>
       </div>
 
+      <!-- TARJETAS DE INTELIGENCIA DE INICIO: PRÓXIMO COMPROMISO + TIEMPO LIBRE + CRONÓMETRO -->
+      <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(320px, 1fr));gap:1rem;margin-top:1.25rem;">
+        
+        <!-- Tarjeta 1: Próximo Compromiso -->
+        <div style="background:#fff;border:1px solid #E2E8F0;border-radius:var(--radius-lg);padding:1.25rem;box-shadow:0 1px 3px rgba(0,0,0,0.04);position:relative;overflow:hidden;">
+          <div style="position:absolute;top:0;left:0;bottom:0;width:4px;background:linear-gradient(180deg,#6366F1,#8B5CF6);"></div>
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:0.5rem;">
+            <div style="font-size:0.7rem;font-weight:800;color:#6366F1;letter-spacing:0.8px;text-transform:uppercase;">
+              ⚡ Próximo Compromiso
+            </div>
+            <span style="font-size:0.75rem;padding:0.2rem 0.6rem;background:#EEF2FF;color:#4F46E5;border-radius:999px;font-weight:700;">
+              ${nextAct ? nextAct.time : 'Libre'}
+            </span>
+          </div>
+
+          ${nextAct ? `
+            <h4 style="margin:0 0 0.4rem 0;font-size:1.05rem;color:#0F172A;font-weight:800;">${nextAct.title}</h4>
+            <div style="font-size:0.8rem;color:#64748B;display:flex;align-items:center;gap:0.75rem;flex-wrap:wrap;margin-bottom:0.75rem;">
+              <span>⏱️ Duración: <strong>${nextAct.duration || '30m'}</strong></span>
+              ${nextAct.placeName ? `<span>📍 ${nextAct.placeName}</span>` : ''}
+              ${nextAct.meetLink ? `<span>🔗 <a href="${nextAct.meetLink}" target="_blank" style="color:#6366F1;font-weight:700;">Meet</a></span>` : ''}
+            </div>
+            <div style="background:#F8FAFC;border:1px solid #E2E8F0;border-radius:8px;padding:0.6rem 0.85rem;font-size:0.75rem;color:#475569;display:flex;align-items:center;justify-content:space-between;">
+              <span>🧠 Preparación IA recomendada: <strong>15 min antes</strong></span>
+              <button onclick="window.timeplusAI.processCommand('Prepárame para mi próximo compromiso')" style="background:none;border:none;color:#6366F1;font-weight:700;cursor:pointer;font-size:0.75rem;">Ver checklist ›</button>
+            </div>
+          ` : `
+            <h4 style="margin:0 0 0.35rem 0;font-size:1rem;color:#1E293B;">No tienes compromisos pendientes hoy</h4>
+            <p style="margin:0 0 0.75rem 0;font-size:0.75rem;color:#64748B;">Tu agenda está despejada. Puedes aprovechar para estudiar, entrenar o descansar.</p>
+            <button onclick="window.timeplusOpenNewActivityModal()" style="background:#EEF2FF;border:1px solid #C7D2FE;color:#4338CA;padding:0.4rem 0.8rem;border-radius:6px;font-size:0.75rem;font-weight:700;cursor:pointer;">
+              ＋ Planificar algo ahora
+            </button>
+          `}
+        </div>
+
+        <!-- Tarjeta 2: Tiempo Disponible & Sugerencia IA -->
+        <div style="background:#fff;border:1px solid #E2E8F0;border-radius:var(--radius-lg);padding:1.25rem;box-shadow:0 1px 3px rgba(0,0,0,0.04);position:relative;overflow:hidden;">
+          <div style="position:absolute;top:0;left:0;bottom:0;width:4px;background:linear-gradient(180deg,#10B981,#059669);"></div>
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:0.5rem;">
+            <div style="font-size:0.7rem;font-weight:800;color:#059669;letter-spacing:0.8px;text-transform:uppercase;">
+              ⏱️ Tiempo Disponible
+            </div>
+            <span style="font-size:0.75rem;padding:0.2rem 0.6rem;background:#ECFDF5;color:#047857;border-radius:999px;font-weight:700;">
+              ${freeHours}h libres
+            </span>
+          </div>
+
+          <h4 style="margin:0 0 0.4rem 0;font-size:1.05rem;color:#0F172A;font-weight:800;">
+            ${freeHours > 0 ? `Tienes aprox. ${freeHours} horas libres hoy` : 'Agenda completa para hoy'}
+          </h4>
+          <p style="margin:0 0 0.75rem 0;font-size:0.75rem;color:#64748B;">
+            La IA detecta tus ventanas de tiempo libre y te sugiere actividades productivas o de bienestar.
+          </p>
+
+          <!-- Sugerencia inteligente con 1 clic -->
+          <div style="display:flex;gap:0.4rem;flex-wrap:wrap;">
+            <button onclick="window.timeplusRunPrompt('Agendar 30 minutos de lectura o estudio en mi espacio libre')" style="background:#F0FDF4;border:1px solid #BBF7D0;color:#166534;padding:0.4rem 0.75rem;border-radius:6px;font-size:0.75rem;font-weight:600;cursor:pointer;">
+              📚 Bloquear 30m Estudio
+            </button>
+            <button onclick="window.timeplusRunPrompt('Agendar 45 minutos de ejercicio en mi espacio libre')" style="background:#FFF7ED;border:1px solid #FED7AA;color:#9A3412;padding:0.4rem 0.75rem;border-radius:6px;font-size:0.75rem;font-weight:600;cursor:pointer;">
+              🏋️ Bloquear Gym
+            </button>
+            <button onclick="window.timeplusRunPrompt('Bloquear 20 minutos de pausa activa')" style="background:#FAF5FF;border:1px solid #E9D5FF;color:#6B21A8;padding:0.4rem 0.75rem;border-radius:6px;font-size:0.75rem;font-weight:600;cursor:pointer;">
+              ☕ Pausa Activa
+            </button>
+          </div>
+        </div>
+
+        <!-- Tarjeta 3: Cronómetro / Temporizador Pomodoro "Mi Tiempo" -->
+        <div style="background:#fff;border:1px solid #E2E8F0;border-radius:var(--radius-lg);padding:1.25rem;box-shadow:0 1px 3px rgba(0,0,0,0.04);position:relative;overflow:hidden;">
+          <div style="position:absolute;top:0;left:0;bottom:0;width:4px;background:linear-gradient(180deg,#F59E0B,#D97706);"></div>
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:0.5rem;">
+            <div style="font-size:0.7rem;font-weight:800;color:#D97706;letter-spacing:0.8px;text-transform:uppercase;">
+              ⏱️ Mi Tiempo en Vivo (Stopwatch)
+            </div>
+            <span id="tp-stopwatch-status" style="font-size:0.7rem;padding:0.2rem 0.6rem;background:#FEF3C7;color:#92400E;border-radius:999px;font-weight:700;">
+              En Pausa
+            </span>
+          </div>
+
+          <div style="display:flex;align-items:baseline;justify-content:space-between;margin:0.25rem 0 0.6rem 0;">
+            <div id="tp-stopwatch-display" style="font-size:1.85rem;font-weight:900;color:#0F172A;font-family:monospace;letter-spacing:1px;">
+              00:00:00
+            </div>
+            <input id="tp-stopwatch-task" type="text" placeholder="¿Qué estás haciendo?" style="font-size:0.75rem;padding:0.35rem 0.65rem;border:1px solid #CBD5E1;border-radius:6px;width:140px;" />
+          </div>
+
+          <div style="display:flex;gap:0.5rem;">
+            <button id="tp-stopwatch-btn" onclick="window.timeplusToggleStopwatch()" style="flex:1;background:#10B981;border:none;color:#fff;padding:0.5rem;border-radius:8px;font-size:0.8rem;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:0.3rem;">
+              ▶️ Iniciar Tiempo
+            </button>
+            <button onclick="window.timeplusResetStopwatch()" style="background:#F1F5F9;border:1px solid #CBD5E1;color:#64748B;padding:0.5rem 0.85rem;border-radius:8px;font-size:0.8rem;font-weight:600;cursor:pointer;">
+              🔄 Reiniciar
+            </button>
+          </div>
+        </div>
+
+      </div>
+
       <!-- TIMELINE CRONOLÓGICO: TU DÍA (VISIÓN 2) -->
       <div class="timeline-card">
         <div class="timeline-header">
@@ -294,12 +414,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const cat = window.TIMEPLUS_CONFIG.CATEGORIES[act.category] || window.TIMEPLUS_CONFIG.CATEGORIES.otros;
 
     return `
-      <div class="timeline-item">
+      <div class="timeline-item" style="position:relative;transition:all .2s;">
         <div class="timeline-time">${act.time}</div>
         <div class="timeline-badge" style="background: ${cat.bg}; color: ${cat.color}; border: 1px solid ${cat.border};">
           ${cat.icon} ${cat.name}
         </div>
-        <div class="timeline-content">
+        <div class="timeline-content" style="padding-right: 2.5rem;">
           <div class="timeline-title">${act.title}</div>
           <div class="timeline-sub">
             <span>⏱️ ${act.duration}</span>
@@ -337,45 +457,224 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>
           ` : ''}
         </div>
+
+        <!-- Botón de Eliminar Actividad -->
+        <button onclick="window.timeplusDeleteActivity('${act.id}')" 
+                title="Eliminar actividad" 
+                style="
+                  position: absolute; right: 12px; top: 12px;
+                  background: rgba(239, 68, 68, 0.08); border: 1px solid rgba(239, 68, 68, 0.2);
+                  color: #ef4444; width: 30px; height: 30px; border-radius: 8px;
+                  display: flex; align-items: center; justify-content: center;
+                  cursor: pointer; font-size: 0.85rem; transition: all .2s;
+                "
+                onmouseover="this.style.background='#ef4444';this.style.color='#fff';"
+                onmouseout="this.style.background='rgba(239, 68, 68, 0.08)';this.style.color='#ef4444';">
+          🗑️
+        </button>
       </div>
     `;
   }
 
-  // --- 4. CALENDARIO INTELIGENTE (VISIÓN 4) ---
+  // --- 4. CALENDARIO INTELIGENTE: VISTAS DÍA, SEMANA, MES & AGENDA (VISIÓN 4) ---
+  let _agendaViewMode = 'dia'; // 'dia' | 'semana' | 'mes' | 'lista'
+  let _agendaCategoryFilter = 'todas';
+
+  window.timeplusSetAgendaView = (mode) => {
+    _agendaViewMode = mode;
+    renderAgenda();
+  };
+
+  window.timeplusFilterAgendaCat = (cat) => {
+    _agendaCategoryFilter = cat;
+    renderAgenda();
+  };
+
   function renderAgenda() {
-    const acts = store.getActivities();
+    let acts = store.getActivities();
+    if (_agendaCategoryFilter !== 'todas') {
+      acts = acts.filter(a => a.category === _agendaCategoryFilter);
+    }
+
     contentEl.innerHTML = `
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:1rem;margin-bottom:1.5rem;">
         <div>
-          <h2>Agenda Inteligente & Categorías</h2>
-          <p style="font-size: 0.8125rem;">Visualiza y organiza tus bloques de tiempo por color.</p>
+          <h2>Calendario & Agenda Inteligente</h2>
+          <p style="font-size:0.8125rem;">Visualiza y optimiza tu tiempo en múltiples perspectivas.</p>
         </div>
-        <button class="btn-primary" onclick="window.timeplusOpenNewActivityModal()">＋ Nueva Actividad</button>
+        <div style="display:flex;gap:0.5rem;align-items:center;">
+          <!-- Selector de Vistas: Día / Semana / Mes / Lista -->
+          <div style="background:#F1F5F9;border-radius:10px;padding:3px;display:flex;gap:2px;">
+            <button onclick="window.timeplusSetAgendaView('dia')" style="
+              border:none;padding:0.4rem 0.8rem;border-radius:8px;font-size:0.75rem;font-weight:700;cursor:pointer;
+              background:${_agendaViewMode === 'dia' ? '#fff' : 'transparent'};
+              color:${_agendaViewMode === 'dia' ? '#2563EB' : '#64748B'};
+              box-shadow:${_agendaViewMode === 'dia' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none'};
+            ">📆 Día</button>
+            <button onclick="window.timeplusSetAgendaView('semana')" style="
+              border:none;padding:0.4rem 0.8rem;border-radius:8px;font-size:0.75rem;font-weight:700;cursor:pointer;
+              background:${_agendaViewMode === 'semana' ? '#fff' : 'transparent'};
+              color:${_agendaViewMode === 'semana' ? '#2563EB' : '#64748B'};
+              box-shadow:${_agendaViewMode === 'semana' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none'};
+            ">📊 Semana</button>
+            <button onclick="window.timeplusSetAgendaView('mes')" style="
+              border:none;padding:0.4rem 0.8rem;border-radius:8px;font-size:0.75rem;font-weight:700;cursor:pointer;
+              background:${_agendaViewMode === 'mes' ? '#fff' : 'transparent'};
+              color:${_agendaViewMode === 'mes' ? '#2563EB' : '#64748B'};
+              box-shadow:${_agendaViewMode === 'mes' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none'};
+            ">🗓️ Mes</button>
+            <button onclick="window.timeplusSetAgendaView('lista')" style="
+              border:none;padding:0.4rem 0.8rem;border-radius:8px;font-size:0.75rem;font-weight:700;cursor:pointer;
+              background:${_agendaViewMode === 'lista' ? '#fff' : 'transparent'};
+              color:${_agendaViewMode === 'lista' ? '#2563EB' : '#64748B'};
+              box-shadow:${_agendaViewMode === 'lista' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none'};
+            ">📋 Lista</button>
+          </div>
+          <button class="btn-primary" onclick="window.timeplusOpenNewActivityModal()">＋ Nueva Actividad</button>
+        </div>
       </div>
 
-      <!-- Barra de Categorías Visuales (Visión 4) -->
-      <div style="display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 1.25rem;">
+      <!-- Barra de Filtros por Categoría -->
+      <div style="display:flex;gap:0.5rem;flex-wrap:wrap;margin-bottom:1.25rem;">
+        <button onclick="window.timeplusFilterAgendaCat('todas')" style="
+          border:none;padding:0.25rem 0.75rem;border-radius:999px;font-size:0.75rem;font-weight:700;cursor:pointer;
+          background:${_agendaCategoryFilter === 'todas' ? '#1E293B' : '#F1F5F9'};
+          color:${_agendaCategoryFilter === 'todas' ? '#fff' : '#475569'};
+        ">
+          ✨ Todas (${store.getActivities().length})
+        </button>
         ${Object.keys(window.TIMEPLUS_CONFIG.CATEGORIES).map(k => {
           const c = window.TIMEPLUS_CONFIG.CATEGORIES[k];
+          const active = _agendaCategoryFilter === k;
           return `
-            <span style="background: ${c.bg}; color: ${c.color}; border: 1px solid ${c.border}; padding: 0.25rem 0.65rem; border-radius: var(--radius-full); font-size: 0.75rem; font-weight: 700;">
+            <button onclick="window.timeplusFilterAgendaCat('${k}')" style="
+              border:1px solid ${c.border};padding:0.25rem 0.75rem;border-radius:999px;font-size:0.75rem;font-weight:700;cursor:pointer;
+              background:${active ? c.color : c.bg};
+              color:${active ? '#fff' : c.color};
+              transition:all .15s;
+            ">
               ${c.icon} ${c.name}
-            </span>
+            </button>
           `;
         }).join('')}
       </div>
 
-      <div class="timeline-card">
-        <div class="timeline-list">
-          ${acts.length === 0 ? `
-            <div style="text-align:center;padding:3rem 1.5rem;color:#64748B;">
-              <div style="font-size:2rem;margin-bottom:0.5rem;">📅</div>
-              <p style="font-weight:700;color:#1E293B;">No tienes actividades registradas en tu agenda.</p>
-              <p style="font-size:0.8rem;margin-top:0.25rem;">Usa el botón superior "+ Nueva Actividad" para comenzar.</p>
-            </div>
-          ` : acts.map(a => renderTimelineItem(a)).join('')}
+      <!-- Renderizado Dinámico de Vistas -->
+      ${_agendaViewMode === 'dia' ? `
+        <!-- VISTA DÍA / TIMELINE -->
+        <div class="timeline-card">
+          <div class="timeline-list">
+            ${acts.length === 0 ? `
+              <div style="text-align:center;padding:3rem 1.5rem;color:#64748B;">
+                <div style="font-size:2rem;margin-bottom:0.5rem;">📅</div>
+                <p style="font-weight:700;color:#1E293B;">No hay actividades registradas en esta vista.</p>
+                <p style="font-size:0.8rem;margin-top:0.25rem;">Usa el botón superior "+ Nueva Actividad" para comenzar.</p>
+              </div>
+            ` : acts.map(a => renderTimelineItem(a)).join('')}
+          </div>
         </div>
-      </div>
+      ` : ''}
+
+      ${_agendaViewMode === 'semana' ? `
+        <!-- VISTA SEMANAL (7 DÍAS) -->
+        <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(140px, 1fr));gap:0.75rem;">
+          ${['Lunes','Martes','Miércoles','Jueves','Viernes','Sábado','Domingo'].map((dia, idx) => {
+            const isToday = idx === (new Date().getDay() === 0 ? 6 : new Date().getDay() - 1);
+            const dayActs = isToday ? acts : [];
+            return `
+              <div style="background:#fff;border:1px solid ${isToday ? '#6366F1' : '#E2E8F0'};border-radius:12px;padding:0.85rem;min-height:220px;display:flex;flex-direction:column;box-shadow:${isToday ? '0 0 0 1px #6366F1' : 'none'};">
+                <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #F1F5F9;padding-bottom:0.5rem;margin-bottom:0.5rem;">
+                  <strong style="font-size:0.8rem;color:${isToday ? '#4F46E5' : '#1E293B'};">${dia}</strong>
+                  ${isToday ? '<span style="font-size:0.65rem;background:#EEF2FF;color:#4F46E5;padding:0.1rem 0.4rem;border-radius:999px;font-weight:800;">Hoy</span>' : ''}
+                </div>
+                <div style="flex:1;display:flex;flex-direction:column;gap:0.4rem;">
+                  ${dayActs.length === 0 ? `
+                    <span style="font-size:0.7rem;color:#94A3B8;margin-top:1rem;text-align:center;">Libre</span>
+                  ` : dayActs.map(a => {
+                    const c = window.TIMEPLUS_CONFIG.CATEGORIES[a.category] || window.TIMEPLUS_CONFIG.CATEGORIES.otros;
+                    return `
+                      <div style="background:${c.bg};border-left:3px solid ${c.color};padding:0.4rem 0.5rem;border-radius:6px;font-size:0.72rem;">
+                        <span style="font-weight:800;color:${c.color};">${a.time}</span>
+                        <div style="color:#1E293B;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${a.title}</div>
+                      </div>
+                    `;
+                  }).join('')}
+                </div>
+              </div>
+            `;
+          }).join('')}
+        </div>
+      ` : ''}
+
+      ${_agendaViewMode === 'mes' ? `
+        <!-- VISTA MENSUAL -->
+        <div style="background:#fff;border:1px solid #E2E8F0;border-radius:var(--radius-lg);padding:1.25rem;">
+          <div style="display:grid;grid-template-columns:repeat(7, 1fr);gap:4px;text-align:center;font-weight:700;font-size:0.75rem;color:#64748B;margin-bottom:0.5rem;">
+            <span>LUN</span><span>MAR</span><span>MIÉ</span><span>JUE</span><span>VIE</span><span>SÁB</span><span>DOM</span>
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(7, 1fr);gap:6px;">
+            ${Array.from({length: 31}, (_, i) => i + 1).map(day => {
+              const isToday = day === new Date().getDate();
+              return `
+                <div style="
+                  height:64px;background:${isToday ? '#EEF2FF' : '#F8FAFC'};
+                  border:1px solid ${isToday ? '#818CF8' : '#F1F5F9'};border-radius:8px;padding:4px 6px;
+                  display:flex;flex-direction:column;justify-content:space-between;cursor:pointer;
+                " onclick="window.timeplusOpenNewActivityModal()">
+                  <div style="display:flex;justify-content:space-between;align-items:center;">
+                    <span style="font-size:0.75rem;font-weight:${isToday ? '900' : '600'};color:${isToday ? '#4338CA' : '#475569'};">${day}</span>
+                    ${isToday ? '<span style="width:6px;height:6px;background:#4F46E5;border-radius:50%;"></span>' : ''}
+                  </div>
+                  ${isToday && acts.length > 0 ? `
+                    <span style="font-size:0.65rem;background:#4F46E5;color:#fff;border-radius:4px;padding:1px 3px;text-align:center;font-weight:700;">
+                      ${acts.length} act.
+                    </span>
+                  ` : ''}
+                </div>
+              `;
+            }).join('')}
+          </div>
+        </div>
+      ` : ''}
+
+      ${_agendaViewMode === 'lista' ? `
+        <!-- VISTA LISTA COMPACTA DE AGENDA -->
+        <div style="background:#fff;border:1px solid #E2E8F0;border-radius:var(--radius-lg);overflow:hidden;">
+          <table style="width:100%;border-collapse:collapse;font-size:0.8125rem;">
+            <thead>
+              <tr style="background:#F8FAFC;border-bottom:1px solid #E2E8F0;text-align:left;color:#64748B;font-size:0.75rem;">
+                <th style="padding:0.75rem 1rem;">Hora</th>
+                <th style="padding:0.75rem 1rem;">Categoría</th>
+                <th style="padding:0.75rem 1rem;">Actividad</th>
+                <th style="padding:0.75rem 1rem;">Duración</th>
+                <th style="padding:0.75rem 1rem;text-align:right;">Acción</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${acts.length === 0 ? `
+                <tr><td colspan="5" style="text-align:center;padding:2rem;color:#94A3B8;">No hay actividades registradas.</td></tr>
+              ` : acts.map(a => {
+                const c = window.TIMEPLUS_CONFIG.CATEGORIES[a.category] || window.TIMEPLUS_CONFIG.CATEGORIES.otros;
+                return `
+                  <tr style="border-bottom:1px solid #F1F5F9;">
+                    <td style="padding:0.75rem 1rem;font-weight:700;color:#0F172A;">${a.time}</td>
+                    <td style="padding:0.75rem 1rem;">
+                      <span style="background:${c.bg};color:${c.color};padding:0.15rem 0.5rem;border-radius:999px;font-size:0.7rem;font-weight:700;">
+                        ${c.icon} ${c.name}
+                      </span>
+                    </td>
+                    <td style="padding:0.75rem 1rem;font-weight:600;color:#1E293B;">${a.title}</td>
+                    <td style="padding:0.75rem 1rem;color:#64748B;">⏱️ ${a.duration}</td>
+                    <td style="padding:0.75rem 1rem;text-align:right;">
+                      <button onclick="window.timeplusDeleteActivity('${a.id}')" style="background:none;border:none;color:#EF4444;cursor:pointer;font-size:0.9rem;" title="Eliminar">🗑️</button>
+                    </td>
+                  </tr>
+                `;
+              }).join('')}
+            </tbody>
+          </table>
+        </div>
+      ` : ''}
     `;
   }
 
@@ -1351,6 +1650,97 @@ document.addEventListener('DOMContentLoaded', () => {
     const hash = location.hash.replace('#','') || 'hoy';
     if (hash === 'salud') renderHealth();
     if (hash === 'hoy' || hash === 'today' || hash === '') renderToday();
+  };
+
+  // --- Cronómetro / Stopwatch de Mi Tiempo ---
+  let _stopwatchInterval = null;
+  let _stopwatchSeconds = 0;
+  let _stopwatchRunning = false;
+
+  window.timeplusToggleStopwatch = () => {
+    const btn = document.getElementById('tp-stopwatch-btn');
+    const status = document.getElementById('tp-stopwatch-status');
+    const display = document.getElementById('tp-stopwatch-display');
+    const taskInput = document.getElementById('tp-stopwatch-task');
+
+    if (!_stopwatchRunning) {
+      _stopwatchRunning = true;
+      if (btn) {
+        btn.innerHTML = '⏸️ Pausar y Guardar';
+        btn.style.background = '#F59E0B';
+      }
+      if (status) {
+        status.innerText = 'En Curso';
+        status.style.background = '#ECFDF5';
+        status.style.color = '#047857';
+      }
+      _stopwatchInterval = setInterval(() => {
+        _stopwatchSeconds++;
+        const hrs = String(Math.floor(_stopwatchSeconds / 3600)).padStart(2, '0');
+        const mins = String(Math.floor((_stopwatchSeconds % 3600) / 60)).padStart(2, '0');
+        const secs = String(_stopwatchSeconds % 60).padStart(2, '0');
+        if (display) display.innerText = `${hrs}:${mins}:${secs}`;
+      }, 1000);
+    } else {
+      _stopwatchRunning = false;
+      clearInterval(_stopwatchInterval);
+      if (btn) {
+        btn.innerHTML = '▶️ Iniciar Tiempo';
+        btn.style.background = '#10B981';
+      }
+      if (status) {
+        status.innerText = 'En Pausa';
+        status.style.background = '#FEF3C7';
+        status.style.color = '#92400E';
+      }
+
+      // Guardar registro si corrió al menos 5 segundos
+      if (_stopwatchSeconds >= 5) {
+        const taskName = (taskInput && taskInput.value.trim()) || 'Sesión de Trabajo / Estudio';
+        const mins = Math.max(1, Math.round(_stopwatchSeconds / 60));
+        store.addActivity({
+          title: `⏱️ ${taskName} (${mins} min)`,
+          category: 'estudio',
+          type: 'personal',
+          duration: `${mins}m`,
+          time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+          notes: 'Registrado con el cronómetro de Mi Tiempo en Vivo'
+        });
+        window.timeplusShowToast(`✅ Se guardaron ${mins} minutos en tu agenda.`);
+        renderToday();
+      }
+    }
+  };
+
+  window.timeplusResetStopwatch = () => {
+    _stopwatchRunning = false;
+    clearInterval(_stopwatchInterval);
+    _stopwatchSeconds = 0;
+    const btn = document.getElementById('tp-stopwatch-btn');
+    const status = document.getElementById('tp-stopwatch-status');
+    const display = document.getElementById('tp-stopwatch-display');
+    if (display) display.innerText = '00:00:00';
+    if (btn) {
+      btn.innerHTML = '▶️ Iniciar Tiempo';
+      btn.style.background = '#10B981';
+    }
+    if (status) {
+      status.innerText = 'En Pausa';
+      status.style.background = '#FEF3C7';
+      status.style.color = '#92400E';
+    }
+  };
+
+  window.timeplusDeleteActivity = (actId) => {
+    if (confirm('¿Deseas eliminar esta actividad de tu día y agenda?')) {
+      store.deleteActivity(actId);
+      window.timeplusShowToast('🗑️ Actividad eliminada correctamente.');
+      const hash = location.hash.replace('#','') || 'hoy';
+      if (typeof updateUIForRole === 'function') updateUIForRole();
+      if (typeof renderToday === 'function' && (hash === 'today' || hash === 'hoy' || hash === '')) renderToday();
+      if (typeof renderAgenda === 'function' && hash === 'agenda') renderAgenda();
+      if (typeof renderHealth === 'function' && hash === 'salud') renderHealth();
+    }
   };
 
   window.timeplusDeleteMedication = (medId) => {
