@@ -150,21 +150,94 @@ class TimePlusAI {
       response.action = { type: 'CREATED_MED', data: act };
     }
 
-    // 4. Fitness: "Hoy entrené [pecho/pierna/cardio]..." / "Mañana tengo gimnasio"
-    else if (lower.includes('entrené') || lower.includes('gimnasio') || lower.includes('ejercicio') || lower.includes('gym')) {
+    // 4. Fitness & Deporte: Al Aire Libre (Caminata, Trote, Bici, Kilómetros) o Gimnasio (Series, Repeticiones, Músculos)
+    else if (lower.includes('camin') || lower.includes('trot') || lower.includes('corr') || lower.includes('bici') || lower.includes('ciclism') || lower.includes('km') || lower.includes('kilómetro') || lower.includes('aire libre') || lower.includes('entrené') || lower.includes('gimnasio') || lower.includes('ejercicio') || lower.includes('gym') || lower.includes('rutina')) {
       if (lower.includes('cuántos días') || lower.includes('resumen')) {
         const fit = store.getFitnessSummary();
-        response.message = `Esta semana has entrenado ${fit.weeklyWorkouts} días de tu meta de ${fit.targetWorkouts}, completando ${fit.activeHours} horas activas.`;
-      } else {
+        response.message = `Esta semana has entrenado ${fit.weeklyWorkouts} días de tu meta de ${fit.targetWorkouts}, completando ${fit.activeHours} horas activas y ${fit.caloriesBurned} kcal.`;
+      } 
+      // Caso A: Aire Libre / Cardio con Kilómetros (Caminata, Trote, Running, Bici)
+      else if (lower.includes('camin') || lower.includes('trot') || lower.includes('corr') || lower.includes('bici') || lower.includes('ciclism') || lower.includes('km') || lower.includes('kilómetro') || lower.includes('aire libre')) {
+        const kmMatch = lower.match(/(\d+(?:[.,]\d+)?)\s*(?:km|k|kilometros|kilómetros)/);
+        const km = kmMatch ? parseFloat(kmMatch[1].replace(',', '.')) : (lower.includes('camin') ? 3 : 5);
+        let actTitle = 'Caminata al Aire Libre';
+        let icon = '🚶';
+        if (lower.includes('trot') || lower.includes('running') || lower.includes('corr')) {
+          actTitle = 'Trote / Running al Aire Libre';
+          icon = '🏃';
+        } else if (lower.includes('bici') || lower.includes('ciclism')) {
+          actTitle = 'Ciclismo / Ruta en Bicicleta';
+          icon = '🚴';
+        }
+        const calories = Math.round(km * 65);
+        const durationMin = Math.round(km * (lower.includes('bici') ? 4 : (lower.includes('trot') ? 7 : 12)));
+
         const act = store.recordWorkout({
-          title: lower.includes('pecho') ? 'Entrenamiento de Pecho y Tríceps' : 'Entrenamiento en Gimnasio',
-          duration: '1h',
-          durationHours: 1,
-          calories: 450,
-          exercises: [{ name: 'Rutina Completa', sets: 4, reps: '10-12', weight: 'Progresivo' }]
+          title: `${icon} ${actTitle} (${km} km)`,
+          category: 'fitness',
+          activityType: 'outdoor',
+          distanceKm: km,
+          duration: `${durationMin} min`,
+          durationHours: parseFloat((durationMin / 60).toFixed(1)),
+          calories: calories,
+          exercises: [{ name: actTitle, sets: 1, reps: `${km} km`, weight: `${calories} kcal` }]
         });
         response.understood = true;
-        response.message = '¡Excelente! He registrado tu entrenamiento de hoy y sumado 450 kcal a tus estadísticas de fitness.';
+        response.message = `¡Excelente registro al aire libre! He registrado tu ${actTitle} de ${km} km (~${durationMin} min) y sumado ${calories} kcal quemadas a tu historial.`;
+        response.action = { type: 'CREATED_FITNESS', data: act };
+      }
+      // Caso B: Gimnasio / Musculación con Grupos Musculares y Ejercicios
+      else {
+        let muscle = 'Rutina General en Gimnasio';
+        let exercisesList = [{ name: 'Acondicionamiento Físico', sets: 4, reps: '10-12', weight: 'Progresivo' }];
+        
+        if (lower.includes('pecho')) {
+          muscle = 'Entrenamiento de Pecho & Tríceps';
+          exercisesList = [
+            { name: 'Press de Banca Plano', sets: 4, reps: 10, weight: '40-60 kg' },
+            { name: 'Aperturas con Mancuernas', sets: 3, reps: 12, weight: '14 kg' },
+            { name: 'Fondos en Paralelas / Tríceps', sets: 3, reps: 12, weight: 'Corporal' }
+          ];
+        } else if (lower.includes('pierna') || lower.includes('glúteo') || lower.includes('cuádriceps')) {
+          muscle = 'Entrenamiento de Pierna & Glúteos';
+          exercisesList = [
+            { name: 'Sentadilla Libre / Smith', sets: 4, reps: 10, weight: '50-70 kg' },
+            { name: 'Prensa Inclinada 45°', sets: 4, reps: 12, weight: '100 kg' },
+            { name: 'Extensión de Cuádriceps', sets: 3, reps: 15, weight: '45 kg' }
+          ];
+        } else if (lower.includes('espalda') || lower.includes('dorsal')) {
+          muscle = 'Entrenamiento de Espalda & Bíceps';
+          exercisesList = [
+            { name: 'Jalón al Pecho en Polea', sets: 4, reps: 10, weight: '50 kg' },
+            { name: 'Remo con Barra / Mancuerna', sets: 4, reps: 10, weight: '22 kg' },
+            { name: 'Curl de Bíceps con Barra', sets: 3, reps: 12, weight: '25 kg' }
+          ];
+        } else if (lower.includes('brazo') || lower.includes('bíceps') || lower.includes('tríceps')) {
+          muscle = 'Entrenamiento de Brazos (Bíceps + Tríceps)';
+          exercisesList = [
+            { name: 'Curl Martillo', sets: 4, reps: 12, weight: '12 kg' },
+            { name: 'Extensión de Tríceps en Polea', sets: 4, reps: 12, weight: '30 kg' }
+          ];
+        } else if (lower.includes('hombro')) {
+          muscle = 'Entrenamiento de Hombros & Trapecio';
+          exercisesList = [
+            { name: 'Press Militar con Mancuernas', sets: 4, reps: 10, weight: '16 kg' },
+            { name: 'Elevaciones Laterales', sets: 4, reps: 15, weight: '8 kg' }
+          ];
+        }
+
+        const act = store.recordWorkout({
+          title: `🏋️ ${muscle}`,
+          category: 'fitness',
+          activityType: 'gym',
+          muscleGroup: muscle,
+          duration: '1h',
+          durationHours: 1,
+          calories: 460,
+          exercises: exercisesList
+        });
+        response.understood = true;
+        response.message = `¡Rutina guardada! He registrado tu ${muscle} con sus series, repeticiones y sumado 460 kcal a tus estadísticas.`;
         response.action = { type: 'CREATED_FITNESS', data: act };
       }
       response.understood = true;

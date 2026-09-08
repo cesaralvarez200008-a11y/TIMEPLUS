@@ -858,54 +858,105 @@ document.addEventListener('DOMContentLoaded', () => {
     const workouts = store.getActivities().filter(a => a.category === 'fitness');
 
     contentEl.innerHTML = `
-      <div style="margin-bottom: 1.5rem;">
-        <h2>Fitness & Actividad Física</h2>
-        <p style="font-size: 0.8125rem;">Registra tus entrenamientos por voz o revisa tus series y repeticiones.</p>
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 0.75rem;">
+        <div>
+          <h2>Fitness &amp; Actividad Física</h2>
+          <p style="font-size: 0.8125rem; color: #64748B;">Registra tus caminatas o trotes por kilómetros, o tus rutinas de gimnasio por músculos y series.</p>
+        </div>
+        <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+          <button class="btn-primary" onclick="window.timeplusOpenFitnessModal()" style="display: flex; align-items: center; gap: 0.4rem; padding: 0.55rem 1.25rem; font-size: 0.8125rem; background: linear-gradient(135deg, #16A34A, #15803D); box-shadow: 0 4px 12px rgba(22, 163, 74, 0.25);">
+            <span>＋</span> <span>Registrar Entrenamiento</span>
+          </button>
+          <button class="btn-secondary" onclick="window.timeplusAI.processCommand('Hoy caminé 5 km')" style="display: flex; align-items: center; gap: 0.4rem; padding: 0.55rem 1rem; font-size: 0.8125rem;">
+            <span>🎙️</span> <span>Dictar a IA</span>
+          </button>
+        </div>
       </div>
 
       <div class="grid-cols-4">
         <div class="stat-card">
           <div class="stat-card-title">Días Entrenados</div>
           <div class="stat-card-value" style="color: #C2410C;">${fit.weeklyWorkouts} / ${fit.targetWorkouts}</div>
+          <div class="stat-card-desc">Esta semana</div>
         </div>
         <div class="stat-card">
           <div class="stat-card-title">Horas Activas</div>
           <div class="stat-card-value" style="color: #EA580C;">${fit.activeHours} h</div>
+          <div class="stat-card-desc">Tiempo total registrado</div>
         </div>
         <div class="stat-card">
-          <div class="stat-card-title">Calorías Estimadas</div>
+          <div class="stat-card-title">Calorías Quemadas</div>
           <div class="stat-card-value" style="color: #16A34A;">${fit.caloriesBurned} kcal</div>
+          <div class="stat-card-desc">Estimadas por la IA</div>
         </div>
-        <div class="stat-card" onclick="window.timeplusAI.processCommand('Hoy entrené')">
-          <div class="stat-card-title">Registrar Hoy</div>
-          <button class="btn-primary" style="margin-top: 0.5rem; width: 100%; justify-content: center;">
-            🎙️ Dictar Rutina
+        <div class="stat-card" style="cursor: pointer; background: linear-gradient(135deg, #F0FDF4, #DCFCE7); border: 1.5px dashed #86EFAC;" onclick="window.timeplusOpenFitnessModal()">
+          <div class="stat-card-title" style="color: #166534; font-weight: 800;">¿Qué hiciste hoy?</div>
+          <div style="font-size: 0.78rem; color: #15803D; font-weight: 700; margin-top: 0.35rem;">🌳 Aire Libre · 🏋️ Gimnasio</div>
+          <button class="btn-primary" style="margin-top: 0.5rem; width: 100%; justify-content: center; font-size: 0.75rem; padding: 0.4rem; background: #16A34A;">
+            ＋ Registrar Sesión
           </button>
         </div>
       </div>
 
       <div class="timeline-card" style="margin-top: 1.5rem;">
-        <h3 style="margin-bottom: 1rem;">Historial de Entrenamientos Recientes</h3>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: 0.5rem;">
+          <div>
+            <h3>Historial de Entrenamientos y Actividades</h3>
+            <p style="font-size: 0.75rem; color: #64748B;">Caminatas, trotes al aire libre con kilómetros y sesiones de gimnasio.</p>
+          </div>
+          <button class="btn-secondary" onclick="window.timeplusOpenFitnessModal()" style="font-size: 0.72rem; padding: 0.3rem 0.7rem;">＋ Nueva Sesión</button>
+        </div>
+
         <div class="timeline-list">
           ${workouts.length === 0 ? `
             <div style="text-align:center;padding:2.5rem 1rem;color:#64748B;">
-              <div style="font-size:2rem;margin-bottom:0.5rem;">🏋️</div>
+              <div style="font-size:2.25rem;margin-bottom:0.5rem;">🏃‍♂️</div>
               <p style="font-weight:700;color:#1E293B;">Sin entrenamientos registrados esta semana.</p>
-              <p style="font-size:0.8rem;margin-top:0.25rem;">Usa el botón "🎙️ Dictar Rutina" para registrar tu sesión con IA.</p>
+              <p style="font-size:0.8rem;margin-top:0.25rem;">Haz clic en <strong>"＋ Registrar Entrenamiento"</strong> para guardar tus kilómetros o tu rutina de gym.</p>
             </div>
-          ` : workouts.map(w => `
+          ` : workouts.map(w => {
+            const isOutdoor = w.activityType === 'outdoor' || !!w.distanceKm;
+            const icon = isOutdoor ? (w.title.includes('Bici') || w.title.includes('Ciclismo') ? '🚴' : (w.title.includes('Trote') || w.title.includes('Running') ? '🏃' : '🚶')) : '🏋️';
+            const badgeBg = isOutdoor ? '#DCFCE7' : '#EFF6FF';
+            const badgeColor = isOutdoor ? '#15803D' : '#1D4ED8';
+            const badgeLabel = isOutdoor ? `🌳 Aire Libre · ${w.distanceKm ? w.distanceKm + ' km' : 'Cardio'}` : `🏋️ Gimnasio ${w.muscleGroup ? '· ' + w.muscleGroup : ''}`;
+            
+            return `
             <div class="timeline-item">
-              <div class="timeline-time">${w.time}</div>
-              <div class="timeline-content">
-                <div class="timeline-title">🏋️ ${w.title} (${w.duration})</div>
-                ${w.exercises ? `
-                  <ul style="margin-top: 0.5rem; font-size: 0.75rem; color: #475569; padding-left: 1.25rem;">
-                    ${w.exercises.map(e => `<li><strong>${e.name}</strong>: ${e.sets} series × ${e.reps} reps (${e.weight})</li>`).join('')}
-                  </ul>
+              <div class="timeline-time">${w.time || 'Hoy'}</div>
+              <div class="timeline-content" style="flex:1;">
+                <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:0.35rem;">
+                  <div>
+                    <div style="display:flex;align-items:center;gap:0.45rem;flex-wrap:wrap;">
+                      <span class="timeline-title">${icon} ${w.title}</span>
+                      <span class="timeline-badge" style="background:${badgeBg};color:${badgeColor};font-weight:800;font-size:0.68rem;">
+                        ${badgeLabel}
+                      </span>
+                    </div>
+                    <div style="font-size:0.75rem;color:#64748B;margin-top:0.25rem;display:flex;gap:0.75rem;flex-wrap:wrap;">
+                      <span>⏱️ <strong>Duración:</strong> ${w.duration || '45 min'}</span>
+                      <span>🔥 <strong>Calorías:</strong> ~${w.calories || 300} kcal</span>
+                      ${w.location ? `<span>📍 <strong>Lugar:</strong> ${w.location}</span>` : ''}
+                    </div>
+                  </div>
+                  <button onclick="window.timeplusDeleteWorkout('${w.id}')" style="border:none;background:none;color:#EF4444;cursor:pointer;font-size:0.85rem;padding:0.2rem 0.4rem;" title="Eliminar registro">✕</button>
+                </div>
+
+                ${w.exercises && w.exercises.length > 0 ? `
+                  <div style="margin-top:0.6rem;background:#F8FAFC;border:1px solid #E2E8F0;border-radius:0.5rem;padding:0.5rem 0.75rem;">
+                    <div style="font-size:0.7rem;font-weight:800;color:#334155;margin-bottom:0.25rem;">📝 Detalle del Entrenamiento:</div>
+                    <ul style="font-size:0.75rem;color:#475569;margin:0;padding-left:1.25rem;">
+                      ${w.exercises.map(e => `
+                        <li>
+                          <strong>${e.name}</strong>${e.sets ? `: ${e.sets} series × ${e.reps} reps` : ''} ${e.weight ? `(${e.weight})` : ''}
+                        </li>
+                      `).join('')}
+                    </ul>
+                  </div>
                 ` : ''}
               </div>
             </div>
-          `).join('')}
+          `;}).join('')}
         </div>
       </div>
     `;
@@ -3088,6 +3139,325 @@ document.addEventListener('DOMContentLoaded', () => {
         </div>
       `).join('');
     }
+  };
+
+  // --- MODAL DE REGISTRO DE FITNESS & ACTIVIDAD FÍSICA (Aire Libre con Km vs. Gimnasio) ---
+  window.timeplusOpenFitnessModal = () => {
+    let modal = document.getElementById('fitness-modal');
+    if (!modal) {
+      modal = document.createElement('div');
+      modal.id = 'fitness-modal';
+      modal.style.position = 'fixed';
+      modal.style.inset = '0';
+      modal.style.background = 'rgba(15, 23, 42, 0.65)';
+      modal.style.backdropFilter = 'blur(4px)';
+      modal.style.display = 'flex';
+      modal.style.alignItems = 'center';
+      modal.style.justifyContent = 'center';
+      modal.style.zIndex = '9999';
+      modal.style.padding = '1rem';
+      document.body.appendChild(modal);
+    }
+
+    const user = store.getCurrentUser();
+    const defaultGym = user?.addrGym && !user.addrGym.toLowerCase().includes('no asiste') ? user.addrGym : 'SmartFit';
+
+    modal.innerHTML = `
+      <div style="background:#fff;border-radius:1.25rem;width:100%;max-width:32rem;max-height:90vh;overflow-y:auto;box-shadow:0 25px 50px -12px rgba(0,0,0,0.25);position:relative;padding:1.75rem;">
+        <button onclick="window.timeplusCloseFitnessModal()" style="position:absolute;top:1rem;right:1rem;border:none;background:none;font-size:1.25rem;cursor:pointer;color:#94A3B8;">✕</button>
+
+        <div style="margin-bottom:1.25rem;">
+          <div style="font-size:0.75rem;font-weight:800;color:#16A34A;display:flex;align-items:center;gap:0.35rem;">
+            <span>🏃</span> <span>REGISTRO DE ACTIVIDAD FÍSICA</span>
+          </div>
+          <h2 style="font-size:1.35rem;font-weight:900;margin-top:0.2rem;">¿Qué actividad realizaste hoy?</h2>
+          <p style="font-size:0.75rem;color:#64748B;">Elige si hiciste ejercicio al aire libre (kilómetros) o entrenaste en gimnasio / casa.</p>
+        </div>
+
+        <!-- Pestañas Selectoras -->
+        <div style="display:flex;gap:0.4rem;background:#F1F5F9;padding:0.3rem;border-radius:0.75rem;margin-bottom:1.25rem;">
+          <button type="button" id="tab-btn-outdoor" onclick="window.timeplusSwitchFitnessTab('outdoor')" style="flex:1;border:none;background:#fff;padding:0.5rem 0.6rem;border-radius:0.5rem;font-size:0.75rem;font-weight:800;color:#166534;box-shadow:0 2px 4px rgba(0,0,0,0.06);cursor:pointer;">
+            🌳 Al Aire Libre (Km)
+          </button>
+          <button type="button" id="tab-btn-gym" onclick="window.timeplusSwitchFitnessTab('gym')" style="flex:1;border:none;background:transparent;padding:0.5rem 0.6rem;border-radius:0.5rem;font-size:0.75rem;font-weight:700;color:#64748B;cursor:pointer;">
+            🏋️ Gimnasio
+          </button>
+          <button type="button" id="tab-btn-home" onclick="window.timeplusSwitchFitnessTab('home')" style="flex:1;border:none;background:transparent;padding:0.5rem 0.6rem;border-radius:0.5rem;font-size:0.75rem;font-weight:700;color:#64748B;cursor:pointer;">
+            🏡 En Casa
+          </button>
+        </div>
+
+        <!-- PANEL 1: AIRE LIBRE (KILÓMETROS) -->
+        <div id="fitness-panel-outdoor" style="display:flex;flex-direction:column;gap:0.85rem;">
+          <div style="background:#F0FDF4;border:1px solid #BBF7D0;border-radius:0.75rem;padding:0.85rem;">
+            <div style="font-weight:800;color:#166534;font-size:0.78rem;margin-bottom:0.25rem;">🏃 Caminata, Trote o Ciclismo</div>
+            <p style="font-size:0.72rem;color:#15803D;margin:0;">Registra los kilómetros recorridos. La IA calculará tus calorías y tiempo automáticamente.</p>
+          </div>
+
+          <div>
+            <label style="font-size:0.71rem;font-weight:700;display:block;margin-bottom:0.25rem;">Tipo de Actividad</label>
+            <select id="fit-outdoor-type" class="login-panel-input" style="background:#fff;">
+              <option value="Caminata">🚶 Caminata al Aire Libre</option>
+              <option value="Trote / Running">🏃 Trote / Running</option>
+              <option value="Ciclismo">🚴 Ciclismo / Bicicleta</option>
+              <option value="Patinaje">⛸️ Patinaje</option>
+              <option value="Senderismo">⛰️ Senderismo / Trekking</option>
+            </select>
+          </div>
+
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.5rem;">
+            <div>
+              <label style="font-size:0.71rem;font-weight:700;display:block;margin-bottom:0.25rem;">Distancia Recorrida (en km) *</label>
+              <input type="number" step="0.1" min="0.1" id="fit-outdoor-km" placeholder="Ej: 5.0" class="login-panel-input" style="font-size:0.9rem;font-weight:800;color:#15803D;" required oninput="window.timeplusCalculateOutdoorCal(this.value)">
+            </div>
+            <div>
+              <label style="font-size:0.71rem;font-weight:700;display:block;margin-bottom:0.25rem;">Tiempo / Duración (min)</label>
+              <input type="number" min="1" id="fit-outdoor-duration" placeholder="Ej: 45" class="login-panel-input">
+            </div>
+          </div>
+
+          <div>
+            <label style="font-size:0.71rem;font-weight:700;display:block;margin-bottom:0.25rem;">Lugar / Parque o Ruta (opcional)</label>
+            <input type="text" id="fit-outdoor-location" placeholder="Ej: Parque Simón Bolívar, Malecón, Calles del barrio" class="login-panel-input">
+          </div>
+
+          <div id="fit-outdoor-cal-preview" style="background:#F8FAFC;border:1px dashed #CBD5E1;border-radius:0.5rem;padding:0.6rem 0.8rem;font-size:0.74rem;color:#475569;display:flex;justify-content:space-between;align-items:center;">
+            <span>🔥 Calorías Estimadas:</span>
+            <strong id="fit-cal-num" style="color:#16A34A;font-size:0.85rem;">~0 kcal</strong>
+          </div>
+
+          <div style="display:flex;justify-content:flex-end;gap:0.5rem;margin-top:0.5rem;">
+            <button type="button" class="btn-secondary" onclick="window.timeplusCloseFitnessModal()">Cancelar</button>
+            <button type="button" class="btn-primary" onclick="window.timeplusSaveOutdoorWorkout()" style="background:linear-gradient(135deg,#16A34A,#15803D);padding:0.6rem 1.4rem;">
+              Guardar Recorrido →
+            </button>
+          </div>
+        </div>
+
+        <!-- PANEL 2: GIMNASIO (MUSCULACIÓN & SERIES) -->
+        <div id="fitness-panel-gym" style="display:none;flex-direction:column;gap:0.85rem;">
+          <div style="background:#EFF6FF;border:1px solid #BFDBFE;border-radius:0.75rem;padding:0.85rem;">
+            <div style="font-weight:800;color:#1E40AF;font-size:0.78rem;margin-bottom:0.25rem;">🏋️ Sesión en Gimnasio / Musculación</div>
+            <p style="font-size:0.72rem;color:#1D4ED8;margin:0;">Elige el grupo muscular trabajado y registra tus ejercicios con series y peso.</p>
+          </div>
+
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.5rem;">
+            <div>
+              <label style="font-size:0.71rem;font-weight:700;display:block;margin-bottom:0.25rem;">Sede de Gimnasio</label>
+              <input type="text" id="fit-gym-location" value="${defaultGym}" class="login-panel-input" placeholder="Ej: SmartFit Calle 100">
+            </div>
+            <div>
+              <label style="font-size:0.71rem;font-weight:700;display:block;margin-bottom:0.25rem;">Grupo Muscular</label>
+              <select id="fit-gym-muscle" class="login-panel-input" style="background:#fff;">
+                <option value="Pecho & Tríceps">💪 Pecho &amp; Tríceps</option>
+                <option value="Pierna & Glúteos">🦵 Pierna &amp; Glúteos</option>
+                <option value="Espalda & Bíceps">🔙 Espalda &amp; Bíceps</option>
+                <option value="Hombros & Trapecio">🏋️ Hombros &amp; Trapecio</option>
+                <option value="Brazos Completo">🦾 Brazos (Bíceps + Tríceps)</option>
+                <option value="Abdomen & Core">🧘 Abdomen &amp; Core</option>
+                <option value="Cardio & Spinning">🚴 Cardio / Spinning</option>
+                <option value="Full Body">🔥 Full Body / Funcional</option>
+              </select>
+            </div>
+          </div>
+
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.5rem;">
+            <div>
+              <label style="font-size:0.71rem;font-weight:700;display:block;margin-bottom:0.25rem;">Duración de la Sesión</label>
+              <select id="fit-gym-duration" class="login-panel-input" style="background:#fff;">
+                <option value="45 min">45 minutos</option>
+                <option value="1 hora" selected>1 hora</option>
+                <option value="1 hora 15 min">1 hora 15 min</option>
+                <option value="1 hora 30 min">1 hora 30 min</option>
+                <option value="2 horas">2 horas</option>
+              </select>
+            </div>
+            <div>
+              <label style="font-size:0.71rem;font-weight:700;display:block;margin-bottom:0.25rem;">Intensidad</label>
+              <select id="fit-gym-intensity" class="login-panel-input" style="background:#fff;">
+                <option value="Moderada">Moderada (~380 kcal)</option>
+                <option value="Alta" selected>Alta (~480 kcal)</option>
+                <option value="Máxima">Intensa / Pesada (~600 kcal)</option>
+              </select>
+            </div>
+          </div>
+
+          <div>
+            <label style="font-size:0.71rem;font-weight:700;display:block;margin-bottom:0.25rem;">Ejercicios Realizados (Series × Reps y Peso)</label>
+            <textarea id="fit-gym-exercises" rows="3" class="login-panel-input" style="resize:vertical;" placeholder="Ej:&#10;• Press de Banca: 4 series × 10 reps (60 kg)&#10;• Aperturas: 3 series × 12 reps (14 kg)&#10;• Fondos en Paralelas: 3 series × 12 reps"></textarea>
+          </div>
+
+          <div style="display:flex;justify-content:flex-end;gap:0.5rem;margin-top:0.5rem;">
+            <button type="button" class="btn-secondary" onclick="window.timeplusCloseFitnessModal()">Cancelar</button>
+            <button type="button" class="btn-primary" onclick="window.timeplusSaveGymWorkout()" style="background:linear-gradient(135deg,#2563EB,#1D4ED8);padding:0.6rem 1.4rem;">
+              Guardar Rutina Gym →
+            </button>
+          </div>
+        </div>
+
+        <!-- PANEL 3: EN CASA / CALISTENIA -->
+        <div id="fitness-panel-home" style="display:none;flex-direction:column;gap:0.85rem;">
+          <div style="background:#FEF3C7;border:1px solid #FDE68A;border-radius:0.75rem;padding:0.85rem;">
+            <div style="font-weight:800;color:#92400E;font-size:0.78rem;margin-bottom:0.25rem;">🏡 Entrenamiento en Casa / Calistenia</div>
+            <p style="font-size:0.72rem;color:#B45309;margin:0;">Flexiones, sentadillas con peso corporal, yoga o estiramiento.</p>
+          </div>
+
+          <div>
+            <label style="font-size:0.71rem;font-weight:700;display:block;margin-bottom:0.25rem;">Tipo de Sesión</label>
+            <select id="fit-home-type" class="login-panel-input" style="background:#fff;">
+              <option value="Calistenia / Peso Corporal">🤸 Calistenia (Flexiones, Dominadas, Fondos)</option>
+              <option value="Abdominales & Core">🍫 Rutina de Abdominales &amp; Core</option>
+              <option value="Yoga & Flexibilidad">🧘 Yoga &amp; Estiramiento</option>
+              <option value="HIIT en Casa">⚡ HIIT / Cardio en Casa</option>
+            </select>
+          </div>
+
+          <div>
+            <label style="font-size:0.71rem;font-weight:700;display:block;margin-bottom:0.25rem;">Duración (minutos)</label>
+            <input type="number" min="5" id="fit-home-duration" value="30" class="login-panel-input">
+          </div>
+
+          <div style="display:flex;justify-content:flex-end;gap:0.5rem;margin-top:0.5rem;">
+            <button type="button" class="btn-secondary" onclick="window.timeplusCloseFitnessModal()">Cancelar</button>
+            <button type="button" class="btn-primary" onclick="window.timeplusSaveHomeWorkout()" style="background:linear-gradient(135deg,#D97706,#B45309);padding:0.6rem 1.4rem;">
+              Guardar Sesión en Casa →
+            </button>
+          </div>
+        </div>
+
+      </div>
+    `;
+
+    modal.style.display = 'flex';
+  };
+
+  window.timeplusCloseFitnessModal = () => {
+    const modal = document.getElementById('fitness-modal');
+    if (modal) modal.style.display = 'none';
+  };
+
+  window.timeplusSwitchFitnessTab = (tab) => {
+    ['outdoor', 'gym', 'home'].forEach(t => {
+      const p = document.getElementById('fitness-panel-' + t);
+      const b = document.getElementById('tab-btn-' + t);
+      if (p) p.style.display = (t === tab) ? 'flex' : 'none';
+      if (b) {
+        if (t === tab) {
+          b.style.background = '#fff';
+          b.style.fontWeight = '800';
+          b.style.color = (t === 'outdoor') ? '#166534' : (t === 'gym' ? '#1D4ED8' : '#92400E');
+          b.style.boxShadow = '0 2px 4px rgba(0,0,0,0.06)';
+        } else {
+          b.style.background = 'transparent';
+          b.style.fontWeight = '700';
+          b.style.color = '#64748B';
+          b.style.boxShadow = 'none';
+        }
+      }
+    });
+  };
+
+  window.timeplusCalculateOutdoorCal = (kmVal) => {
+    const km = parseFloat(kmVal) || 0;
+    const cal = Math.round(km * 65);
+    const el = document.getElementById('fit-cal-num');
+    if (el) el.innerText = `~${cal} kcal`;
+  };
+
+  window.timeplusSaveOutdoorWorkout = () => {
+    const actType = document.getElementById('fit-outdoor-type')?.value || 'Caminata';
+    const km = parseFloat(document.getElementById('fit-outdoor-km')?.value) || 0;
+    const durMin = parseInt(document.getElementById('fit-outdoor-duration')?.value) || Math.round(km * 12) || 30;
+    const location = (document.getElementById('fit-outdoor-location')?.value || '').trim();
+
+    if (km <= 0) {
+      alert('Por favor indica cuántos kilómetros recorriste (ej: 3.5 o 5 km).');
+      return;
+    }
+
+    const cal = Math.round(km * 65);
+    const icon = actType.includes('Bici') ? '🚴' : (actType.includes('Trote') || actType.includes('Running') ? '🏃' : '🚶');
+
+    store.recordWorkout({
+      title: `${icon} ${actType} (${km} km)`,
+      category: 'fitness',
+      activityType: 'outdoor',
+      distanceKm: km,
+      duration: `${durMin} min`,
+      durationHours: parseFloat((durMin / 60).toFixed(1)),
+      calories: cal,
+      location: location || 'Al aire libre',
+      exercises: [{ name: actType, sets: 1, reps: `${km} km`, weight: `${cal} kcal` }]
+    });
+
+    window.timeplusCloseFitnessModal();
+    if (window.timeplusShowToast) window.timeplusShowToast(`🏃 Registrado: ${km} km de ${actType} (~${cal} kcal quemadas).`);
+    renderFitness();
+  };
+
+  window.timeplusSaveGymWorkout = () => {
+    const gymLocation = (document.getElementById('fit-gym-location')?.value || '').trim();
+    const muscle = document.getElementById('fit-gym-muscle')?.value || 'Rutina de Gimnasio';
+    const duration = document.getElementById('fit-gym-duration')?.value || '1 hora';
+    const intensity = document.getElementById('fit-gym-intensity')?.value || 'Alta';
+    const rawExercises = (document.getElementById('fit-gym-exercises')?.value || '').trim();
+
+    const calMap = { 'Moderada': 380, 'Alta': 480, 'Máxima': 600 };
+    const cal = calMap[intensity] || 480;
+
+    let exercises = [];
+    if (rawExercises) {
+      exercises = rawExercises.split('\n').filter(Boolean).map(line => {
+        const clean = line.replace(/^[•\-\*]\s*/, '').trim();
+        return { name: clean, sets: null, reps: null, weight: null };
+      });
+    } else {
+      exercises = [{ name: muscle, sets: 4, reps: '10-12 reps', weight: 'Progresivo' }];
+    }
+
+    store.recordWorkout({
+      title: `🏋️ ${muscle}`,
+      category: 'fitness',
+      activityType: 'gym',
+      muscleGroup: muscle,
+      duration: duration,
+      durationHours: duration.includes('2') ? 2 : (duration.includes('30') ? 1.5 : 1),
+      calories: cal,
+      location: gymLocation || 'Gimnasio',
+      exercises: exercises
+    });
+
+    window.timeplusCloseFitnessModal();
+    if (window.timeplusShowToast) window.timeplusShowToast(`🏋️ Registrado: ${muscle} en ${gymLocation || 'Gimnasio'} (~${cal} kcal).`);
+    renderFitness();
+  };
+
+  window.timeplusSaveHomeWorkout = () => {
+    const type = document.getElementById('fit-home-type')?.value || 'Calistenia en Casa';
+    const durMin = parseInt(document.getElementById('fit-home-duration')?.value) || 30;
+    const cal = Math.round(durMin * 6);
+
+    store.recordWorkout({
+      title: `🏡 ${type}`,
+      category: 'fitness',
+      activityType: 'home',
+      duration: `${durMin} min`,
+      durationHours: parseFloat((durMin / 60).toFixed(1)),
+      calories: cal,
+      location: 'En Casa',
+      exercises: [{ name: type, sets: 3, reps: `${durMin} min`, weight: 'Peso Corporal' }]
+    });
+
+    window.timeplusCloseFitnessModal();
+    if (window.timeplusShowToast) window.timeplusShowToast(`🏡 Registrado: ${type} (${durMin} min, ~${cal} kcal).`);
+    renderFitness();
+  };
+
+  window.timeplusDeleteWorkout = (id) => {
+    if (!confirm('¿Deseas eliminar este registro de entrenamiento?')) return;
+    store.deleteActivity(id);
+    if (window.timeplusShowToast) window.timeplusShowToast('🗑️ Registro de entrenamiento eliminado.');
+    renderFitness();
   };
 
   // Mobile menu toggle

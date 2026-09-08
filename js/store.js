@@ -334,18 +334,27 @@ class TimePlusStore {
     if (!this.state.fitnessSummary) {
       this.state.fitnessSummary = { weeklyWorkouts: 0, targetWorkouts: 5, activeHours: 0, caloriesBurned: 0 };
     }
+    const cal = workout.calories || (workout.distanceKm ? Math.round(workout.distanceKm * 65) : 400);
+    const durHours = workout.durationHours || (workout.duration ? (workout.duration.includes('min') ? parseFloat((parseFloat(workout.duration)/60).toFixed(1)) : parseFloat(workout.duration)) : 1);
+
     this.state.fitnessSummary.weeklyWorkouts += 1;
-    this.state.fitnessSummary.activeHours += (workout.durationHours || 1);
-    this.state.fitnessSummary.caloriesBurned += (workout.calories || 450);
+    this.state.fitnessSummary.activeHours += durHours;
+    this.state.fitnessSummary.caloriesBurned += cal;
 
     const user = this.getCurrentUser();
     const act = {
       id: 'fit-' + Date.now(),
       title: workout.title || 'Entrenamiento Registrado',
       category: 'fitness',
+      activityType: workout.activityType || (workout.distanceKm ? 'outdoor' : 'gym'),
+      distanceKm: workout.distanceKm || null,
+      location: workout.location || '',
+      muscleGroup: workout.muscleGroup || '',
       time: workout.time || new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       date: 'today',
-      duration: workout.duration || '1h',
+      duration: workout.duration || '45 min',
+      durationHours: durHours,
+      calories: cal,
       type: 'fitness',
       exercises: workout.exercises || [],
       userEmail: user ? user.email.toLowerCase() : null
@@ -357,12 +366,13 @@ class TimePlusStore {
     const user = this.getCurrentUser();
     if (user && user.role === 'client') {
       const clientWorkouts = this.getActivities().filter(a => a.category === 'fitness');
-      const hours = clientWorkouts.reduce((acc, w) => acc + (parseFloat(w.duration) || 1), 0);
+      const hours = clientWorkouts.reduce((acc, w) => acc + (parseFloat(w.durationHours) || (w.duration && w.duration.includes('min') ? parseFloat(w.duration)/60 : (parseFloat(w.duration) || 1))), 0);
+      const calories = clientWorkouts.reduce((acc, w) => acc + (parseInt(w.calories) || (w.distanceKm ? Math.round(w.distanceKm * 65) : 400)), 0);
       return {
         weeklyWorkouts: clientWorkouts.length,
         targetWorkouts: 5,
-        activeHours: hours,
-        caloriesBurned: clientWorkouts.length * 450
+        activeHours: parseFloat(hours.toFixed(1)),
+        caloriesBurned: calories
       };
     }
     return this.state.fitnessSummary || { weeklyWorkouts: 0, targetWorkouts: 5, activeHours: 0, caloriesBurned: 0 };
