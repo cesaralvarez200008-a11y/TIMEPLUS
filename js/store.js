@@ -385,19 +385,47 @@ class TimePlusStore {
     if (!user) return [];
     if (user.role === 'admin') return places;
     const userEmail = (user.email || '').trim().toLowerCase();
-    const userPlaces = places.filter(p => p.userEmail && p.userEmail.trim().toLowerCase() === userEmail);
-    if (userPlaces.length === 0 && (user.addrHome || user.addrGym || user.addrWork)) {
-      const autoPlaces = [];
-      if (user.addrHome) autoPlaces.push({ id: 'plc-home', name: 'Casa / Residencia', address: user.addrHome, visitsCount: 1, avgTravelTime: 'Punto Base' });
-      if (user.addrWork) autoPlaces.push({ id: 'plc-work', name: 'Trabajo / Estudio', address: user.addrWork, visitsCount: 0, avgTravelTime: '~20 min' });
-      if (user.addrGym) autoPlaces.push({ id: 'plc-gym', name: 'Gimnasio Habitual', address: user.addrGym, visitsCount: 0, avgTravelTime: '~15 min' });
-      return autoPlaces;
+    let userPlaces = places.filter(p => p.userEmail && p.userEmail.trim().toLowerCase() === userEmail);
+    
+    // Auto-generar lugares base si aún no están en la lista personalizada
+    if (user.addrHome && !userPlaces.some(p => p.id === 'plc-home')) {
+      userPlaces.unshift({ id: 'plc-home', name: 'Casa / Residencia', address: user.addrHome, category: 'casa', visitsCount: 1, avgTravelTime: 'Punto Base', userEmail });
     }
+    if (user.addrWork && !userPlaces.some(p => p.id === 'plc-work')) {
+      userPlaces.push({ id: 'plc-work', name: 'Trabajo / Estudio', address: user.addrWork, category: 'trabajo', visitsCount: 0, avgTravelTime: '~20 min', userEmail });
+    }
+    if (user.addrGym && !userPlaces.some(p => p.id === 'plc-gym')) {
+      userPlaces.push({ id: 'plc-gym', name: 'Gimnasio Habitual', address: user.addrGym, category: 'gym', visitsCount: 0, avgTravelTime: '~15 min', userEmail });
+    }
+    if (user.addrFamily && !userPlaces.some(p => p.id === 'plc-family')) {
+      userPlaces.push({ id: 'plc-family', name: 'Familiar / Principal', address: user.addrFamily, category: 'familiar', visitsCount: 0, avgTravelTime: '~25 min', userEmail });
+    }
+
     return userPlaces;
   }
 
+  addPlace(place) {
+    if (!this.state.places) this.state.places = [];
+    if (!place.id) place.id = 'plc-' + Date.now();
+    const user = this.getCurrentUser();
+    if (user && user.email) {
+      place.userEmail = user.email.toLowerCase();
+    }
+    place.visitsCount = place.visitsCount || 0;
+    place.avgTravelTime = place.avgTravelTime || '~20-30 min';
+    this.state.places.push(place);
+    this.saveState();
+    return place;
+  }
+
+  deletePlace(placeId) {
+    if (!this.state.places) return;
+    this.state.places = this.state.places.filter(p => p.id !== placeId);
+    this.saveState();
+  }
+
   recordPlaceVisit(placeId) {
-    const place = this.state.places.find(p => p.id === placeId);
+    const place = (this.state.places || []).find(p => p.id === placeId);
     if (place) {
       place.visitsCount = (place.visitsCount || 0) + 1;
       this.saveState();

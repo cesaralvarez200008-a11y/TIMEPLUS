@@ -240,9 +240,23 @@
               </div>
             </div>
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.4rem;">
-              <div><label style="font-size:0.71rem;font-weight:700;display:block;margin-bottom:0.2rem;">Correo *</label><input type="email" id="reg-email" placeholder="correo@ejemplo.com" class="login-panel-input" required></div>
-              <div><label style="font-size:0.71rem;font-weight:700;display:block;margin-bottom:0.2rem;">Celular / WhatsApp *</label><input type="tel" id="reg-phone" placeholder="+57 310 123 4567" class="login-panel-input" required></div>
+              <div><label style="font-size:0.71rem;font-weight:700;display:block;margin-bottom:0.2rem;">País de Residencia *</label>
+                <select id="reg-country" class="login-panel-input" style="background:#fff;" onchange="timeplusOnWizardCountryChange(this.value)">
+                  <option value="Colombia" selected>🇨🇴 Colombia (+57)</option>
+                  <option value="México">🇲🇽 México (+52)</option>
+                  <option value="Perú">🇵🇪 Perú (+51)</option>
+                  <option value="Chile">🇨🇱 Chile (+56)</option>
+                  <option value="Argentina">🇦🇷 Argentina (+54)</option>
+                  <option value="España">🇪🇸 España (+34)</option>
+                  <option value="Estados Unidos">🇺🇸 Estados Unidos (+1)</option>
+                  <option value="Ecuador">🇪🇨 Ecuador (+593)</option>
+                  <option value="Panamá">🇵🇦 Panamá (+507)</option>
+                  <option value="Venezuela">🇻🇪 Venezuela (+58)</option>
+                </select>
+              </div>
+              <div><label style="font-size:0.71rem;font-weight:700;display:block;margin-bottom:0.2rem;">Celular / WhatsApp *</label><input type="tel" id="reg-phone" placeholder="+57 310 123 4567" value="+57 " class="login-panel-input" required></div>
             </div>
+            <div><label style="font-size:0.71rem;font-weight:700;display:block;margin-bottom:0.2rem;">Correo Electrónico *</label><input type="email" id="reg-email" placeholder="correo@ejemplo.com" class="login-panel-input" required></div>
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.4rem;">
               <div><label style="font-size:0.71rem;font-weight:700;display:block;margin-bottom:0.2rem;">Contraseña *</label><input type="password" id="reg-pass" placeholder="Mínimo 6 caracteres" class="login-panel-input" required></div>
               <div><label style="font-size:0.71rem;font-weight:700;display:block;margin-bottom:0.2rem;">Confirmar Contraseña *</label><input type="password" id="reg-pass2" placeholder="Repite tu clave" class="login-panel-input" required></div>
@@ -250,24 +264,28 @@
             <div style="display:flex;justify-content:flex-end;"><button type="button" class="login-panel-submit" style="padding:0.42rem 1.25rem;font-size:0.78rem;" onclick="timeplusWizardNext(1)">Siguiente →</button></div>
           </div>
 
-          <!-- PASO 2 -->
+          <!-- PASO 2: 4 NOMBRES / APELLIDOS -->
           <div id="reg-panel-2" style="display:none;flex-direction:column;gap:0.45rem;">
             <p style="font-size:0.67rem;font-weight:800;color:#2563EB;margin:0 0 0.35rem;letter-spacing:0.04em;">PASO 2 — INFORMACIÓN PERSONAL</p>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.4rem;">
+              <div><label style="font-size:0.71rem;font-weight:700;display:block;margin-bottom:0.2rem;">Primer Nombre *</label><input type="text" id="reg-firstname1" placeholder="Ej: Rafael" class="login-panel-input" required></div>
+              <div><label style="font-size:0.71rem;font-weight:700;display:block;margin-bottom:0.2rem;">Segundo Nombre</label><input type="text" id="reg-firstname2" placeholder="Ej: Antonio (opcional)" class="login-panel-input"></div>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.4rem;">
+              <div><label style="font-size:0.71rem;font-weight:700;display:block;margin-bottom:0.2rem;">Primer Apellido *</label><input type="text" id="reg-lastname1" placeholder="Ej: Carvajal" class="login-panel-input" required></div>
+              <div><label style="font-size:0.71rem;font-weight:700;display:block;margin-bottom:0.2rem;">Segundo Apellido</label><input type="text" id="reg-lastname2" placeholder="Ej: Gómez (opcional)" class="login-panel-input"></div>
+            </div>
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.4rem;">
               <div><label style="font-size:0.71rem;font-weight:700;display:block;margin-bottom:0.2rem;">Tipo de Persona *</label><select id="reg-persontype" class="login-panel-input" style="background:#fff;"><option value="Natural">Persona Natural</option><option value="Jurídica">Persona Jurídica</option></select></div>
               <div><label style="font-size:0.71rem;font-weight:700;display:block;margin-bottom:0.2rem;">Género (opcional)</label><select id="reg-gender" class="login-panel-input" style="background:#fff;"><option value="">— Prefiero no decir —</option><option value="Masculino">Masculino</option><option value="Femenino">Femenino</option><option value="No binario">No binario</option><option value="Otro">Otro</option></select></div>
             </div>
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.4rem;">
-              <div><label style="font-size:0.71rem;font-weight:700;display:block;margin-bottom:0.2rem;">Nombres *</label><input type="text" id="reg-firstname" placeholder="Ej: Rafael" class="login-panel-input" required></div>
-              <div><label style="font-size:0.71rem;font-weight:700;display:block;margin-bottom:0.2rem;">Apellidos *</label><input type="text" id="reg-lastname" placeholder="Ej: Carvajal" class="login-panel-input" required></div>
-            </div>
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.4rem;">
               <div><label style="font-size:0.71rem;font-weight:700;display:block;margin-bottom:0.2rem;">Tipo de Documento *</label><select id="reg-doctype" class="login-panel-input" style="background:#fff;"><option value="CC">CC — Cédula de Ciudadanía</option><option value="TI">TI — Tarjeta de Identidad</option><option value="CE">CE — Cédula de Extranjería</option><option value="Pasaporte">Pasaporte</option></select></div>
               <div><label style="font-size:0.71rem;font-weight:700;display:block;margin-bottom:0.2rem;">Número de Documento *</label><input type="text" id="reg-docnum" placeholder="Ej: 1012345678" class="login-panel-input" required></div>
             </div>
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.4rem;">
-              <div><label style="font-size:0.71rem;font-weight:700;display:block;margin-bottom:0.2rem;">Fecha de Nacimiento</label><input type="date" id="reg-birthdate" class="login-panel-input"></div>
-              <div><label style="font-size:0.71rem;font-weight:700;display:block;margin-bottom:0.2rem;">País *</label><input type="text" id="reg-country" placeholder="Colombia" value="Colombia" class="login-panel-input" required></div>
+            <div>
+              <label style="font-size:0.71rem;font-weight:700;display:block;margin-bottom:0.2rem;">Fecha de Nacimiento</label>
+              <input type="date" id="reg-birthdate" class="login-panel-input">
             </div>
             <div style="display:flex;justify-content:space-between;"><button type="button" class="btn-secondary" style="padding:0.42rem 0.9rem;font-size:0.74rem;" onclick="timeplusWizardGoTo(1)">← Atrás</button><button type="button" class="login-panel-submit" style="padding:0.42rem 1.25rem;font-size:0.78rem;" onclick="timeplusWizardNext(2)">Siguiente →</button></div>
           </div>
@@ -513,12 +531,12 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <!-- Application Modules in Dependency Order -->
-  <script src="js/config.js?v=20260907_calendar_and_dashboard"></script>
-  <script src="js/supabase-client.js?v=20260907_calendar_and_dashboard"></script>
-  <script src="js/store.js?v=20260907_calendar_and_dashboard"></script>
-  <script src="js/ai-engine.js?v=20260907_calendar_and_dashboard"></script>
-  <script src="js/router.js?v=20260907_calendar_and_dashboard"></script>
-  <script src="js/app.js?v=20260907_calendar_and_dashboard"></script>
+  <script src="js/config.js?v=20260908_places_and_names"></script>
+  <script src="js/supabase-client.js?v=20260908_places_and_names"></script>
+  <script src="js/store.js?v=20260908_places_and_names"></script>
+  <script src="js/ai-engine.js?v=20260908_places_and_names"></script>
+  <script src="js/router.js?v=20260908_places_and_names"></script>
+  <script src="js/app.js?v=20260908_places_and_names"></script>
 
   <!-- Landing Page Logic con Verificación de Aprobación en Supabase -->
   <script>
@@ -540,6 +558,27 @@
       }
     }
 
+    /* ── Wizard: cambio automático de código de país ── */
+    function timeplusOnWizardCountryChange(country) {
+      const phoneInp = document.getElementById('reg-phone');
+      if (!phoneInp) return;
+      const codes = {
+        'Colombia': '+57',
+        'México': '+52',
+        'Perú': '+51',
+        'Chile': '+56',
+        'Argentina': '+54',
+        'España': '+34',
+        'Estados Unidos': '+1',
+        'Ecuador': '+593',
+        'Panamá': '+507',
+        'Venezuela': '+58'
+      };
+      const code = codes[country] || '+57';
+      let current = phoneInp.value.trim().replace(/^\+\d{1,4}\s*/, '');
+      phoneInp.value = `${code} ${current}`.trim() + ' ';
+    }
+
     /* ── Wizard: validar paso actual y avanzar ── */
     function timeplusWizardNext(step) {
       if (step === 1) {
@@ -552,11 +591,10 @@
         if (pass.length < 6) { alert('La contraseña debe tener mínimo 6 caracteres.'); return; }
       }
       if (step === 2) {
-        const fn = document.getElementById('reg-firstname').value.trim();
-        const ln = document.getElementById('reg-lastname').value.trim();
-        const dn = document.getElementById('reg-docnum').value.trim();
-        const co = document.getElementById('reg-country').value.trim();
-        if (!fn || !ln || !dn || !co) { alert('Completa nombres, apellidos, número de documento y país.'); return; }
+        const fn1 = document.getElementById('reg-firstname1').value.trim();
+        const ln1 = document.getElementById('reg-lastname1').value.trim();
+        const dn  = document.getElementById('reg-docnum').value.trim();
+        if (!fn1 || !ln1 || !dn) { alert('Completa primer nombre, primer apellido y número de documento.'); return; }
       }
       if (step === 4) {
         const city = document.getElementById('reg-city').value.trim();
@@ -660,8 +698,13 @@
       const pass     = document.getElementById('reg-pass').value;
       // Paso 2
       const personType = document.getElementById('reg-persontype').value;
-      const firstName  = document.getElementById('reg-firstname').value.trim();
-      const lastName   = document.getElementById('reg-lastname').value.trim();
+      const firstName1 = (document.getElementById('reg-firstname1') || {}).value ? document.getElementById('reg-firstname1').value.trim() : '';
+      const firstName2 = (document.getElementById('reg-firstname2') || {}).value ? document.getElementById('reg-firstname2').value.trim() : '';
+      const lastName1  = (document.getElementById('reg-lastname1') || {}).value ? document.getElementById('reg-lastname1').value.trim() : '';
+      const lastName2  = (document.getElementById('reg-lastname2') || {}).value ? document.getElementById('reg-lastname2').value.trim() : '';
+      const firstName  = [firstName1, firstName2].filter(Boolean).join(' ');
+      const lastName   = [lastName1, lastName2].filter(Boolean).join(' ');
+      const fullName   = [firstName1, firstName2, lastName1, lastName2].filter(Boolean).join(' ');
       const docType    = document.getElementById('reg-doctype').value;
       const docNumber  = document.getElementById('reg-docnum').value.trim();
       const birthDate  = document.getElementById('reg-birthdate').value;
@@ -687,18 +730,22 @@
       const notifyPref   = (document.querySelector('input[name="reg-notify"]:checked') || {}).value || 'WhatsApp';
 
       if (!email || !phone || !pass) { alert('Faltan datos del Paso 1 (correo, celular o contraseña).'); timeplusWizardGoTo(1); return; }
-      if (!firstName || !lastName || !docNumber) { alert('Faltan datos del Paso 2 (nombres, apellidos o documento).'); timeplusWizardGoTo(2); return; }
+      if (!firstName1 || !lastName1 || !docNumber) { alert('Faltan datos del Paso 2 (primer nombre, primer apellido o documento).'); timeplusWizardGoTo(2); return; }
       if (!city || !addrHome) { alert('Faltan datos del Paso 4 (ciudad o dirección de casa).'); timeplusWizardGoTo(4); return; }
       if (!window.timeplusSupabase) { alert('Supabase no disponible en este momento.'); return; }
 
-      const fullName = `${firstName} ${lastName}`.trim();
       const submitBtn = document.getElementById('btn-submit-register');
       if (submitBtn) { submitBtn.innerText = 'Registrando en Supabase...'; submitBtn.disabled = true; }
 
       try {
         const res = await window.timeplusSupabase.registerClientRequest({
           name: fullName, email, phone, pass,
-          userType, personType, firstName, lastName,
+          userType, personType,
+          firstName: firstName1,
+          secondName: firstName2,
+          lastName1: lastName1,
+          lastName2: lastName2,
+          lastName: lastName,
           docType, docNumber, birthDate, gender, country,
           academicLevel, institution, program, semester, interests, learningGoal,
           city, addrHome, addrWork, addrFamily, addrGym,
@@ -714,7 +761,7 @@
           document.getElementById('modal-title').innerText = 'Solicitud en Revisión';
           document.getElementById('modal-sub').innerText   = 'Registro completado · 5 pasos en Supabase Cloud';
 
-          document.getElementById('success-client-name').innerText = firstName;
+          document.getElementById('success-client-name').innerText = firstName1 || fullName;
           document.getElementById('s-usertype').innerText    = userType;
           document.getElementById('s-email').innerText       = email;
           document.getElementById('s-phone').innerText       = phone;

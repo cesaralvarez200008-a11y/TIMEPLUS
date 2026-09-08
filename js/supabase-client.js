@@ -116,7 +116,10 @@ window.timeplusSupabase = {
         userType: data.userType || 'Estudiante',
         personType: data.personType || 'Natural',
         firstName: data.firstName || '',
-        lastName: data.lastName || '',
+        secondName: data.secondName || '',
+        lastName: data.lastName || data.lastName1 || '',
+        lastName1: data.lastName1 || data.lastName || '',
+        lastName2: data.lastName2 || '',
         docType: data.docType || 'CC',
         docNumber: data.docNumber || '',
         gender: data.gender || '',
@@ -137,7 +140,7 @@ window.timeplusSupabase = {
         registeredAt: new Date().toISOString()
       };
 
-      const fullName = (data.name || (data.firstName ? `${data.firstName} ${data.lastName || ''}`.trim() : '') || 'Nuevo Cliente').trim();
+      const fullName = (data.name || [data.firstName, data.secondName, data.lastName1 || data.lastName, data.lastName2].filter(Boolean).join(' ') || 'Nuevo Cliente').trim();
 
       const payload = {
         name: fullName,

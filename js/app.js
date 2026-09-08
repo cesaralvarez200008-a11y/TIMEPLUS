@@ -1381,6 +1381,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const meds = acts.filter(a => a.type === 'medicamento');
     const workouts = acts.filter(a => a.category === 'fitness');
     const meetings = acts.filter(a => a.type && a.type.startsWith('reunion'));
+    const allPlaces = store.getPlaces ? store.getPlaces() : [];
+    const customPlaces = allPlaces.filter(p => !['plc-home', 'plc-work', 'plc-gym', 'plc-family'].includes(p.id));
 
     contentEl.innerHTML = `
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 0.75rem;">
@@ -1442,6 +1444,12 @@ document.addEventListener('DOMContentLoaded', () => {
             <div style="font-size: 0.8125rem; display: flex; flex-direction: column; gap: 0.45rem; color: #334155;">
               <div><span style="color:#64748B;">Tipo de Persona:</span> <strong>${user.personType || 'Persona Natural'}</strong></div>
               <div><span style="color:#64748B;">Nombres y Apellidos:</span> <strong>${user.name || 'Cliente'}</strong></div>
+              ${(user.firstName || user.lastName1) ? `
+                <div style="font-size:0.75rem; color:#475569; background:#F8FAFC; padding:0.35rem 0.6rem; border-radius:4px; border:1px solid #E2E8F0; line-height:1.4;">
+                  <div>• 1er Nombre: <strong>${user.firstName || '—'}</strong> | 2do: <strong>${user.secondName || '—'}</strong></div>
+                  <div>• 1er Apellido: <strong>${user.lastName1 || user.lastName || '—'}</strong> | 2do: <strong>${user.lastName2 || '—'}</strong></div>
+                </div>
+              ` : ''}
               <div><span style="color:#64748B;">Documento:</span> <strong>${user.docType || 'CC'} ${user.docNumber || 'No especificado'}</strong></div>
               <div><span style="color:#64748B;">Fecha de Nacimiento:</span> <strong>${user.birthDate || 'No registrada'}</strong></div>
               <div><span style="color:#64748B;">Género:</span> <strong>${user.gender || 'No especificado'}</strong></div>
@@ -1481,6 +1489,18 @@ document.addEventListener('DOMContentLoaded', () => {
               <div><span style="color:#64748B;">🏢 Trabajo / Estudio:</span> <strong>${user.addrWork || 'No registrada'}</strong></div>
               <div><span style="color:#64748B;">👨‍👩‍👧 Familiar / Alternativo:</span> <strong>${user.addrFamily || 'No registrada'}</strong></div>
               <div><span style="color:#64748B;">🏋️ Sede Gimnasio:</span> <strong>${user.addrGym || 'SmartFit / Sede Habitual'}</strong></div>
+
+              ${customPlaces.length > 0 ? `
+                <div style="margin-top: 0.4rem; border-top: 1px dashed #CBD5E1; padding-top: 0.4rem;">
+                  <div style="font-weight: 700; color: #0F172A; font-size: 0.73rem; margin-bottom: 0.25rem;">📍 Sedes & Lugares Frecuentes Adicionales (${customPlaces.length}):</div>
+                  <div style="display: flex; flex-direction: column; gap: 0.2rem;">
+                    ${customPlaces.map(cp => {
+                      const icon = cp.category === 'amigo' ? '👥' : cp.category === 'familiar' ? '👨‍👩‍👦' : cp.category === 'cajero' ? '🏧' : cp.category === 'centro_comercial' ? '🛍️' : '📍';
+                      return `<div style="font-size:0.72rem; color:#475569;">${icon} <strong>${cp.name}:</strong> ${cp.address}</div>`;
+                    }).join('')}
+                  </div>
+                </div>
+              ` : ''}
               
               <!-- Rutas IA Inteligentes -->
               <div style="margin-top: 0.5rem; padding: 0.5rem; background: #F0FDF4; border: 1px dashed #86EFAC; border-radius: 0.5rem; font-size: 0.75rem;">
@@ -2421,16 +2441,38 @@ document.addEventListener('DOMContentLoaded', () => {
 
         <form onsubmit="event.preventDefault(); window.timeplusSaveProfileChanges();" style="display:flex;flex-direction:column;gap:1rem;">
           
-          <!-- Bloque 1: Personal -->
+          <!-- Bloque 1: Personal (Con 2 Nombres + 2 Apellidos y Código de País Automático) -->
           <div id="section-personal" style="background:#F8FAFC;border:1px solid #E2E8F0;border-radius:0.75rem;padding:1rem;">
             <div style="font-size:0.75rem;font-weight:800;color:#2563EB;margin-bottom:0.6rem;display:flex;align-items:center;gap:0.35rem;">
               <span>👤</span> <span>1. INFORMACIÓN PERSONAL</span>
             </div>
+
+            <!-- 2 Nombres + 2 Apellidos -->
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.5rem;margin-bottom:0.5rem;">
               <div>
-                <label style="font-size:0.7rem;font-weight:700;display:block;margin-bottom:0.2rem;">Nombre Completo</label>
-                <input type="text" id="edit-name" value="${user.name || ''}" class="login-panel-input" required>
+                <label style="font-size:0.7rem;font-weight:700;display:block;margin-bottom:0.2rem;">Primer Nombre *</label>
+                <input type="text" id="edit-firstname" value="${user.firstName || (user.name ? user.name.split(' ')[0] : '')}" class="login-panel-input" placeholder="Ej: Rafael" required oninput="window.timeplusSyncFullName()">
               </div>
+              <div>
+                <label style="font-size:0.7rem;font-weight:700;display:block;margin-bottom:0.2rem;">Segundo Nombre</label>
+                <input type="text" id="edit-secondname" value="${user.secondName || (user.name ? (user.name.split(' ')[2] ? user.name.split(' ')[1] : '') : '')}" class="login-panel-input" placeholder="Ej: Antonio (opcional)" oninput="window.timeplusSyncFullName()">
+              </div>
+            </div>
+
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.5rem;margin-bottom:0.5rem;">
+              <div>
+                <label style="font-size:0.7rem;font-weight:700;display:block;margin-bottom:0.2rem;">Primer Apellido *</label>
+                <input type="text" id="edit-lastname1" value="${user.lastName1 || (user.name ? (user.name.split(' ').length > 1 ? user.name.split(' ').slice(-2, -1)[0] || user.name.split(' ')[1] : '') : '')}" class="login-panel-input" placeholder="Ej: Carvajal" required oninput="window.timeplusSyncFullName()">
+              </div>
+              <div>
+                <label style="font-size:0.7rem;font-weight:700;display:block;margin-bottom:0.2rem;">Segundo Apellido</label>
+                <input type="text" id="edit-lastname2" value="${user.lastName2 || (user.name ? (user.name.split(' ').length > 2 ? user.name.split(' ').slice(-1)[0] : '') : '')}" class="login-panel-input" placeholder="Ej: Gómez (opcional)" oninput="window.timeplusSyncFullName()">
+              </div>
+            </div>
+
+            <input type="hidden" id="edit-name" value="${user.name || ''}">
+
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.5rem;margin-bottom:0.5rem;">
               <div>
                 <label style="font-size:0.7rem;font-weight:700;display:block;margin-bottom:0.2rem;">Tipo de Persona</label>
                 <select id="edit-persontype" class="login-panel-input" style="background:#fff;">
@@ -2438,9 +2480,6 @@ document.addEventListener('DOMContentLoaded', () => {
                   <option value="Jurídica" ${user.personType === 'Jurídica' ? 'selected' : ''}>Persona Jurídica</option>
                 </select>
               </div>
-            </div>
-
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.5rem;margin-bottom:0.5rem;">
               <div>
                 <label style="font-size:0.7rem;font-weight:700;display:block;margin-bottom:0.2rem;">Tipo de Documento</label>
                 <select id="edit-doctype" class="login-panel-input" style="background:#fff;">
@@ -2450,17 +2489,20 @@ document.addEventListener('DOMContentLoaded', () => {
                   <option value="Pasaporte" ${user.docType === 'Pasaporte' ? 'selected' : ''}>Pasaporte</option>
                 </select>
               </div>
-              <div>
-                <label style="font-size:0.7rem;font-weight:700;display:block;margin-bottom:0.2rem;">Número de Documento</label>
-                <input type="text" id="edit-docnum" value="${user.docNumber || ''}" class="login-panel-input" placeholder="Ej: 1012345678">
-              </div>
             </div>
 
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.5rem;margin-bottom:0.5rem;">
               <div>
+                <label style="font-size:0.7rem;font-weight:700;display:block;margin-bottom:0.2rem;">Número de Documento</label>
+                <input type="text" id="edit-docnum" value="${user.docNumber || ''}" class="login-panel-input" placeholder="Ej: 1012345678">
+              </div>
+              <div>
                 <label style="font-size:0.7rem;font-weight:700;display:block;margin-bottom:0.2rem;">Fecha de Nacimiento</label>
                 <input type="date" id="edit-birthdate" value="${user.birthDate || ''}" class="login-panel-input">
               </div>
+            </div>
+
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.5rem;margin-bottom:0.5rem;">
               <div>
                 <label style="font-size:0.7rem;font-weight:700;display:block;margin-bottom:0.2rem;">Género</label>
                 <select id="edit-gender" class="login-panel-input" style="background:#fff;">
@@ -2471,17 +2513,26 @@ document.addEventListener('DOMContentLoaded', () => {
                   <option value="Otro" ${user.gender === 'Otro' ? 'selected' : ''}>Otro</option>
                 </select>
               </div>
+              <div>
+                <label style="font-size:0.7rem;font-weight:700;display:block;margin-bottom:0.2rem;">País de Residencia</label>
+                <select id="edit-country" class="login-panel-input" style="background:#fff;" onchange="window.timeplusOnCountryChange(this.value)">
+                  <option value="Colombia" ${(user.country === 'Colombia' || !user.country) ? 'selected' : ''}>🇨🇴 Colombia (+57)</option>
+                  <option value="México" ${user.country === 'México' ? 'selected' : ''}>🇲🇽 México (+52)</option>
+                  <option value="Perú" ${user.country === 'Perú' ? 'selected' : ''}>🇵🇪 Perú (+51)</option>
+                  <option value="Chile" ${user.country === 'Chile' ? 'selected' : ''}>🇨🇱 Chile (+56)</option>
+                  <option value="Argentina" ${user.country === 'Argentina' ? 'selected' : ''}>🇦🇷 Argentina (+54)</option>
+                  <option value="España" ${user.country === 'España' ? 'selected' : ''}>🇪🇸 España (+34)</option>
+                  <option value="Estados Unidos" ${user.country === 'Estados Unidos' ? 'selected' : ''}>🇺🇸 Estados Unidos (+1)</option>
+                  <option value="Ecuador" ${user.country === 'Ecuador' ? 'selected' : ''}>🇪🇨 Ecuador (+593)</option>
+                  <option value="Panamá" ${user.country === 'Panamá' ? 'selected' : ''}>🇵🇦 Panamá (+507)</option>
+                  <option value="Venezuela" ${user.country === 'Venezuela' ? 'selected' : ''}>🇻🇪 Venezuela (+58)</option>
+                </select>
+              </div>
             </div>
 
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.5rem;">
-              <div>
-                <label style="font-size:0.7rem;font-weight:700;display:block;margin-bottom:0.2rem;">Celular / WhatsApp</label>
-                <input type="tel" id="edit-phone" value="${user.phone || ''}" class="login-panel-input" placeholder="+57 310 123 4567">
-              </div>
-              <div>
-                <label style="font-size:0.7rem;font-weight:700;display:block;margin-bottom:0.2rem;">País</label>
-                <input type="text" id="edit-country" value="${user.country || 'Colombia'}" class="login-panel-input">
-              </div>
+            <div>
+              <label style="font-size:0.7rem;font-weight:700;display:block;margin-bottom:0.2rem;">Celular / WhatsApp (con código de país automático)</label>
+              <input type="tel" id="edit-phone" value="${user.phone || '+57 '}" class="login-panel-input" placeholder="+57 310 123 4567">
             </div>
           </div>
 
@@ -2531,14 +2582,20 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>
           </div>
 
-          <!-- Bloque 3: Ubicaciones & Rutas Movilidad -->
+          <!-- Bloque 3: Ubicaciones & Rutas Movilidad IA (Lista Desplegable y Puntos Múltiples) -->
           <div id="section-movilidad" style="background:#F8FAFC;border:1px solid #E2E8F0;border-radius:0.75rem;padding:1rem;">
-            <div style="font-size:0.75rem;font-weight:800;color:#059669;margin-bottom:0.6rem;display:flex;align-items:center;gap:0.35rem;">
-              <span>🚗</span> <span>3. UBICACIONES &amp; RUTAS DE MOVILIDAD IA</span>
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.6rem;">
+              <div style="font-size:0.75rem;font-weight:800;color:#059669;display:flex;align-items:center;gap:0.35rem;">
+                <span>🚗</span> <span>3. UBICACIONES &amp; RUTAS DE MOVILIDAD IA</span>
+              </div>
+              <button type="button" onclick="window.timeplusToggleCustomPlacesAccordion()" style="background:none;border:none;color:#059669;font-weight:700;font-size:0.75rem;cursor:pointer;">
+                ▼ Ver / Agregar Más Sedes
+              </button>
             </div>
+
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.5rem;margin-bottom:0.5rem;">
               <div>
-                <label style="font-size:0.7rem;font-weight:700;display:block;margin-bottom:0.2rem;">Ciudad Base</label>
+                <label style="font-size:0.7rem;font-weight:700;display:block;margin-bottom:0.2rem;">🌆 Ciudad Base</label>
                 <input type="text" id="edit-city" value="${user.city || ''}" class="login-panel-input" placeholder="Ej: Bogotá, Colombia">
               </div>
               <div>
@@ -2553,14 +2610,51 @@ document.addEventListener('DOMContentLoaded', () => {
                 <input type="text" id="edit-addr-work" value="${user.addrWork || ''}" class="login-panel-input" placeholder="Dirección de trabajo o campus">
               </div>
               <div>
-                <label style="font-size:0.7rem;font-weight:700;display:block;margin-bottom:0.2rem;">👨‍👩‍👧 Dirección Familiar / Alternativo</label>
+                <label style="font-size:0.7rem;font-weight:700;display:block;margin-bottom:0.2rem;">👨‍👩‍👧 Dirección Familiar Principal</label>
                 <input type="text" id="edit-addr-family" value="${user.addrFamily || ''}" class="login-panel-input" placeholder="Dirección familiar">
               </div>
             </div>
 
-            <div>
+            <div style="margin-bottom:0.75rem;">
               <label style="font-size:0.7rem;font-weight:700;display:block;margin-bottom:0.2rem;">🏋️ Sede Gimnasio Habitual</label>
               <input type="text" id="edit-addr-gym" value="${user.addrGym || ''}" class="login-panel-input" placeholder="Ej: SmartFit Calle 100, Bogotá">
+            </div>
+
+            <!-- ACORDEÓN DESPLEGABLE: AGREGAR VARIOS FAMILIARES, AMIGOS, CAJEROS, CENTROS COMERCIALES -->
+            <div id="tp-custom-places-accordion" style="background:#ffffff;border:1px dashed #10B981;border-radius:0.5rem;padding:0.85rem;margin-top:0.5rem;">
+              <div style="font-size:0.75rem;font-weight:800;color:#065F46;margin-bottom:0.4rem;display:flex;justify-content:space-between;align-items:center;">
+                <span>📍 Sedes Adicionales (Amigos, Cajeros, Centros Comerciales)</span>
+                <span style="font-size:0.68rem;color:#059669;font-weight:600;">Monitoreadas por IA</span>
+              </div>
+
+              <!-- Formulario rápido para añadir ubicación -->
+              <div style="display:grid;grid-template-columns:1fr 1.2fr 1fr auto;gap:0.4rem;align-items:center;margin-bottom:0.6rem;">
+                <select id="tp-new-place-cat" class="login-panel-input" style="font-size:0.7rem;padding:0.35rem;">
+                  <option value="amigo">👥 Casa de Amigo(a)</option>
+                  <option value="familiar">👨‍👩‍👧 Casa Familiar</option>
+                  <option value="cajero">🏧 Cajero Automático</option>
+                  <option value="centro_comercial">🛍️ Centro Comercial</option>
+                  <option value="otro">📌 Otro Lugar</option>
+                </select>
+                <input type="text" id="tp-new-place-name" placeholder="Nombre (ej: Titán Plaza, Mamá, Cajero Bancolombia)" class="login-panel-input" style="font-size:0.7rem;padding:0.35rem;">
+                <input type="text" id="tp-new-place-address" placeholder="Dirección exacta" class="login-panel-input" style="font-size:0.7rem;padding:0.35rem;">
+                <button type="button" onclick="window.timeplusAddCustomPlaceFromModal()" style="background:#10B981;color:#fff;border:none;padding:0.4rem 0.75rem;border-radius:6px;font-size:0.72rem;font-weight:700;cursor:pointer;">
+                  ＋ Añadir
+                </button>
+              </div>
+
+              <!-- Lista de lugares registrados -->
+              <div id="tp-custom-places-list" style="display:flex;flex-direction:column;gap:0.35rem;max-height:160px;overflow-y:auto;">
+                ${(store.getPlaces ? store.getPlaces() : []).map(p => `
+                  <div style="display:flex;justify-content:space-between;align-items:center;background:#F8FAFC;border:1px solid #E2E8F0;border-radius:6px;padding:0.4rem 0.6rem;font-size:0.72rem;">
+                    <div>
+                      <strong>${p.name}</strong> 
+                      <span style="color:#64748B;">(${p.address || 'Sin dirección'})</span>
+                    </div>
+                    <button type="button" onclick="window.timeplusRemoveCustomPlace('${p.id}')" style="background:none;border:none;color:#EF4444;cursor:pointer;font-size:0.8rem;" title="Eliminar">✕</button>
+                  </div>
+                `).join('')}
+              </div>
             </div>
           </div>
 
@@ -2624,8 +2718,18 @@ document.addEventListener('DOMContentLoaded', () => {
     const btn = document.getElementById('btn-save-profile');
     if (btn) { btn.innerText = 'Guardando en Supabase...'; btn.disabled = true; }
 
+    const firstName = (document.getElementById('edit-firstname')?.value || '').trim();
+    const secondName = (document.getElementById('edit-secondname')?.value || '').trim();
+    const lastName1 = (document.getElementById('edit-lastname1')?.value || '').trim();
+    const lastName2 = (document.getElementById('edit-lastname2')?.value || '').trim();
+    const fullName = [firstName, secondName, lastName1, lastName2].filter(Boolean).join(' ');
+
     const updated = {
-      name: document.getElementById('edit-name').value.trim(),
+      name: fullName || document.getElementById('edit-name').value.trim(),
+      firstName,
+      secondName,
+      lastName1,
+      lastName2,
       personType: document.getElementById('edit-persontype').value,
       docType: document.getElementById('edit-doctype').value,
       docNumber: document.getElementById('edit-docnum').value.trim(),
@@ -2658,6 +2762,117 @@ document.addEventListener('DOMContentLoaded', () => {
     } catch(e) {
       if (btn) { btn.innerText = '💾 Guardar Cambios'; btn.disabled = false; }
       alert('Error guardando cambios: ' + e.message);
+    }
+  };
+
+  // Sincronizador de 2 nombres + 2 apellidos
+  window.timeplusSyncFullName = () => {
+    const fn1 = (document.getElementById('edit-firstname')?.value || '').trim();
+    const fn2 = (document.getElementById('edit-secondname')?.value || '').trim();
+    const ln1 = (document.getElementById('edit-lastname1')?.value || '').trim();
+    const ln2 = (document.getElementById('edit-lastname2')?.value || '').trim();
+    const nameEl = document.getElementById('edit-name');
+    if (nameEl) {
+      nameEl.value = [fn1, fn2, ln1, ln2].filter(Boolean).join(' ');
+    }
+  };
+
+  // Selector automático de indicativo según país
+  window.timeplusOnCountryChange = (countryName) => {
+    const phoneInput = document.getElementById('edit-phone');
+    if (!phoneInput) return;
+    const codes = {
+      'Colombia': '+57',
+      'México': '+52',
+      'Perú': '+51',
+      'Chile': '+56',
+      'Argentina': '+54',
+      'España': '+34',
+      'Estados Unidos': '+1',
+      'Ecuador': '+593',
+      'Panamá': '+507',
+      'Venezuela': '+58'
+    };
+    const code = codes[countryName] || '+57';
+    let current = phoneInput.value.trim();
+    // Reemplazar código anterior si existe
+    current = current.replace(/^\+\d{1,4}\s*/, '');
+    phoneInput.value = `${code} ${current}`.trim();
+  };
+
+  // Acordeón de sedes adicionales
+  window.timeplusToggleCustomPlacesAccordion = () => {
+    const acc = document.getElementById('tp-custom-places-accordion');
+    if (acc) {
+      acc.style.display = (acc.style.display === 'none') ? 'block' : 'none';
+    }
+  };
+
+  // Agregar sede personalizada desde el modal (Amigos, Cajeros, Centros Comerciales)
+  window.timeplusAddCustomPlaceFromModal = () => {
+    const name = (document.getElementById('tp-new-place-name')?.value || '').trim();
+    const address = (document.getElementById('tp-new-place-address')?.value || '').trim();
+    const cat = document.getElementById('tp-new-place-cat')?.value || 'otro';
+
+    if (!name) {
+      alert('Por favor indica un nombre para el lugar (ej: Titán Plaza, Mamá, Cajero Bancolombia).');
+      return;
+    }
+
+    const icons = {
+      amigo: '👥',
+      familiar: '👨‍👩‍👧',
+      cajero: '🏧',
+      centro_comercial: '🛍️',
+      otro: '📍'
+    };
+
+    const newPlace = {
+      name: `${icons[cat] || '📍'} ${name}`,
+      address: address || 'Ubicación frecuente',
+      category: cat,
+      visitsCount: 1,
+      avgTravelTime: '~15-25 min'
+    };
+
+    store.addPlace(newPlace);
+
+    // Limpiar inputs
+    document.getElementById('tp-new-place-name').value = '';
+    document.getElementById('tp-new-place-address').value = '';
+
+    // Actualizar lista en el modal
+    const list = document.getElementById('tp-custom-places-list');
+    if (list) {
+      const places = store.getPlaces();
+      list.innerHTML = places.map(p => `
+        <div style="display:flex;justify-content:space-between;align-items:center;background:#F8FAFC;border:1px solid #E2E8F0;border-radius:6px;padding:0.4rem 0.6rem;font-size:0.72rem;">
+          <div>
+            <strong>${p.name}</strong> 
+            <span style="color:#64748B;">(${p.address || 'Sin dirección'})</span>
+          </div>
+          <button type="button" onclick="window.timeplusRemoveCustomPlace('${p.id}')" style="background:none;border:none;color:#EF4444;cursor:pointer;font-size:0.8rem;" title="Eliminar">✕</button>
+        </div>
+      `).join('');
+    }
+
+    window.timeplusShowToast(`📍 Sede "${name}" añadida a tus rutas de movilidad IA.`);
+  };
+
+  window.timeplusRemoveCustomPlace = (placeId) => {
+    store.deletePlace(placeId);
+    const list = document.getElementById('tp-custom-places-list');
+    if (list) {
+      const places = store.getPlaces();
+      list.innerHTML = places.map(p => `
+        <div style="display:flex;justify-content:space-between;align-items:center;background:#F8FAFC;border:1px solid #E2E8F0;border-radius:6px;padding:0.4rem 0.6rem;font-size:0.72rem;">
+          <div>
+            <strong>${p.name}</strong> 
+            <span style="color:#64748B;">(${p.address || 'Sin dirección'})</span>
+          </div>
+          <button type="button" onclick="window.timeplusRemoveCustomPlace('${p.id}')" style="background:none;border:none;color:#EF4444;cursor:pointer;font-size:0.8rem;" title="Eliminar">✕</button>
+        </div>
+      `).join('');
     }
   };
 
