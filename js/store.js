@@ -516,6 +516,301 @@ class TimePlusStore {
     this.state.inbox = this.state.inbox.filter(i => i.id !== id);
     this.saveState();
   }
+
+  // --- ② AGENDA & TAREAS ---
+  getTasks() {
+    if (!this.state.tasks) {
+      this.state.tasks = [
+        { id: 'tsk-1', title: 'Revisar reporte semanal de gestión', category: 'trabajo', priority: 'alta', done: false, date: 'Hoy' },
+        { id: 'tsk-2', title: 'Comprar frutas y suplemento de proteína', category: 'personal', priority: 'media', done: true, date: 'Hoy' },
+        { id: 'tsk-3', title: 'Programar cita odontológica', category: 'salud', priority: 'baja', done: false, date: 'Mañana' }
+      ];
+      this.saveState();
+    }
+    const user = this.getCurrentUser();
+    if (!user || user.role === 'admin') return this.state.tasks;
+    const email = (user.email || '').toLowerCase();
+    return this.state.tasks.filter(t => !t.userEmail || t.userEmail.toLowerCase() === email);
+  }
+
+  addTask(task) {
+    if (!this.state.tasks) this.state.tasks = [];
+    const user = this.getCurrentUser();
+    const newTask = {
+      id: 'tsk-' + Date.now(),
+      title: task.title,
+      category: task.category || 'personal',
+      priority: task.priority || 'media',
+      done: false,
+      date: task.date || 'Hoy',
+      userEmail: user ? user.email.toLowerCase() : null
+    };
+    this.state.tasks.unshift(newTask);
+    this.saveState();
+    return newTask;
+  }
+
+  toggleTask(id) {
+    const tsk = (this.state.tasks || []).find(t => t.id === id);
+    if (tsk) {
+      tsk.done = !tsk.done;
+      this.saveState();
+    }
+  }
+
+  deleteTask(id) {
+    this.state.tasks = (this.state.tasks || []).filter(t => t.id !== id);
+    this.saveState();
+  }
+
+  // --- ③ TIEMPO & BLOQUES ---
+  getTimeLogs() {
+    if (!this.state.timeLogs) {
+      this.state.timeLogs = [
+        { id: 'tl-1', activity: 'Trabajo Enfocado (Deep Work)', category: 'trabajo', durationMin: 90, date: 'Hoy', time: '09:00 - 10:30' },
+        { id: 'tl-2', activity: 'Entrenamiento de Fuerza', category: 'fitness', durationMin: 60, date: 'Hoy', time: '11:00 - 12:00' },
+        { id: 'tl-3', activity: 'Lectura y Aprendizaje', category: 'estudio', durationMin: 45, date: 'Hoy', time: '14:00 - 14:45' }
+      ];
+      this.saveState();
+    }
+    return this.state.timeLogs;
+  }
+
+  addTimeLog(log) {
+    if (!this.state.timeLogs) this.state.timeLogs = [];
+    const user = this.getCurrentUser();
+    const newLog = {
+      id: 'tl-' + Date.now(),
+      activity: log.activity,
+      category: log.category || 'trabajo',
+      durationMin: log.durationMin,
+      date: 'Hoy',
+      time: log.time || new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      userEmail: user ? user.email.toLowerCase() : null
+    };
+    this.state.timeLogs.unshift(newLog);
+    this.saveState();
+    return newLog;
+  }
+
+  // --- ⑥ PASOS & MÉTRICAS ---
+  getStepsData() {
+    if (!this.state.stepsData) {
+      this.state.stepsData = {
+        todaySteps: 7420,
+        goalSteps: 10000,
+        todayKm: 5.2,
+        caloriesBurned: 320,
+        history: [
+          { day: 'Lun', steps: 8900 },
+          { day: 'Mar', steps: 10450 },
+          { day: 'Mié', steps: 6800 },
+          { day: 'Jue', steps: 9100 },
+          { day: 'Vie', steps: 11200 },
+          { day: 'Sáb', steps: 8300 },
+          { day: 'Dom', steps: 7420 }
+        ]
+      };
+      this.saveState();
+    }
+    return this.state.stepsData;
+  }
+
+  recordSteps(addedSteps) {
+    const data = this.getStepsData();
+    data.todaySteps = (data.todaySteps || 0) + Number(addedSteps);
+    data.todayKm = parseFloat((data.todaySteps * 0.00075).toFixed(2));
+    data.caloriesBurned = Math.round(data.todaySteps * 0.04);
+    this.saveState();
+  }
+
+  // --- ⑦ COMPRAS INTELIGENTES & FACTURAS OCR ---
+  getPurchases() {
+    if (!this.state.purchases) {
+      this.state.purchases = [
+        { id: 'pur-1', store: 'Éxito Calle 80', date: '2026-09-07', total: 145000, category: 'Supermercado', itemsCount: 8, receiptType: 'Factura Electrónica OCR' },
+        { id: 'pur-2', store: 'Farmatodo Unicentro', date: '2026-09-06', total: 68500, category: 'Farmacia', itemsCount: 3, receiptType: 'Ticket Escaneado' },
+        { id: 'pur-3', store: 'Decathlon Colina', date: '2026-09-04', total: 189000, category: 'Deportes', itemsCount: 2, receiptType: 'Factura Electrónica OCR' }
+      ];
+      this.saveState();
+    }
+    return this.state.purchases;
+  }
+
+  addPurchase(pur) {
+    if (!this.state.purchases) this.state.purchases = [];
+    const user = this.getCurrentUser();
+    const item = {
+      id: 'pur-' + Date.now(),
+      store: pur.store,
+      date: pur.date || new Date().toISOString().split('T')[0],
+      total: Number(pur.total) || 0,
+      category: pur.category || 'Supermercado',
+      itemsCount: Number(pur.itemsCount) || 1,
+      receiptType: pur.receiptType || 'Manual',
+      userEmail: user ? user.email.toLowerCase() : null
+    };
+    this.state.purchases.unshift(item);
+    this.saveState();
+    return item;
+  }
+
+  deletePurchase(id) {
+    this.state.purchases = (this.state.purchases || []).filter(p => p.id !== id);
+    this.saveState();
+  }
+
+  // --- ⑧ FINANZAS & PRESUPUESTOS ---
+  getFinances() {
+    if (!this.state.finances) {
+      this.state.finances = [
+        { id: 'fin-1', description: 'Honorarios Servicios Pro', type: 'ingreso', amount: 3500000, category: 'Ingresos', date: '2026-09-01' },
+        { id: 'fin-2', description: 'Mercado del mes', type: 'gasto', amount: 480000, category: 'Alimentación', date: '2026-09-03' },
+        { id: 'fin-3', description: 'Gimnasio y Bienestar', type: 'gasto', amount: 150000, category: 'Salud & Deporte', date: '2026-09-04' },
+        { id: 'fin-4', description: 'Combustible y Transporte', type: 'gasto', amount: 120000, category: 'Movilidad', date: '2026-09-05' },
+        { id: 'fin-5', description: 'Servicios Públicos & Internet', type: 'gasto', amount: 230000, category: 'Hogar', date: '2026-09-06' }
+      ];
+      this.saveState();
+    }
+    return this.state.finances;
+  }
+
+  addFinance(item) {
+    if (!this.state.finances) this.state.finances = [];
+    const user = this.getCurrentUser();
+    const newEntry = {
+      id: 'fin-' + Date.now(),
+      description: item.description,
+      type: item.type || 'gasto',
+      amount: Number(item.amount) || 0,
+      category: item.category || 'General',
+      date: item.date || new Date().toISOString().split('T')[0],
+      userEmail: user ? user.email.toLowerCase() : null
+    };
+    this.state.finances.unshift(newEntry);
+    this.saveState();
+    return newEntry;
+  }
+
+  deleteFinance(id) {
+    this.state.finances = (this.state.finances || []).filter(f => f.id !== id);
+    this.saveState();
+  }
+
+  getBudgets() {
+    if (!this.state.budgets) {
+      this.state.budgets = [
+        { category: 'Alimentación', budget: 600000, spent: 480000 },
+        { category: 'Salud & Deporte', budget: 250000, spent: 150000 },
+        { category: 'Movilidad', budget: 200000, spent: 120000 },
+        { category: 'Hogar & Servicios', budget: 350000, spent: 230000 },
+        { category: 'Entretenimiento', budget: 200000, spent: 85000 }
+      ];
+      this.saveState();
+    }
+    return this.state.budgets;
+  }
+
+  // --- ⑨ BIENESTAR: SUEÑO & HÁBITOS ---
+  getSleepLogs() {
+    if (!this.state.sleepLogs) {
+      this.state.sleepLogs = [
+        { id: 'sl-1', date: 'Anoche', hours: 7.5, bedTime: '23:15', wakeTime: '06:45', quality: 4, score: 86, notes: 'Sueño reparador, ritmo circadiano estable.' },
+        { id: 'sl-2', date: 'Hace 2 días', hours: 6.8, bedTime: '00:00', wakeTime: '06:50', quality: 3, score: 74, notes: 'Interrupción leve a medianoche.' },
+        { id: 'sl-3', date: 'Hace 3 días', hours: 8.0, bedTime: '22:45', wakeTime: '06:45', quality: 5, score: 94, notes: 'Óptimo descanso.' }
+      ];
+      this.saveState();
+    }
+    return this.state.sleepLogs;
+  }
+
+  addSleepLog(log) {
+    if (!this.state.sleepLogs) this.state.sleepLogs = [];
+    const user = this.getCurrentUser();
+    const entry = {
+      id: 'sl-' + Date.now(),
+      date: log.date || 'Anoche',
+      hours: Number(log.hours) || 7,
+      bedTime: log.bedTime || '23:00',
+      wakeTime: log.wakeTime || '06:30',
+      quality: Number(log.quality) || 4,
+      score: Math.min(100, Math.round((Number(log.hours) || 7) * 11.5 + (Number(log.quality) || 4) * 3)),
+      notes: log.notes || 'Registro de descanso',
+      userEmail: user ? user.email.toLowerCase() : null
+    };
+    this.state.sleepLogs.unshift(entry);
+    this.saveState();
+    return entry;
+  }
+
+  getHabits() {
+    if (!this.state.habits) {
+      this.state.habits = [
+        { id: 'hab-1', name: 'Tomar 2 Litros de Agua 💧', streak: 12, doneToday: true, goal: 'Diario' },
+        { id: 'hab-2', name: 'Lectura o Aprendizaje 20 min 📖', streak: 5, doneToday: true, goal: 'Diario' },
+        { id: 'hab-3', name: 'Meditación & Respiración 10 min 🧘', streak: 8, doneToday: false, goal: 'Diario' },
+        { id: 'hab-4', name: 'Caminar 8,000+ pasos 👟', streak: 4, doneToday: true, goal: 'Diario' },
+        { id: 'hab-5', name: 'Cero Pantallas 30 min antes de dormir 📵', streak: 3, doneToday: false, goal: 'Diario' }
+      ];
+      this.saveState();
+    }
+    return this.state.habits;
+  }
+
+  toggleHabit(id) {
+    const hab = (this.state.habits || []).find(h => h.id === id);
+    if (hab) {
+      hab.doneToday = !hab.doneToday;
+      if (hab.doneToday) hab.streak = (hab.streak || 0) + 1;
+      else hab.streak = Math.max(0, (hab.streak || 1) - 1);
+      this.saveState();
+    }
+  }
+
+  addHabit(habit) {
+    if (!this.state.habits) this.state.habits = [];
+    const entry = {
+      id: 'hab-' + Date.now(),
+      name: habit.name,
+      streak: 1,
+      doneToday: false,
+      goal: habit.goal || 'Diario'
+    };
+    this.state.habits.push(entry);
+    this.saveState();
+    return entry;
+  }
+
+  // --- ⑩ METAS & LOGROS ---
+  getGoals() {
+    if (!this.state.goals) {
+      this.state.goals = [
+        { id: 'gl-1', title: 'Completar 20 sesiones de entrenamiento este mes', category: 'fitness', current: 14, target: 20, unit: 'sesiones', deadline: '30 Sep 2026', icon: '🏋️' },
+        { id: 'gl-2', title: 'Fondo de Ahorro para Viaje', category: 'finanzas', current: 2400000, target: 4000000, unit: 'COP', deadline: '15 Dic 2026', icon: '✈️' },
+        { id: 'gl-3', title: 'Certificación en IA y Machine Learning', category: 'estudio', current: 75, target: 100, unit: '%', deadline: '31 Oct 2026', icon: '🎓' },
+        { id: 'gl-4', title: 'Mantener promedio de 7.5h de sueño diario', category: 'bienestar', current: 7.2, target: 7.5, unit: 'horas', deadline: 'Continuo', icon: '🛌' }
+      ];
+      this.saveState();
+    }
+    return this.state.goals;
+  }
+
+  addGoal(goal) {
+    if (!this.state.goals) this.state.goals = [];
+    const entry = {
+      id: 'gl-' + Date.now(),
+      title: goal.title,
+      category: goal.category || 'personal',
+      current: Number(goal.current) || 0,
+      target: Number(goal.target) || 100,
+      unit: goal.unit || '%',
+      deadline: goal.deadline || 'Sin fecha',
+      icon: goal.icon || '🎯'
+    };
+    this.state.goals.push(entry);
+    this.saveState();
+    return entry;
+  }
 }
 
 window.timeplusStore = new TimePlusStore();

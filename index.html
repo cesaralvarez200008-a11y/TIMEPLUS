@@ -475,81 +475,151 @@
     <div class="app-container" style="flex:1;">
 
       <!-- Sidebar -->
-      <aside id="app-sidebar" class="app-sidebar">
-        <div class="nav-section-title">Centro de Control</div>
+      <aside id="app-sidebar" class="app-sidebar" style="overflow-y:auto; max-height:calc(100vh - 65px);">
+
+        <!-- ① 🏠 INICIO -->
+        <div class="nav-section-title">🏠 1. Inicio</div>
         <button class="nav-item active" data-route="hoy" onclick="window.timeplusRouter.navigate('hoy')">
-          <span class="icon">🏠</span>
-          <span>HOY (En Vivo)</span>
+          <span class="icon">📍</span>
+          <span>Mi Día (En Vivo)</span>
           <span class="badge" style="background:#EFF6FF;color:#2563EB;">Activo</span>
         </button>
+
+        <!-- ② 📅 AGENDA -->
+        <div class="nav-section-title" style="margin-top:0.65rem;">📅 2. Agenda</div>
         <button class="nav-item" data-route="agenda" onclick="window.timeplusRouter.navigate('agenda')">
           <span class="icon">📅</span>
-          <span>Agenda &amp; Categorías</span>
+          <span>Calendario &amp; Eventos</span>
+        </button>
+        <button class="nav-item" data-route="tareas" onclick="window.timeplusRouter.navigate('tareas')">
+          <span class="icon">✅</span>
+          <span>Mis Tareas &amp; Pendientes</span>
         </button>
 
-        <div class="nav-section-title" style="margin-top:0.75rem;">Vida &amp; Salud</div>
-        <button class="nav-item" data-route="salud" onclick="window.timeplusRouter.navigate('salud')">
-          <span class="icon">💊</span>
-          <span>Salud &amp; Medicamentos</span>
-          <span class="badge" style="background:#FEFCE8;color:#A16207;">Toma</span>
+        <!-- ③ ⏱️ TIEMPO -->
+        <div class="nav-section-title" style="margin-top:0.65rem;">⏱️ 3. Tiempo</div>
+        <button class="nav-item" data-route="tiempo" onclick="window.timeplusRouter.navigate('tiempo')">
+          <span class="icon">⏱️</span>
+          <span>Registro &amp; Cronómetro</span>
         </button>
+        <button class="nav-item" data-route="bloques" onclick="window.timeplusRouter.navigate('bloques')">
+          <span class="icon">🧱</span>
+          <span>Bloques de Tiempo</span>
+        </button>
+
+        <!-- ④ 📍 UBICACIÓN & ⑤ 🚗 MOVILIDAD -->
+        <div class="nav-section-title" style="margin-top:0.65rem;">📍 4-5. Ubicación &amp; Rutas</div>
+        <button class="nav-item" data-route="lugares" onclick="window.timeplusRouter.navigate('lugares')">
+          <span class="icon">🗺️</span>
+          <span>Mis Lugares &amp; Sedes</span>
+        </button>
+        <button class="nav-item" data-route="viajes" onclick="window.timeplusRouter.navigate('viajes')">
+          <span class="icon">🚗</span>
+          <span>Movilidad &amp; Rutas</span>
+        </button>
+
+        <!-- ⑥ 🏃 ACTIVIDAD FÍSICA -->
+        <div class="nav-section-title" style="margin-top:0.65rem;">🏃 6. Actividad Física</div>
         <button class="nav-item" data-route="fitness" onclick="window.timeplusRouter.navigate('fitness')">
           <span class="icon">🏋️</span>
-          <span>Fitness &amp; Gimnasio</span>
+          <span>Gym &amp; Aire Libre</span>
+        </button>
+        <button class="nav-item" data-route="pasos" onclick="window.timeplusRouter.navigate('pasos')">
+          <span class="icon">👟</span>
+          <span>Pasos &amp; Métricas</span>
+        </button>
+
+        <!-- ⑦ 🧾 COMPRAS INTELIGENTES -->
+        <div class="nav-section-title" style="margin-top:0.65rem;">🧾 7. Compras Inteligentes</div>
+        <button class="nav-item" data-route="compras" onclick="window.timeplusRouter.navigate('compras')">
+          <span class="icon">🛒</span>
+          <span>Escáner &amp; Facturas OCR</span>
+        </button>
+
+        <!-- ⑧ 💰 FINANZAS -->
+        <div class="nav-section-title" style="margin-top:0.65rem;">💰 8. Finanzas</div>
+        <button class="nav-item" data-route="finanzas" onclick="window.timeplusRouter.navigate('finanzas')">
+          <span class="icon">💵</span>
+          <span>Ingresos &amp; Gastos</span>
+        </button>
+        <button class="nav-item" data-route="presupuesto" onclick="window.timeplusRouter.navigate('presupuesto')">
+          <span class="icon">🎯</span>
+          <span>Presupuesto &amp; Metas</span>
+        </button>
+
+        <!-- ⑨ 😴 BIENESTAR -->
+        <div class="nav-section-title" style="margin-top:0.65rem;">😴 9. Bienestar &amp; Hábitos</div>
+        <button class="nav-item" data-route="sueno" onclick="window.timeplusRouter.navigate('sueno')">
+          <span class="icon">🛌</span>
+          <span>Sueño &amp; Descanso</span>
+        </button>
+        <button class="nav-item" data-route="habitos" onclick="window.timeplusRouter.navigate('habitos')">
+          <span class="icon">🔄</span>
+          <span>Hábitos &amp; Rutinas</span>
+        </button>
+
+        <!-- ⑩ 🎯 METAS -->
+        <div class="nav-section-title" style="margin-top:0.65rem;">🎯 10. Metas</div>
+        <button class="nav-item" data-route="metas" onclick="window.timeplusRouter.navigate('metas')">
+          <span class="icon">🏆</span>
+          <span>Metas &amp; Logros</span>
+        </button>
+
+        <!-- ⑪ 🩺 SALUD PERSONAL -->
+        <div class="nav-section-title" style="margin-top:0.65rem;">🩺 11. Salud Personal</div>
+        <button class="nav-item" data-route="salud" onclick="window.timeplusRouter.navigate('salud')">
+          <span class="icon">💊</span>
+          <span>Medicamentos &amp; Salud</span>
+          <span class="badge" style="background:#FEFCE8;color:#A16207;">Toma</span>
         </button>
         <button class="nav-item" data-route="citas" onclick="window.timeplusRouter.navigate('citas')">
           <span class="icon">🩺</span>
-          <span>Citas Universales</span>
+          <span>Citas Médicas</span>
         </button>
 
-        <div class="nav-section-title" style="margin-top:0.75rem;">Trabajo &amp; Relaciones</div>
+        <!-- ⑫ 🤖 TIMEPLUS IA & ⑬ 📊 ANALÍTICA -->
+        <div class="nav-section-title" style="margin-top:0.65rem;">🤖 12-13. Inteligencia &amp; BI</div>
+        <button class="nav-item" data-route="inbox" onclick="window.timeplusRouter.navigate('inbox')">
+          <span class="icon">📥</span>
+          <span>Asistente IA Inbox</span>
+        </button>
+        <button class="nav-item" data-route="estadisticas" onclick="window.timeplusRouter.navigate('estadisticas')">
+          <span class="icon">📊</span>
+          <span>Analítica &amp; Reportes</span>
+        </button>
+
+        <!-- 💼 TRABAJO & PROYECTOS -->
+        <div class="nav-section-title" style="margin-top:0.65rem;">💼 Trabajo &amp; Contactos</div>
         <button class="nav-item" data-route="reuniones" onclick="window.timeplusRouter.navigate('reuniones')">
           <span class="icon">💻</span>
           <span>Reuniones &amp; Salida</span>
         </button>
         <button class="nav-item" data-route="proyectos" onclick="window.timeplusRouter.navigate('proyectos')">
-          <span class="icon">💼</span>
+          <span class="icon">📁</span>
           <span>Proyectos &amp; Tareas</span>
         </button>
         <button class="nav-item" data-route="contactos" onclick="window.timeplusRouter.navigate('contactos')">
           <span class="icon">👥</span>
-          <span>Personas &amp; Contactos</span>
-        </button>
-        <button class="nav-item" data-route="lugares" onclick="window.timeplusRouter.navigate('lugares')">
-          <span class="icon">📍</span>
-          <span>Sedes &amp; Movilidad</span>
-        </button>
-        <button class="nav-item" data-route="viajes" onclick="window.timeplusRouter.navigate('viajes')">
-          <span class="icon">✈️</span>
-          <span>Viajes (Travel)</span>
+          <span>Contactos &amp; Personas</span>
         </button>
 
-        <div class="nav-section-title" style="margin-top:0.75rem;">Inteligencia</div>
-        <button class="nav-item" data-route="inbox" onclick="window.timeplusRouter.navigate('inbox')">
-          <span class="icon">📥</span>
-          <span>Bandeja de Entrada IA</span>
-        </button>
-        <button class="nav-item" data-route="estadisticas" onclick="window.timeplusRouter.navigate('estadisticas')">
-          <span class="icon">📊</span>
-          <span>Estadísticas &amp; BI</span>
-        </button>
         <!-- Sección de Mi Cuenta (Solo visible para Clientes) -->
-        <div id="sidebar-client-section" style="display:none; margin-top:0.75rem;">
-          <div class="nav-section-title">Mi Cuenta de Cliente</div>
+        <div id="sidebar-client-section" style="display:none; margin-top:0.65rem;">
+          <div class="nav-section-title">👤 16. Mi Cuenta</div>
           <button class="nav-item" data-route="perfil" onclick="window.timeplusRouter.navigate('perfil')">
             <span class="icon">👤</span>
-            <span>Mi Perfil &amp; Mis Datos</span>
+            <span>Mi Perfil &amp; Datos</span>
             <span class="badge" style="background:#DCFCE7;color:#15803D;">Cliente</span>
           </button>
         </div>
 
         <!-- Sección de Control Maestro (Solo visible para SuperAdmin) -->
-        <div id="sidebar-admin-section" style="display:none; margin-top:0.75rem;">
-          <div class="nav-section-title" style="color:#D97706;">Control Maestro</div>
+        <div id="sidebar-admin-section" style="display:none; margin-top:0.65rem;">
+          <div class="nav-section-title" style="color:#D97706;">🔐 17. Seguridad &amp; Admin</div>
           <button class="nav-item" data-route="admin" onclick="window.timeplusRouter.navigate('admin')">
             <span class="icon">👑</span>
             <span>Panel SuperAdmin</span>
-            <span class="badge" style="background:#FEF3C7;color:#B45309;">Controla Todo</span>
+            <span class="badge" style="background:#FEF3C7;color:#B45309;">Control Total</span>
           </button>
         </div>
       </aside>
@@ -569,12 +639,12 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <!-- Application Modules in Dependency Order -->
-  <script src="js/config.js?v=20260908_fitness_km_gym"></script>
-  <script src="js/supabase-client.js?v=20260908_fitness_km_gym"></script>
-  <script src="js/store.js?v=20260908_fitness_km_gym"></script>
-  <script src="js/ai-engine.js?v=20260908_fitness_km_gym"></script>
-  <script src="js/router.js?v=20260908_fitness_km_gym"></script>
-  <script src="js/app.js?v=20260908_fitness_km_gym"></script>
+  <script src="js/config.js?v=20260908_matriz_maestra_full"></script>
+  <script src="js/supabase-client.js?v=20260908_matriz_maestra_full"></script>
+  <script src="js/store.js?v=20260908_matriz_maestra_full"></script>
+  <script src="js/ai-engine.js?v=20260908_matriz_maestra_full"></script>
+  <script src="js/router.js?v=20260908_matriz_maestra_full"></script>
+  <script src="js/app.js?v=20260908_matriz_maestra_full"></script>
 
   <!-- Landing Page Logic con Verificación de Aprobación en Supabase -->
   <script>

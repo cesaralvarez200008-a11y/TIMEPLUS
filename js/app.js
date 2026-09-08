@@ -90,10 +90,20 @@ document.addEventListener('DOMContentLoaded', () => {
   router.register('inicio', () => renderLanding());
   router.register('perfil', () => requireAuth(renderProfile));
   router.register('agenda', () => requireAuth(renderAgenda));
+  router.register('tareas', () => requireAuth(renderTasks));
+  router.register('tiempo', () => requireAuth(renderTimeTracking));
+  router.register('bloques', () => requireAuth(renderTimeBlocks));
   router.register('salud', () => requireAuth(renderHealth));
-  router.register('fitness', () => requireAuth(renderFitness));
-  router.register('reuniones', () => requireAuth(renderMeetings));
   router.register('citas', () => requireAuth(renderAppointments));
+  router.register('fitness', () => requireAuth(renderFitness));
+  router.register('pasos', () => requireAuth(renderStepsMetrics));
+  router.register('compras', () => requireAuth(renderPurchases));
+  router.register('finanzas', () => requireAuth(renderFinances));
+  router.register('presupuesto', () => requireAuth(renderBudget));
+  router.register('sueno', () => requireAuth(renderSleep));
+  router.register('habitos', () => requireAuth(renderHabits));
+  router.register('metas', () => requireAuth(renderGoals));
+  router.register('reuniones', () => requireAuth(renderMeetings));
   router.register('proyectos', () => requireAuth(renderProjects));
   router.register('contactos', () => requireAuth(renderContacts));
   router.register('lugares', () => requireAuth(renderPlaces));
@@ -854,21 +864,39 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // --- 9. GIMNASIO & FITNESS (VISIÓN 9) ---
   function renderFitness() {
+    const user = store.getCurrentUser();
     const fit = store.getFitnessSummary();
     const workouts = store.getActivities().filter(a => a.category === 'fitness');
+
+    // Conexión directa con la configuración del perfil del usuario
+    const isGymUser = user?.gymStatus === 'si' || (!user?.gymStatus && user?.addrGym && !user.addrGym.toLowerCase().includes('no asiste'));
+    const isOutdoorUser = user?.gymStatus === 'parque' || user?.gymStatus === 'no';
+    const isHomeUser = user?.gymStatus === 'casa';
+
+    const defaultTab = isGymUser ? 'gym' : (isOutdoorUser ? 'outdoor' : (isHomeUser ? 'home' : 'gym'));
+    const subtitleText = isGymUser 
+      ? `Conectado a tu perfil: 🏋️ Gimnasio en ${user?.addrGym || 'SmartFit Habitual'}. Registra los músculos y ejercicios trabajados hoy.`
+      : (isOutdoorUser 
+          ? `Conectado a tu perfil: 🌳 Al Aire Libre (Sin Gym). Registra tus caminatas o trotes por kilómetros recorridos.` 
+          : `Conectado a tu perfil: 🏡 En Casa. Registra tus rutinas de calistenia, peso corporal o yoga.`);
+
+    const primaryBtnLabel = isGymUser ? '＋ Registrar Rutina de Gym' : (isOutdoorUser ? '＋ Registrar Kilómetros' : '＋ Registrar Rutina en Casa');
+    const primaryBtnColor = isGymUser ? 'linear-gradient(135deg, #2563EB, #1D4ED8)' : (isOutdoorUser ? 'linear-gradient(135deg, #16A34A, #15803D)' : 'linear-gradient(135deg, #D97706, #B45309)');
+    const voicePrompt = isGymUser ? 'Hoy entrené pierna en el gym' : (isOutdoorUser ? 'Hoy caminé 5 km' : 'Hoy entrené en casa');
+    const voiceLabel = isGymUser ? '🎙️ Dictar Rutina de Gym' : (isOutdoorUser ? '🎙️ Dictar Kilómetros' : '🎙️ Dictar Sesión en Casa');
 
     contentEl.innerHTML = `
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 0.75rem;">
         <div>
           <h2>Fitness &amp; Actividad Física</h2>
-          <p style="font-size: 0.8125rem; color: #64748B;">Registra tus caminatas o trotes por kilómetros, o tus rutinas de gimnasio por músculos y series.</p>
+          <p style="font-size: 0.8125rem; color: #64748B;">${subtitleText}</p>
         </div>
         <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
-          <button class="btn-primary" onclick="window.timeplusOpenFitnessModal()" style="display: flex; align-items: center; gap: 0.4rem; padding: 0.55rem 1.25rem; font-size: 0.8125rem; background: linear-gradient(135deg, #16A34A, #15803D); box-shadow: 0 4px 12px rgba(22, 163, 74, 0.25);">
-            <span>＋</span> <span>Registrar Entrenamiento</span>
+          <button class="btn-primary" onclick="window.timeplusOpenFitnessModal('${defaultTab}')" style="display: flex; align-items: center; gap: 0.4rem; padding: 0.55rem 1.25rem; font-size: 0.8125rem; background: ${primaryBtnColor}; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
+            <span>＋</span> <span>${primaryBtnLabel}</span>
           </button>
-          <button class="btn-secondary" onclick="window.timeplusAI.processCommand('Hoy caminé 5 km')" style="display: flex; align-items: center; gap: 0.4rem; padding: 0.55rem 1rem; font-size: 0.8125rem;">
-            <span>🎙️</span> <span>Dictar a IA</span>
+          <button class="btn-secondary" onclick="window.timeplusAI.processCommand('${voicePrompt}')" style="display: flex; align-items: center; gap: 0.4rem; padding: 0.55rem 1rem; font-size: 0.8125rem;">
+            <span>🎙️</span> <span>${voiceLabel}</span>
           </button>
         </div>
       </div>
@@ -889,11 +917,15 @@ document.addEventListener('DOMContentLoaded', () => {
           <div class="stat-card-value" style="color: #16A34A;">${fit.caloriesBurned} kcal</div>
           <div class="stat-card-desc">Estimadas por la IA</div>
         </div>
-        <div class="stat-card" style="cursor: pointer; background: linear-gradient(135deg, #F0FDF4, #DCFCE7); border: 1.5px dashed #86EFAC;" onclick="window.timeplusOpenFitnessModal()">
-          <div class="stat-card-title" style="color: #166534; font-weight: 800;">¿Qué hiciste hoy?</div>
-          <div style="font-size: 0.78rem; color: #15803D; font-weight: 700; margin-top: 0.35rem;">🌳 Aire Libre · 🏋️ Gimnasio</div>
-          <button class="btn-primary" style="margin-top: 0.5rem; width: 100%; justify-content: center; font-size: 0.75rem; padding: 0.4rem; background: #16A34A;">
-            ＋ Registrar Sesión
+        <div class="stat-card" style="cursor: pointer; background: ${isGymUser ? 'linear-gradient(135deg, #EFF6FF, #DBEAFE)' : (isOutdoorUser ? 'linear-gradient(135deg, #F0FDF4, #DCFCE7)' : 'linear-gradient(135deg, #FEF3C7, #FDE68A)')}; border: 1.5px dashed ${isGymUser ? '#93C5FD' : (isOutdoorUser ? '#86EFAC' : '#FCD34D')};" onclick="window.timeplusOpenFitnessModal('${defaultTab}')">
+          <div class="stat-card-title" style="color: ${isGymUser ? '#1E40AF' : (isOutdoorUser ? '#166534' : '#92400E')}; font-weight: 800;">
+            ${isGymUser ? '🏋️ Tu Sesión de Gym' : (isOutdoorUser ? '🌳 Tu Actividad Aire Libre' : '🏡 Tu Sesión en Casa')}
+          </div>
+          <div style="font-size: 0.76rem; color: ${isGymUser ? '#1D4ED8' : (isOutdoorUser ? '#15803D' : '#B45309')}; font-weight: 700; margin-top: 0.35rem;">
+            ${isGymUser ? (user?.addrGym || 'SmartFit Habitual') : (isOutdoorUser ? 'Caminata, Trote o Bici (Km)' : 'Calistenia, Pesas o Yoga')}
+          </div>
+          <button class="btn-primary" style="margin-top: 0.5rem; width: 100%; justify-content: center; font-size: 0.75rem; padding: 0.4rem; background: ${isGymUser ? '#2563EB' : (isOutdoorUser ? '#16A34A' : '#D97706')};">
+            ${isGymUser ? '＋ Registrar Músculos & Series' : (isOutdoorUser ? '＋ Registrar Kilómetros' : '＋ Registrar Rutina')}
           </button>
         </div>
       </div>
@@ -902,9 +934,9 @@ document.addEventListener('DOMContentLoaded', () => {
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: 0.5rem;">
           <div>
             <h3>Historial de Entrenamientos y Actividades</h3>
-            <p style="font-size: 0.75rem; color: #64748B;">Caminatas, trotes al aire libre con kilómetros y sesiones de gimnasio.</p>
+            <p style="font-size: 0.75rem; color: #64748B;">${isGymUser ? 'Rutinas de gimnasio por músculos y series registradas.' : (isOutdoorUser ? 'Caminatas y trotes con distancia en kilómetros.' : 'Entrenamientos registrados en casa.')}</p>
           </div>
-          <button class="btn-secondary" onclick="window.timeplusOpenFitnessModal()" style="font-size: 0.72rem; padding: 0.3rem 0.7rem;">＋ Nueva Sesión</button>
+          <button class="btn-secondary" onclick="window.timeplusOpenFitnessModal('${defaultTab}')" style="font-size: 0.72rem; padding: 0.3rem 0.7rem;">＋ Nueva Sesión</button>
         </div>
 
         <div class="timeline-list">
@@ -1241,6 +1273,576 @@ document.addEventListener('DOMContentLoaded', () => {
           <div class="stat-card-title">Horas de Ejercicio</div>
           <div class="stat-card-value" style="color: #EA580C;">5.5 h</div>
         </div>
+      </div>
+    `;
+  }
+
+  // ═══════════════════════════════════════════════════════════
+  // ② AGENDA — MIS TAREAS & PENDIENTES
+  // ═══════════════════════════════════════════════════════════
+  function renderTasks() {
+    const tasks = store.getTasks();
+    const doneCount = tasks.filter(t => t.done).length;
+
+    contentEl.innerHTML = `
+      <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:1.5rem;">
+        <div>
+          <h2>✅ Mis Tareas &amp; Pendientes</h2>
+          <p style="font-size:0.85rem; color:#64748B;">Control de compromisos diarios sincronizados con la Agenda IA.</p>
+        </div>
+        <button class="btn-primary" onclick="window.timeplusAddTaskPrompt()">＋ Nueva Tarea</button>
+      </div>
+
+      <div class="grid-cols-3" style="margin-bottom:1.5rem;">
+        <div class="stat-card">
+          <div class="stat-card-title">Total Tareas</div>
+          <div class="stat-card-value" style="color:#2563EB;">${tasks.length}</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card-title">Completadas</div>
+          <div class="stat-card-value" style="color:#16A34A;">${doneCount}</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card-title">Pendientes</div>
+          <div class="stat-card-value" style="color:#D97706;">${tasks.length - doneCount}</div>
+        </div>
+      </div>
+
+      <div style="background:#fff; border:1px solid #E2E8F0; border-radius:1rem; padding:1.25rem; box-shadow:0 1px 3px rgba(0,0,0,0.05);">
+        <h3 style="font-size:1rem; margin-bottom:1rem; display:flex; align-items:center; gap:0.5rem;">
+          <span>📋</span> Lista de Tareas Activas
+        </h3>
+        ${tasks.length === 0 ? '<p style="color:#94A3B8; text-align:center; padding:2rem;">No tienes tareas registradas. ¡Crea una para comenzar!</p>' : `
+          <div style="display:flex; flex-direction:column; gap:0.6rem;">
+            ${tasks.map(t => {
+              const priorityColors = {
+                alta: { bg: '#FEF2F2', text: '#DC2626', label: 'Alta' },
+                media: { bg: '#FEFCE8', text: '#CA8A04', label: 'Media' },
+                baja: { bg: '#F0FDF4', text: '#16A34A', label: 'Baja' }
+              };
+              const prio = priorityColors[t.priority] || priorityColors.media;
+              return `
+                <div style="display:flex; align-items:center; justify-content:space-between; padding:0.75rem 1rem; border-radius:0.75rem; border:1px solid ${t.done ? '#E2E8F0' : '#CBD5E1'}; background:${t.done ? '#F8FAFC' : '#fff'}; transition:all 0.2s;">
+                  <div style="display:flex; align-items:center; gap:0.85rem;">
+                    <input type="checkbox" ${t.done ? 'checked' : ''} onchange="window.timeplusToggleTask('${t.id}')" style="width:1.2rem; height:1.2rem; cursor:pointer; accent-color:#2563EB;">
+                    <div>
+                      <span style="font-weight:600; font-size:0.92rem; color:${t.done ? '#94A3B8' : '#1E293B'}; text-decoration:${t.done ? 'line-through' : 'none'};">
+                        ${t.title}
+                      </span>
+                      <div style="display:flex; gap:0.5rem; align-items:center; margin-top:0.25rem;">
+                        <span style="font-size:0.7rem; padding:0.1rem 0.5rem; border-radius:9999px; background:${prio.bg}; color:${prio.text}; font-weight:700;">
+                          ${prio.label}
+                        </span>
+                        <span style="font-size:0.75rem; color:#64748B;">📅 ${t.date}</span>
+                        <span style="font-size:0.75rem; color:#64748B;">🏷️ ${t.category}</span>
+                      </div>
+                    </div>
+                  </div>
+                  <button onclick="window.timeplusDeleteTask('${t.id}')" style="background:none; border:none; color:#EF4444; font-size:1.1rem; cursor:pointer; padding:0.25rem 0.5rem;" title="Eliminar">🗑️</button>
+                </div>
+              `;
+            }).join('')}
+          </div>
+        `}
+      </div>
+    `;
+  }
+
+  // ═══════════════════════════════════════════════════════════
+  // ③ TIEMPO — REGISTRO, CRONÓMETRO & TEMPORIZADOR
+  // ═══════════════════════════════════════════════════════════
+  let timerInterval = null;
+  let timerSeconds = 0;
+  let timerRunning = false;
+
+  function renderTimeTracking() {
+    const logs = store.getTimeLogs();
+    const totalMinutes = logs.reduce((acc, l) => acc + (Number(l.durationMin) || 0), 0);
+    const hours = (totalMinutes / 60).toFixed(1);
+
+    const fmtSec = (sec) => {
+      const h = Math.floor(sec / 3600);
+      const m = Math.floor((sec % 3600) / 60);
+      const s = sec % 60;
+      return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+    };
+
+    contentEl.innerHTML = `
+      <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:1.5rem;">
+        <div>
+          <h2>⏱️ Registro &amp; Cronómetro en Vivo</h2>
+          <p style="font-size:0.85rem; color:#64748B;">Mide la duración exacta de tus actividades diarias en tiempo real.</p>
+        </div>
+      </div>
+
+      <div class="grid-cols-3" style="margin-bottom:1.5rem;">
+        <div class="stat-card" style="background:linear-gradient(135deg, #1E293B, #0F172A); color:#fff;">
+          <div class="stat-card-title" style="color:#94A3B8;">Cronómetro Activo</div>
+          <div id="live-timer-display" style="font-size:2.5rem; font-weight:900; font-variant-numeric:tabular-nums; color:#38BDF8; margin:0.5rem 0;">
+            ${fmtSec(timerSeconds)}
+          </div>
+          <div style="display:flex; gap:0.5rem; margin-top:0.5rem;">
+            <button id="btn-timer-toggle" class="btn-primary" onclick="window.timeplusToggleTimer()" style="background:${timerRunning ? '#EF4444' : '#2563EB'}; flex:1; justify-content:center;">
+              ${timerRunning ? '⏸️ Pausar' : '▶️ Iniciar'}
+            </button>
+            <button class="btn-secondary" onclick="window.timeplusResetTimer()" style="background:rgba(255,255,255,0.1); color:#fff; border:none;">
+              🔄 Reiniciar
+            </button>
+            <button class="btn-primary" onclick="window.timeplusSaveTimerLog()" style="background:#10B981; border:none;" title="Guardar tiempo registrado">
+              💾 Guardar
+            </button>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-card-title">Tiempo Total Medido Hoy</div>
+          <div class="stat-card-value" style="color:#2563EB;">${hours} h</div>
+          <div style="font-size:0.75rem; color:#64748B; margin-top:0.35rem;">${totalMinutes} minutos acumulados</div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-card-title">Sesiones Registradas</div>
+          <div class="stat-card-value" style="color:#10B981;">${logs.length}</div>
+          <div style="font-size:0.75rem; color:#64748B; margin-top:0.35rem;">Bloques de actividad guardados</div>
+        </div>
+      </div>
+
+      <!-- Historial de Tiempo -->
+      <div style="background:#fff; border:1px solid #E2E8F0; border-radius:1rem; padding:1.25rem; box-shadow:0 1px 3px rgba(0,0,0,0.05);">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+          <h3 style="font-size:1rem; display:flex; align-items:center; gap:0.5rem;">
+            <span>📜</span> Historial de Tiempo Registrado
+          </h3>
+          <button class="btn-secondary" onclick="window.timeplusOpenManualTimeModal()" style="font-size:0.8rem; padding:0.35rem 0.75rem;">＋ Registro Manual</button>
+        </div>
+
+        <div style="display:flex; flex-direction:column; gap:0.6rem;">
+          ${logs.map(l => `
+            <div style="display:flex; justify-content:space-between; align-items:center; padding:0.75rem 1rem; border-radius:0.75rem; border:1px solid #E2E8F0; background:#F8FAFC;">
+              <div style="display:flex; align-items:center; gap:0.75rem;">
+                <span style="font-size:1.3rem;">⏳</span>
+                <div>
+                  <strong style="color:#0F172A; font-size:0.92rem;">${l.activity}</strong>
+                  <div style="font-size:0.75rem; color:#64748B; margin-top:0.15rem;">
+                    <span>🏷️ ${l.category}</span> • <span>🕒 ${l.time || 'Hoy'}</span>
+                  </div>
+                </div>
+              </div>
+              <div style="text-align:right;">
+                <span style="font-size:1.1rem; font-weight:800; color:#2563EB;">${l.durationMin} min</span>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    `;
+  }
+
+  // ═══════════════════════════════════════════════════════════
+  // ③ TIEMPO — BLOQUES DE TIEMPO
+  // ═══════════════════════════════════════════════════════════
+  function renderTimeBlocks() {
+    contentEl.innerHTML = `
+      <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:1.5rem;">
+        <div>
+          <h2>🧱 Bloques de Tiempo (Time Blocking)</h2>
+          <p style="font-size:0.85rem; color:#64748B;">Organiza tu jornada en bloques protegidos para máxima concentración.</p>
+        </div>
+        <button class="btn-primary" onclick="window.timeplusOpenNewBlockModal()">＋ Nuevo Bloque</button>
+      </div>
+
+      <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(280px, 1fr)); gap:1rem; margin-bottom:1.5rem;">
+        <div style="background:#EFF6FF; border:1px solid #BFDBFE; border-radius:1rem; padding:1.25rem;">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <span style="font-size:1.2rem;">💻</span>
+            <span style="font-size:0.7rem; font-weight:800; background:#DBEAFE; color:#1D4ED8; padding:0.15rem 0.5rem; border-radius:9999px;">08:30 - 11:30</span>
+          </div>
+          <h4 style="margin:0.5rem 0 0.25rem 0; font-size:1.05rem; color:#1E3A8A;">Bloque de Trabajo Profundo</h4>
+          <p style="font-size:0.8rem; color:#3B82F6; margin:0;">Programación, análisis y entregables clave sin interrupciones.</p>
+        </div>
+
+        <div style="background:#FEFCE8; border:1px solid #FEF08A; border-radius:1rem; padding:1.25rem;">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <span style="font-size:1.2rem;">🥗</span>
+            <span style="font-size:0.7rem; font-weight:800; background:#FEF9C3; color:#A16207; padding:0.15rem 0.5rem; border-radius:9999px;">12:30 - 14:00</span>
+          </div>
+          <h4 style="margin:0.5rem 0 0.25rem 0; font-size:1.05rem; color:#713F12;">Almuerzo &amp; Recarga</h4>
+          <p style="font-size:0.8rem; color:#854D0E; margin:0;">Desconexión digital, caminata corta y nutrición.</p>
+        </div>
+
+        <div style="background:#FFF7ED; border:1px solid #FED7AA; border-radius:1rem; padding:1.25rem;">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <span style="font-size:1.2rem;">🏋️</span>
+            <span style="font-size:0.7rem; font-weight:800; background:#FFEDD5; color:#C2410C; padding:0.15rem 0.5rem; border-radius:9999px;">18:00 - 19:30</span>
+          </div>
+          <h4 style="margin:0.5rem 0 0.25rem 0; font-size:1.05rem; color:#9A3412;">Entrenamiento Físico</h4>
+          <p style="font-size:0.8rem; color:#EA580C; margin:0;">Fuerza o cardio en SmartFit / Parque según rutina.</p>
+        </div>
+      </div>
+    `;
+  }
+
+  // ═══════════════════════════════════════════════════════════
+  // ⑥ ACTIVIDAD FÍSICA — PASOS & MÉTRICAS
+  // ═══════════════════════════════════════════════════════════
+  function renderStepsMetrics() {
+    const data = store.getStepsData();
+    const percent = Math.min(100, Math.round((data.todaySteps / data.goalSteps) * 100));
+
+    contentEl.innerHTML = `
+      <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:1.5rem;">
+        <div>
+          <h2>👟 Pasos &amp; Métricas de Movimiento</h2>
+          <p style="font-size:0.85rem; color:#64748B;">Monitor continuo de podómetro, distancia recorrida y gasto calórico.</p>
+        </div>
+        <button class="btn-primary" onclick="window.timeplusAddStepsPrompt()">＋ Sumar Pasos</button>
+      </div>
+
+      <div class="grid-cols-4" style="margin-bottom:1.5rem;">
+        <div class="stat-card" style="background:linear-gradient(135deg, #2563EB, #1D4ED8); color:#fff;">
+          <div class="stat-card-title" style="color:#BFDBFE;">Pasos de Hoy</div>
+          <div class="stat-card-value" style="color:#fff;">${data.todaySteps.toLocaleString()}</div>
+          <div style="font-size:0.75rem; color:#DBEAFE; margin-top:0.35rem;">Meta: ${data.goalSteps.toLocaleString()} (${percent}%)</div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-card-title">Distancia Estimada</div>
+          <div class="stat-card-value" style="color:#059669;">${data.todayKm} km</div>
+          <div style="font-size:0.75rem; color:#64748B; margin-top:0.35rem;">Zancada promedio 0.75m</div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-card-title">Calorías Activas</div>
+          <div class="stat-card-value" style="color:#DC2626;">${data.caloriesBurned} kcal</div>
+          <div style="font-size:0.75rem; color:#64748B; margin-top:0.35rem;">Movimiento continuo</div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-card-title">Progreso a la Meta</div>
+          <div class="stat-card-value" style="color:#7C3AED;">${percent}%</div>
+          <div style="background:#E2E8F0; border-radius:9999px; height:8px; width:100%; margin-top:0.5rem; overflow:hidden;">
+            <div style="background:#7C3AED; height:100%; width:${percent}%;"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Gráfico Semanal de Pasos -->
+      <div style="background:#fff; border:1px solid #E2E8F0; border-radius:1rem; padding:1.25rem; box-shadow:0 1px 3px rgba(0,0,0,0.05);">
+        <h3 style="font-size:1rem; margin-bottom:1.25rem;">📊 Pasos en los Últimos 7 Días</h3>
+        <div style="display:flex; justify-content:space-between; align-items:flex-end; height:160px; padding:0 1rem;">
+          ${(data.history || []).map(h => {
+            const barH = Math.round((h.steps / 12000) * 120);
+            const isGoal = h.steps >= data.goalSteps;
+            return `
+              <div style="display:flex; flex-direction:column; align-items:center; gap:0.5rem; flex:1;">
+                <span style="font-size:0.72rem; font-weight:700; color:${isGoal ? '#16A34A' : '#64748B'};">${h.steps.toLocaleString()}</span>
+                <div style="width:32px; height:${barH}px; background:${isGoal ? '#22C55E' : '#3B82F6'}; border-radius:6px 6px 0 0; transition:all 0.3s;"></div>
+                <span style="font-size:0.75rem; font-weight:600; color:#1E293B;">${h.day}</span>
+              </div>
+            `;
+          }).join('')}
+        </div>
+      </div>
+    `;
+  }
+
+  // ═══════════════════════════════════════════════════════════
+  // ⑦ COMPRAS INTELIGENTES — ESCÁNER & FACTURAS OCR
+  // ═══════════════════════════════════════════════════════════
+  function renderPurchases() {
+    const purchases = store.getPurchases();
+    const totalGasto = purchases.reduce((a, b) => a + (Number(b.total) || 0), 0);
+
+    contentEl.innerHTML = `
+      <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:1.5rem;">
+        <div>
+          <h2>🧾 Compras Inteligentes &amp; Facturas OCR</h2>
+          <p style="font-size:0.85rem; color:#64748B;">Captura tickets de compra, extrae productos con IA y compara precios automáticamente.</p>
+        </div>
+        <div style="display:flex; gap:0.5rem;">
+          <button class="btn-secondary" onclick="window.timeplusSimulateOCR()">📸 Escanear Ticket (OCR)</button>
+          <button class="btn-primary" onclick="window.timeplusOpenAddPurchaseModal()">＋ Registrar Compra</button>
+        </div>
+      </div>
+
+      <div class="grid-cols-3" style="margin-bottom:1.5rem;">
+        <div class="stat-card">
+          <div class="stat-card-title">Gasto Registrado en Compras</div>
+          <div class="stat-card-value" style="color:#2563EB;">$${totalGasto.toLocaleString('es-CO')}</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card-title">Facturas Procesadas</div>
+          <div class="stat-card-value" style="color:#059669;">${purchases.length}</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card-title">Ahorro Detectado por IA</div>
+          <div class="stat-card-value" style="color:#D97706;">~$32.400</div>
+          <div style="font-size:0.75rem; color:#64748B;">Comparando marcas en supermercados</div>
+        </div>
+      </div>
+
+      <div style="background:#fff; border:1px solid #E2E8F0; border-radius:1rem; padding:1.25rem; box-shadow:0 1px 3px rgba(0,0,0,0.05);">
+        <h3 style="font-size:1rem; margin-bottom:1rem;">🛒 Historial de Facturas &amp; Comercios</h3>
+        <div style="display:flex; flex-direction:column; gap:0.6rem;">
+          ${purchases.map(p => `
+            <div style="display:flex; justify-content:space-between; align-items:center; padding:0.85rem 1rem; border-radius:0.75rem; border:1px solid #E2E8F0; background:#F8FAFC;">
+              <div style="display:flex; align-items:center; gap:0.85rem;">
+                <span style="font-size:1.4rem;">🏪</span>
+                <div>
+                  <strong style="color:#0F172A; font-size:0.95rem;">${p.store}</strong>
+                  <div style="font-size:0.75rem; color:#64748B; margin-top:0.2rem; display:flex; gap:0.5rem;">
+                    <span>📅 ${p.date}</span>
+                    <span>🏷️ ${p.category}</span>
+                    <span style="background:#E0F2FE; color:#0369A1; padding:0.05rem 0.4rem; border-radius:9999px; font-weight:700;">${p.receiptType}</span>
+                  </div>
+                </div>
+              </div>
+              <div style="display:flex; align-items:center; gap:1rem;">
+                <span style="font-size:1.15rem; font-weight:800; color:#0F172A;">$${p.total.toLocaleString('es-CO')}</span>
+                <button onclick="window.timeplusDeletePurchase('${p.id}')" style="background:none; border:none; color:#EF4444; font-size:1.1rem; cursor:pointer;" title="Eliminar">🗑️</button>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    `;
+  }
+
+  // ═══════════════════════════════════════════════════════════
+  // ⑧ FINANZAS — INGRESOS & GASTOS
+  // ═══════════════════════════════════════════════════════════
+  function renderFinances() {
+    const fin = store.getFinances();
+    const ingresos = fin.filter(f => f.type === 'ingreso').reduce((a, b) => a + (Number(b.amount) || 0), 0);
+    const gastos = fin.filter(f => f.type === 'gasto').reduce((a, b) => a + (Number(b.amount) || 0), 0);
+    const balance = ingresos - gastos;
+
+    contentEl.innerHTML = `
+      <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:1.5rem;">
+        <div>
+          <h2>💰 Finanzas Personales</h2>
+          <p style="font-size:0.85rem; color:#64748B;">Control de flujo de caja, ingresos, gastos y capacidad de ahorro.</p>
+        </div>
+        <button class="btn-primary" onclick="window.timeplusOpenAddFinanceModal()">＋ Nuevo Movimiento</button>
+      </div>
+
+      <div class="grid-cols-3" style="margin-bottom:1.5rem;">
+        <div class="stat-card" style="border-left:4px solid #16A34A;">
+          <div class="stat-card-title">Total Ingresos</div>
+          <div class="stat-card-value" style="color:#16A34A;">+$${ingresos.toLocaleString('es-CO')}</div>
+        </div>
+
+        <div class="stat-card" style="border-left:4px solid #DC2626;">
+          <div class="stat-card-title">Total Gastos</div>
+          <div class="stat-card-value" style="color:#DC2626;">-$${gastos.toLocaleString('es-CO')}</div>
+        </div>
+
+        <div class="stat-card" style="border-left:4px solid #2563EB;">
+          <div class="stat-card-title">Balance Neto (Ahorro)</div>
+          <div class="stat-card-value" style="color:${balance >= 0 ? '#2563EB' : '#DC2626'};">$${balance.toLocaleString('es-CO')}</div>
+        </div>
+      </div>
+
+      <div style="background:#fff; border:1px solid #E2E8F0; border-radius:1rem; padding:1.25rem; box-shadow:0 1px 3px rgba(0,0,0,0.05);">
+        <h3 style="font-size:1rem; margin-bottom:1rem;">💵 Movimientos Recientes</h3>
+        <div style="display:flex; flex-direction:column; gap:0.6rem;">
+          ${fin.map(f => {
+            const isIngreso = f.type === 'ingreso';
+            return `
+              <div style="display:flex; justify-content:space-between; align-items:center; padding:0.85rem 1rem; border-radius:0.75rem; border:1px solid #E2E8F0; background:#F8FAFC;">
+                <div style="display:flex; align-items:center; gap:0.85rem;">
+                  <span style="font-size:1.3rem;">${isIngreso ? '📥' : '📤'}</span>
+                  <div>
+                    <strong style="color:#0F172A; font-size:0.95rem;">${f.description}</strong>
+                    <div style="font-size:0.75rem; color:#64748B; margin-top:0.2rem;">
+                      <span>📅 ${f.date}</span> • <span>🏷️ ${f.category}</span>
+                    </div>
+                  </div>
+                </div>
+                <div style="display:flex; align-items:center; gap:1rem;">
+                  <span style="font-size:1.15rem; font-weight:800; color:${isIngreso ? '#16A34A' : '#DC2626'};">
+                    ${isIngreso ? '+' : '-'}$${Number(f.amount).toLocaleString('es-CO')}
+                  </span>
+                  <button onclick="window.timeplusDeleteFinance('${f.id}')" style="background:none; border:none; color:#EF4444; font-size:1.1rem; cursor:pointer;" title="Eliminar">🗑️</button>
+                </div>
+              </div>
+            `;
+          }).join('')}
+        </div>
+      </div>
+    `;
+  }
+
+  // ═══════════════════════════════════════════════════════════
+  // ⑧ FINANZAS — PRESUPUESTO & LÍMITES
+  // ═══════════════════════════════════════════════════════════
+  function renderBudget() {
+    const budgets = store.getBudgets();
+
+    contentEl.innerHTML = `
+      <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:1.5rem;">
+        <div>
+          <h2>🎯 Presupuesto Mensual &amp; Límites</h2>
+          <p style="font-size:0.85rem; color:#64748B;">Límites de gasto por categoría recomendados para maximizar tu ahorro.</p>
+        </div>
+      </div>
+
+      <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(320px, 1fr)); gap:1rem;">
+        ${budgets.map(b => {
+          const pct = Math.min(100, Math.round((b.spent / b.budget) * 100));
+          const isOver = b.spent > b.budget;
+          return `
+            <div style="background:#fff; border:1px solid #E2E8F0; border-radius:1rem; padding:1.25rem; box-shadow:0 1px 3px rgba(0,0,0,0.05);">
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.75rem;">
+                <strong style="font-size:1rem; color:#0F172A;">${b.category}</strong>
+                <span style="font-size:0.75rem; font-weight:700; color:${isOver ? '#DC2626' : '#2563EB'};">${pct}%</span>
+              </div>
+              <div style="background:#F1F5F9; border-radius:9999px; height:10px; width:100%; overflow:hidden; margin-bottom:0.75rem;">
+                <div style="background:${isOver ? '#DC2626' : (pct > 80 ? '#D97706' : '#2563EB')}; height:100%; width:${pct}%;"></div>
+              </div>
+              <div style="display:flex; justify-content:space-between; font-size:0.8rem; color:#64748B;">
+                <span>Gastado: <strong>$${b.spent.toLocaleString('es-CO')}</strong></span>
+                <span>Límite: <strong>$${b.budget.toLocaleString('es-CO')}</strong></span>
+              </div>
+            </div>
+          `;
+        }).join('')}
+      </div>
+    `;
+  }
+
+  // ═══════════════════════════════════════════════════════════
+  // ⑨ BIENESTAR — SUEÑO & DESCANSO
+  // ═══════════════════════════════════════════════════════════
+  function renderSleep() {
+    const logs = store.getSleepLogs();
+    const avgHours = (logs.reduce((a, b) => a + (Number(b.hours) || 0), 0) / (logs.length || 1)).toFixed(1);
+
+    contentEl.innerHTML = `
+      <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:1.5rem;">
+        <div>
+          <h2>🛌 Sueño &amp; Recuperación Circadiana</h2>
+          <p style="font-size:0.85rem; color:#64748B;">Optimización del descanso nocturno para máximo rendimiento cognitivo y físico.</p>
+        </div>
+        <button class="btn-primary" onclick="window.timeplusOpenSleepModal()">＋ Registrar Sueño</button>
+      </div>
+
+      <div class="grid-cols-3" style="margin-bottom:1.5rem;">
+        <div class="stat-card" style="background:linear-gradient(135deg, #312E81, #1E1B4B); color:#fff;">
+          <div class="stat-card-title" style="color:#C7D2FE;">Promedio de Sueño</div>
+          <div class="stat-card-value" style="color:#fff;">${avgHours} h</div>
+          <div style="font-size:0.75rem; color:#E0E7FF; margin-top:0.35rem;">Meta recomendada: 7.5 - 8.0 h</div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-card-title">Score de Recuperación</div>
+          <div class="stat-card-value" style="color:#059669;">86 / 100</div>
+          <div style="font-size:0.75rem; color:#64748B; margin-top:0.35rem;">Ritmo circadiano estable</div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-card-title">Hora Óptima de Acostarse</div>
+          <div class="stat-card-value" style="color:#7C3AED;">22:45</div>
+          <div style="font-size:0.75rem; color:#64748B; margin-top:0.35rem;">Según despertar programado</div>
+        </div>
+      </div>
+
+      <div style="background:#fff; border:1px solid #E2E8F0; border-radius:1rem; padding:1.25rem; box-shadow:0 1px 3px rgba(0,0,0,0.05);">
+        <h3 style="font-size:1rem; margin-bottom:1rem;">🌙 Registros de Sueño</h3>
+        <div style="display:flex; flex-direction:column; gap:0.6rem;">
+          ${logs.map(l => `
+            <div style="display:flex; justify-content:space-between; align-items:center; padding:0.85rem 1rem; border-radius:0.75rem; border:1px solid #E2E8F0; background:#F8FAFC;">
+              <div style="display:flex; align-items:center; gap:0.85rem;">
+                <span style="font-size:1.3rem;">😴</span>
+                <div>
+                  <strong style="color:#0F172A; font-size:0.95rem;">${l.date} — ${l.hours} horas</strong>
+                  <div style="font-size:0.75rem; color:#64748B; margin-top:0.15rem;">
+                    <span>🌙 ${l.bedTime} → ☀️ ${l.wakeTime}</span> • <span>${'⭐'.repeat(l.quality)}</span>
+                  </div>
+                  <div style="font-size:0.73rem; color:#475569; margin-top:0.15rem;">${l.notes}</div>
+                </div>
+              </div>
+              <div style="text-align:right;">
+                <span style="font-size:1.15rem; font-weight:800; color:#4338CA;">${l.score || 85} pts</span>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    `;
+  }
+
+  // ═══════════════════════════════════════════════════════════
+  // ⑨ BIENESTAR — HÁBITOS & RUTINAS
+  // ═══════════════════════════════════════════════════════════
+  function renderHabits() {
+    const habits = store.getHabits();
+
+    contentEl.innerHTML = `
+      <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:1.5rem;">
+        <div>
+          <h2>🔄 Hábitos &amp; Rutinas Diarias</h2>
+          <p style="font-size:0.85rem; color:#64748B;">Construye disciplina mediante rachas ininterrumpidas asistidas por IA.</p>
+        </div>
+        <button class="btn-primary" onclick="window.timeplusAddHabitPrompt()">＋ Nuevo Hábito</button>
+      </div>
+
+      <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(280px, 1fr)); gap:1rem;">
+        ${habits.map(h => `
+          <div style="background:#fff; border:1px solid ${h.doneToday ? '#86EFAC' : '#E2E8F0'}; border-radius:1rem; padding:1.25rem; box-shadow:0 1px 3px rgba(0,0,0,0.05); display:flex; justify-content:space-between; align-items:center;">
+            <div>
+              <strong style="font-size:0.98rem; color:#0F172A; display:block;">${h.name}</strong>
+              <div style="display:flex; align-items:center; gap:0.5rem; margin-top:0.35rem;">
+                <span style="background:#FEF3C7; color:#B45309; font-size:0.72rem; font-weight:800; padding:0.15rem 0.5rem; border-radius:9999px;">
+                  🔥 ${h.streak} días seguidos
+                </span>
+                <span style="font-size:0.72rem; color:#64748B;">Meta: ${h.goal}</span>
+              </div>
+            </div>
+            <button onclick="window.timeplusToggleHabit('${h.id}')" style="background:${h.doneToday ? '#16A34A' : '#F1F5F9'}; color:${h.doneToday ? '#fff' : '#64748B'}; border:none; width:40px; height:40px; border-radius:50%; font-size:1.1rem; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:all 0.2s;">
+              ${h.doneToday ? '✓' : '○'}
+            </button>
+          </div>
+        `).join('')}
+      </div>
+    `;
+  }
+
+  // ═══════════════════════════════════════════════════════════
+  // ⑩ METAS & LOGROS
+  // ═══════════════════════════════════════════════════════════
+  function renderGoals() {
+    const goals = store.getGoals();
+
+    contentEl.innerHTML = `
+      <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:1.5rem;">
+        <div>
+          <h2>🏆 Metas &amp; Logros Personales</h2>
+          <p style="font-size:0.85rem; color:#64748B;">Seguimiento continuo de tus metas de salud, finanzas y desarrollo.</p>
+        </div>
+        <button class="btn-primary" onclick="window.timeplusAddGoalPrompt()">＋ Nueva Meta</button>
+      </div>
+
+      <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(320px, 1fr)); gap:1rem;">
+        ${goals.map(g => {
+          const pct = Math.min(100, Math.round((g.current / g.target) * 100));
+          return `
+            <div style="background:#fff; border:1px solid #E2E8F0; border-radius:1rem; padding:1.25rem; box-shadow:0 1px 3px rgba(0,0,0,0.05);">
+              <div style="display:flex; justify-content:space-between; align-items:center;">
+                <span style="font-size:1.5rem;">${g.icon || '🎯'}</span>
+                <span style="font-size:0.75rem; font-weight:700; background:#EFF6FF; color:#2563EB; padding:0.15rem 0.5rem; border-radius:9999px;">${pct}% Completado</span>
+              </div>
+              <h4 style="margin:0.75rem 0 0.5rem 0; font-size:1rem; color:#0F172A;">${g.title}</h4>
+              <div style="background:#F1F5F9; border-radius:9999px; height:8px; width:100%; overflow:hidden; margin-bottom:0.75rem;">
+                <div style="background:#2563EB; height:100%; width:${pct}%;"></div>
+              </div>
+              <div style="display:flex; justify-content:space-between; font-size:0.75rem; color:#64748B;">
+                <span>Progreso: <strong>${g.current.toLocaleString()} / ${g.target.toLocaleString()} ${g.unit}</strong></span>
+                <span>Límite: <strong>${g.deadline}</strong></span>
+              </div>
+            </div>
+          `;
+        }).join('')}
       </div>
     `;
   }
@@ -3142,7 +3744,7 @@ document.addEventListener('DOMContentLoaded', () => {
   };
 
   // --- MODAL DE REGISTRO DE FITNESS & ACTIVIDAD FÍSICA (Aire Libre con Km vs. Gimnasio) ---
-  window.timeplusOpenFitnessModal = () => {
+  window.timeplusOpenFitnessModal = (initialTab = '') => {
     let modal = document.getElementById('fitness-modal');
     if (!modal) {
       modal = document.createElement('div');
@@ -3160,6 +3762,11 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     const user = store.getCurrentUser();
+    const isGymUser = user?.gymStatus === 'si' || (!user?.gymStatus && user?.addrGym && !user.addrGym.toLowerCase().includes('no asiste'));
+    const isOutdoorUser = user?.gymStatus === 'parque' || user?.gymStatus === 'no';
+    const isHomeUser = user?.gymStatus === 'casa';
+    const targetTab = initialTab || (isGymUser ? 'gym' : (isOutdoorUser ? 'outdoor' : (isHomeUser ? 'home' : 'gym')));
+
     const defaultGym = user?.addrGym && !user.addrGym.toLowerCase().includes('no asiste') ? user.addrGym : 'SmartFit';
 
     modal.innerHTML = `
@@ -3329,6 +3936,7 @@ document.addEventListener('DOMContentLoaded', () => {
     `;
 
     modal.style.display = 'flex';
+    window.timeplusSwitchFitnessTab(targetTab);
   };
 
   window.timeplusCloseFitnessModal = () => {
@@ -3458,6 +4066,228 @@ document.addEventListener('DOMContentLoaded', () => {
     store.deleteActivity(id);
     if (window.timeplusShowToast) window.timeplusShowToast('🗑️ Registro de entrenamiento eliminado.');
     renderFitness();
+  };
+
+  // ═══════════════════════════════════════════════════════════
+  // HANDLERS GLOBALES PARA LA MATRIZ MAESTRA
+  // ═══════════════════════════════════════════════════════════
+
+  // ② Tareas
+  window.timeplusToggleTask = (id) => {
+    store.toggleTask(id);
+    renderTasks();
+  };
+
+  window.timeplusDeleteTask = (id) => {
+    store.deleteTask(id);
+    if (window.timeplusShowToast) window.timeplusShowToast('🗑️ Tarea eliminada.');
+    renderTasks();
+  };
+
+  window.timeplusAddTaskPrompt = () => {
+    const title = prompt('Descripción de la nueva tarea:');
+    if (!title || !title.trim()) return;
+    const cat = prompt('Categoría (trabajo, personal, salud, estudio):', 'trabajo');
+    const prio = prompt('Prioridad (alta, media, baja):', 'media');
+    store.addTask({ title: title.trim(), category: cat || 'trabajo', priority: prio || 'media' });
+    if (window.timeplusShowToast) window.timeplusShowToast('✅ Tarea agregada con éxito.');
+    renderTasks();
+  };
+
+  // ③ Tiempo & Cronómetro
+  window.timeplusToggleTimer = () => {
+    const btn = document.getElementById('btn-timer-toggle');
+    const display = document.getElementById('live-timer-display');
+
+    const fmtSec = (sec) => {
+      const h = Math.floor(sec / 3600);
+      const m = Math.floor((sec % 3600) / 60);
+      const s = sec % 60;
+      return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+    };
+
+    if (timerRunning) {
+      clearInterval(timerInterval);
+      timerRunning = false;
+      if (btn) {
+        btn.textContent = '▶️ Iniciar';
+        btn.style.background = '#2563EB';
+      }
+    } else {
+      timerRunning = true;
+      if (btn) {
+        btn.textContent = '⏸️ Pausar';
+        btn.style.background = '#EF4444';
+      }
+      timerInterval = setInterval(() => {
+        timerSeconds++;
+        if (display) display.textContent = fmtSec(timerSeconds);
+      }, 1000);
+    }
+  };
+
+  window.timeplusResetTimer = () => {
+    clearInterval(timerInterval);
+    timerRunning = false;
+    timerSeconds = 0;
+    const btn = document.getElementById('btn-timer-toggle');
+    const display = document.getElementById('live-timer-display');
+    if (btn) {
+      btn.textContent = '▶️ Iniciar';
+      btn.style.background = '#2563EB';
+    }
+    if (display) display.textContent = '00:00:00';
+  };
+
+  window.timeplusSaveTimerLog = () => {
+    if (timerSeconds < 10) {
+      alert('Debes acumular al menos 10 segundos para guardar el registro.');
+      return;
+    }
+    const act = prompt('Nombre o descripción de la actividad realizada:', 'Trabajo Enfocado');
+    if (!act) return;
+    const cat = prompt('Categoría (trabajo, fitness, estudio, personal):', 'trabajo') || 'trabajo';
+    const min = Math.max(1, Math.round(timerSeconds / 60));
+    store.addTimeLog({ activity: act, category: cat, durationMin: min });
+    window.timeplusResetTimer();
+    if (window.timeplusShowToast) window.timeplusShowToast(`💾 Tiempo guardado: ${act} (${min} min).`);
+    renderTimeTracking();
+  };
+
+  window.timeplusOpenManualTimeModal = () => {
+    const act = prompt('Actividad realizada:');
+    if (!act) return;
+    const min = prompt('Duración en minutos:', '45');
+    if (!min) return;
+    const cat = prompt('Categoría (trabajo, fitness, estudio, salud):', 'trabajo') || 'trabajo';
+    store.addTimeLog({ activity: act, category: cat, durationMin: parseInt(min) || 30 });
+    if (window.timeplusShowToast) window.timeplusShowToast('⏱️ Registro de tiempo añadido.');
+    renderTimeTracking();
+  };
+
+  window.timeplusOpenNewBlockModal = () => {
+    alert('Función de asignación dinámica de bloques asistida por la Agenda Inteligente IA.');
+  };
+
+  // ⑥ Pasos
+  window.timeplusAddStepsPrompt = () => {
+    const st = prompt('¿Cuántos pasos deseas sumar al registro de hoy?', '2500');
+    if (!st || isNaN(st)) return;
+    store.recordSteps(parseInt(st));
+    if (window.timeplusShowToast) window.timeplusShowToast(`👟 ¡+${st} pasos añadidos!`);
+    renderStepsMetrics();
+  };
+
+  // ⑦ Compras & OCR
+  window.timeplusSimulateOCR = () => {
+    const storeName = prompt('Comercio emisor de la factura detectado por OCR:', 'Carulla FreshMarket');
+    if (!storeName) return;
+    const total = prompt('Total extraído por el motor OCR ($ COP):', '84900');
+    if (!total) return;
+    store.addPurchase({
+      store: storeName,
+      total: parseInt(total) || 50000,
+      category: 'Supermercado',
+      itemsCount: 4,
+      receiptType: 'Factura Electrónica OCR'
+    });
+    if (window.timeplusShowToast) window.timeplusShowToast('📸 Factura digitalizada con éxito por IA.');
+    renderPurchases();
+  };
+
+  window.timeplusOpenAddPurchaseModal = () => {
+    const storeName = prompt('Nombre del establecimiento / comercio:');
+    if (!storeName) return;
+    const total = prompt('Valor total de la compra ($ COP):', '65000');
+    if (!total) return;
+    const cat = prompt('Categoría (Supermercado, Farmacia, Ropa, Restaurante, Tecnología):', 'Supermercado');
+    store.addPurchase({
+      store: storeName,
+      total: parseInt(total) || 0,
+      category: cat || 'Supermercado',
+      itemsCount: 1,
+      receiptType: 'Manual'
+    });
+    if (window.timeplusShowToast) window.timeplusShowToast('🛒 Compra registrada.');
+    renderPurchases();
+  };
+
+  window.timeplusDeletePurchase = (id) => {
+    if (!confirm('¿Deseas eliminar este registro de compra?')) return;
+    store.deletePurchase(id);
+    if (window.timeplusShowToast) window.timeplusShowToast('🗑️ Registro de compra eliminado.');
+    renderPurchases();
+  };
+
+  // ⑧ Finanzas
+  window.timeplusOpenAddFinanceModal = () => {
+    const desc = prompt('Concepto o descripción del movimiento:');
+    if (!desc) return;
+    const type = prompt('Tipo (gasto o ingreso):', 'gasto');
+    const amount = prompt('Monto ($ COP):', '50000');
+    if (!amount) return;
+    const cat = prompt('Categoría (Alimentación, Salud & Deporte, Movilidad, Hogar, Ingresos):', 'Alimentación');
+    store.addFinance({
+      description: desc,
+      type: (type || 'gasto').toLowerCase().includes('ing') ? 'ingreso' : 'gasto',
+      amount: parseInt(amount) || 0,
+      category: cat || 'General'
+    });
+    if (window.timeplusShowToast) window.timeplusShowToast('💰 Movimiento financiero guardado.');
+    renderFinances();
+  };
+
+  window.timeplusDeleteFinance = (id) => {
+    if (!confirm('¿Eliminar este movimiento financiero?')) return;
+    store.deleteFinance(id);
+    if (window.timeplusShowToast) window.timeplusShowToast('🗑️ Movimiento eliminado.');
+    renderFinances();
+  };
+
+  // ⑨ Bienestar
+  window.timeplusOpenSleepModal = () => {
+    const h = prompt('¿Cuántas horas dormiste anoche?', '7.5');
+    if (!h) return;
+    const q = prompt('Calidad del sueño (1 a 5 estrellas):', '4');
+    const notes = prompt('Notas o sensaciones al despertar:', 'Descanso completo y renovado');
+    store.addSleepLog({
+      hours: parseFloat(h) || 7,
+      quality: parseInt(q) || 4,
+      notes: notes || 'Sin notas'
+    });
+    if (window.timeplusShowToast) window.timeplusShowToast('🛌 Registro de sueño guardado.');
+    renderSleep();
+  };
+
+  window.timeplusToggleHabit = (id) => {
+    store.toggleHabit(id);
+    renderHabits();
+  };
+
+  window.timeplusAddHabitPrompt = () => {
+    const name = prompt('Nombre del nuevo hábito a cultivar:');
+    if (!name || !name.trim()) return;
+    store.addHabit({ name: name.trim() });
+    if (window.timeplusShowToast) window.timeplusShowToast('✨ Hábito creado. ¡A mantener la racha!');
+    renderHabits();
+  };
+
+  // ⑩ Metas
+  window.timeplusAddGoalPrompt = () => {
+    const title = prompt('Título del objetivo o meta:');
+    if (!title || !title.trim()) return;
+    const target = prompt('Meta numérica a alcanzar:', '100');
+    const unit = prompt('Unidad de medida (COP, km, sesiones, %):', '%');
+    const deadline = prompt('Fecha límite estimada:', '31 Dic 2026');
+    store.addGoal({
+      title: title.trim(),
+      current: 0,
+      target: parseFloat(target) || 100,
+      unit: unit || '%',
+      deadline: deadline || 'Sin fecha'
+    });
+    if (window.timeplusShowToast) window.timeplusShowToast('🎯 Meta registrada. El asistente IA te ayudará a monitorearla.');
+    renderGoals();
   };
 
   // Mobile menu toggle
