@@ -1489,9 +1489,9 @@ document.addEventListener('DOMContentLoaded', () => {
             <div style="font-size: 0.8125rem; display: flex; flex-direction: column; gap: 0.45rem; color: #334155;">
               <div><span style="color:#64748B;">Ciudad Base:</span> <strong>${user.city || 'Bogotá, Colombia'}</strong></div>
               <div><span style="color:#64748B;">🏠 Residencia (Casa):</span> <strong>${user.addrHome || 'Registrada'}</strong></div>
-              <div><span style="color:#64748B;">🏢 Trabajo / Estudio:</span> <strong>${user.addrWork || 'No registrada'}</strong></div>
-              <div><span style="color:#64748B;">👨‍👩‍👧 Familiar / Alternativo:</span> <strong>${user.addrFamily || 'No registrada'}</strong></div>
-              <div><span style="color:#64748B;">🏋️ Sede Gimnasio:</span> <strong>${user.addrGym || 'SmartFit / Sede Habitual'}</strong></div>
+              <div><span style="color:#64748B;">🏢 Trabajo / Estudio:</span> <strong>${user.workStatus === 'no_trabaja' ? '⏸️ Actualmente no trabaja' : (user.workStatus === 'remoto' ? '💻 Trabajo Remoto / Home Office' : (user.workStatus === 'pensionado' ? '🏖️ Jubilado / Pensionado' : (user.addrWork || 'No registrada')))}</strong></div>
+              <div><span style="color:#64748B;">👨‍👩‍👧 Familiar (${user.familyKinship || 'Mamá'}):</span> <strong>${user.addrFamily || 'No registrada'}</strong></div>
+              <div><span style="color:#64748B;">🏋️ Sede Gimnasio:</span> <strong>${user.gymStatus === 'no' ? '🚫 No asiste al gimnasio' : (user.gymStatus === 'casa' ? '🏡 Entrena en casa / Calistenia' : (user.gymStatus === 'parque' ? '🌳 Entrena al aire libre / Parque' : (user.addrGym || 'SmartFit / Sede Habitual')))}</strong></div>
 
               ${customPlaces.length > 0 ? `
                 <div style="margin-top: 0.4rem; border-top: 1px dashed #CBD5E1; padding-top: 0.4rem;">
@@ -1508,9 +1508,10 @@ document.addEventListener('DOMContentLoaded', () => {
               <!-- Rutas IA Inteligentes -->
               <div style="margin-top: 0.5rem; padding: 0.5rem; background: #F0FDF4; border: 1px dashed #86EFAC; border-radius: 0.5rem; font-size: 0.75rem;">
                 <div style="font-weight: 700; color: #166534; margin-bottom: 0.2rem;">🤖 Rutas monitoreadas por IA:</div>
-                <div style="color: #15803D;">• Casa ➔ Gym: ~25-35 min</div>
-                <div style="color: #15803D;">• Trabajo ➔ Gym: ~15-20 min</div>
-                <div style="color: #15803D;">• Familiar ➔ Gym: ~30 min</div>
+                ${user.gymStatus !== 'no' && user.addrGym ? '<div style="color: #15803D;">• Casa ➔ Gym: ~25-35 min</div>' : ''}
+                ${user.workStatus !== 'no_trabaja' && user.addrWork ? '<div style="color: #15803D;">• Casa ➔ Trabajo: ~15-20 min</div>' : ''}
+                ${user.addrFamily ? `<div style="color: #15803D;">• Casa ➔ Familiar (${user.familyKinship || 'Mamá'}): ~25 min</div>` : ''}
+                ${user.gymStatus === 'no' && user.workStatus === 'no_trabaja' && !user.addrFamily ? '<div style="color: #15803D;">• Movilidad local y compras cercanas optimizadas</div>' : ''}
               </div>
             </div>
           </div>
@@ -2365,8 +2366,11 @@ document.addEventListener('DOMContentLoaded', () => {
       'País',
       'Ciudad Base',
       'Dirección Casa',
+      'Situación Laboral',
       'Dirección Trabajo',
+      'Parentesco Familiar',
       'Dirección Familiar',
+      'Asistencia Gimnasio',
       'Sede Gimnasio',
       'Nivel Educativo',
       'Institución',
@@ -2423,8 +2427,11 @@ document.addEventListener('DOMContentLoaded', () => {
         escapeCell(extra.country || 'Colombia'),
         escapeCell(extra.city || ''),
         escapeCell(extra.addrHome || ''),
+        escapeCell(extra.workStatus || 'presencial'),
         escapeCell(extra.addrWork || ''),
+        escapeCell(extra.familyKinship || 'Mamá'),
         escapeCell(extra.addrFamily || ''),
+        escapeCell(extra.gymStatus || 'si'),
         escapeCell(extra.addrGym || ''),
         escapeCell(extra.academicLevel || ''),
         escapeCell(extra.institution || ''),
@@ -2733,18 +2740,47 @@ document.addEventListener('DOMContentLoaded', () => {
 
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.5rem;margin-bottom:0.5rem;">
               <div>
-                <label style="font-size:0.7rem;font-weight:700;display:block;margin-bottom:0.2rem;">🏢 Dirección Trabajo / Estudio</label>
-                <input type="text" id="edit-addr-work" value="${user.addrWork || ''}" class="login-panel-input" placeholder="Dirección de trabajo o campus">
+                <label style="font-size:0.7rem;font-weight:700;display:block;margin-bottom:0.2rem;">🏢 Situación Laboral / Estudio</label>
+                <select id="edit-work-status" class="login-panel-input" style="background:#fff;margin-bottom:0.35rem;" onchange="window.timeplusOnWorkStatusChange(this.value)">
+                  <option value="presencial" ${(user.workStatus === 'presencial' || !user.workStatus) ? 'selected' : ''}>🏢 Trabajo / Estudio Presencial</option>
+                  <option value="hibrido" ${user.workStatus === 'hibrido' ? 'selected' : ''}>🔄 Trabajo Híbrido (Oficina + Casa)</option>
+                  <option value="remoto" ${user.workStatus === 'remoto' ? 'selected' : ''}>💻 Trabajo Remoto / Home Office</option>
+                  <option value="no_trabaja" ${user.workStatus === 'no_trabaja' ? 'selected' : ''}>⏸️ Ya no trabajo / Desempleado(a)</option>
+                  <option value="pensionado" ${user.workStatus === 'pensionado' ? 'selected' : ''}>🏖️ Jubilado / Pensionado</option>
+                  <option value="independiente" ${user.workStatus === 'independiente' ? 'selected' : ''}>💼 Independiente / Freelance</option>
+                  <option value="solo_estudio" ${user.workStatus === 'solo_estudio' ? 'selected' : ''}>🎓 Solo Estudio (Virtual / Distancia)</option>
+                </select>
+                <input type="text" id="edit-addr-work" value="${user.addrWork || ''}" class="login-panel-input" placeholder="Dirección de trabajo o sede">
               </div>
               <div>
-                <label style="font-size:0.7rem;font-weight:700;display:block;margin-bottom:0.2rem;">👨‍👩‍👧 Dirección Familiar Principal</label>
-                <input type="text" id="edit-addr-family" value="${user.addrFamily || ''}" class="login-panel-input" placeholder="Dirección familiar">
+                <label style="font-size:0.7rem;font-weight:700;display:block;margin-bottom:0.2rem;">👨‍👩‍👧 Parentesco Familiar (De quién es)</label>
+                <select id="edit-family-kinship" class="login-panel-input" style="background:#fff;margin-bottom:0.35rem;">
+                  <option value="Mamá" ${(user.familyKinship === 'Mamá' || !user.familyKinship) ? 'selected' : ''}>👩 Mamá</option>
+                  <option value="Papá" ${user.familyKinship === 'Papá' ? 'selected' : ''}>👨 Papá</option>
+                  <option value="Papás" ${user.familyKinship === 'Papás' ? 'selected' : ''}>👫 Papás (Mamá y Papá)</option>
+                  <option value="Hermano(a)" ${user.familyKinship === 'Hermano(a)' ? 'selected' : ''}>👦 Hermano / Hermana</option>
+                  <option value="Abuelos" ${user.familyKinship === 'Abuelos' ? 'selected' : ''}>👴👵 Abuelos</option>
+                  <option value="Hijo(a)" ${user.familyKinship === 'Hijo(a)' ? 'selected' : ''}>👶 Hijo / Hija</option>
+                  <option value="Pareja" ${user.familyKinship === 'Pareja' ? 'selected' : ''}>💍 Pareja / Cónyuge</option>
+                  <option value="Tío(a)" ${user.familyKinship === 'Tío(a)' ? 'selected' : ''}>🏠 Tío(a) / Primo(a)</option>
+                  <option value="Otro" ${user.familyKinship === 'Otro' ? 'selected' : ''}>📍 Otro Familiar</option>
+                </select>
+                <input type="text" id="edit-addr-family" value="${user.addrFamily || ''}" class="login-panel-input" placeholder="Dirección de la casa familiar">
               </div>
             </div>
 
             <div style="margin-bottom:0.75rem;">
-              <label style="font-size:0.7rem;font-weight:700;display:block;margin-bottom:0.2rem;">🏋️ Sede Gimnasio Habitual</label>
-              <input type="text" id="edit-addr-gym" value="${user.addrGym || ''}" class="login-panel-input" placeholder="Ej: SmartFit Calle 100, Bogotá">
+              <label style="font-size:0.7rem;font-weight:700;display:block;margin-bottom:0.2rem;">🏋️ Asistencia a Gimnasio / Deporte</label>
+              <div style="display:grid;grid-template-columns:1.2fr 1.8fr;gap:0.4rem;align-items:center;">
+                <select id="edit-gym-status" class="login-panel-input" style="background:#fff;" onchange="window.timeplusOnGymStatusChange(this.value)">
+                  <option value="si" ${(user.gymStatus === 'si' || !user.gymStatus) ? 'selected' : ''}>🏋️ Sí, voy a Gimnasio</option>
+                  <option value="no" ${user.gymStatus === 'no' ? 'selected' : ''}>🚫 No voy al gym actualmente</option>
+                  <option value="casa" ${user.gymStatus === 'casa' ? 'selected' : ''}>🏡 Entreno en casa / Calistenia</option>
+                  <option value="parque" ${user.gymStatus === 'parque' ? 'selected' : ''}>🌳 Entreno al aire libre / Parque</option>
+                  <option value="otro_deporte" ${user.gymStatus === 'otro_deporte' ? 'selected' : ''}>⚽ Practico otro deporte</option>
+                </select>
+                <input type="text" id="edit-addr-gym" value="${user.addrGym || ''}" class="login-panel-input" placeholder="Ej: SmartFit Calle 100, Bogotá">
+              </div>
             </div>
 
             <!-- ACORDEÓN DESPLEGABLE: AGREGAR VARIOS FAMILIARES, AMIGOS, CAJEROS, CENTROS COMERCIALES -->
@@ -2885,9 +2921,12 @@ document.addEventListener('DOMContentLoaded', () => {
       learningGoal: (document.getElementById('edit-goal')?.value || '').trim() || undefined,
       city: (document.getElementById('edit-city')?.value || '').trim() || undefined,
       addrHome: (document.getElementById('edit-addr-home')?.value || '').trim() || undefined,
-      addrWork: (document.getElementById('edit-addr-work')?.value || '').trim() || undefined,
+      workStatus: document.getElementById('edit-work-status')?.value || undefined,
+      addrWork: (document.getElementById('edit-addr-work')?.value || '').trim() || (document.getElementById('edit-work-status')?.value === 'no_trabaja' ? 'No trabaja actualmente' : undefined),
+      familyKinship: document.getElementById('edit-family-kinship')?.value || undefined,
       addrFamily: (document.getElementById('edit-addr-family')?.value || '').trim() || undefined,
-      addrGym: (document.getElementById('edit-addr-gym')?.value || '').trim() || undefined,
+      gymStatus: document.getElementById('edit-gym-status')?.value || undefined,
+      addrGym: (document.getElementById('edit-addr-gym')?.value || '').trim() || (document.getElementById('edit-gym-status')?.value === 'no' ? 'No asiste al gimnasio' : undefined),
       availability: (document.getElementById('edit-availability')?.value || '').trim() || undefined,
       notifyPref: document.getElementById('edit-notify')?.value || undefined,
       timezone: document.getElementById('edit-timezone')?.value || undefined
@@ -2940,6 +2979,39 @@ document.addEventListener('DOMContentLoaded', () => {
     // Reemplazar código anterior si existe
     current = current.replace(/^\+\d{1,4}\s*/, '');
     phoneInput.value = `${code} ${current}`.trim();
+  };
+
+  // Cambio dinámico de situación laboral en modal
+  window.timeplusOnWorkStatusChange = (status) => {
+    const workInp = document.getElementById('edit-addr-work');
+    if (!workInp) return;
+    if (status === 'no_trabaja') {
+      workInp.placeholder = 'No aplica (Actualmente no trabaja)';
+      workInp.value = '';
+    } else if (status === 'remoto') {
+      workInp.placeholder = 'Trabajo remoto / En casa (opcional)';
+    } else if (status === 'pensionado') {
+      workInp.placeholder = 'No aplica (Jubilado / Pensionado)';
+      workInp.value = '';
+    } else {
+      workInp.placeholder = 'Dirección de trabajo o sede';
+    }
+  };
+
+  // Cambio dinámico de asistencia a gimnasio en modal
+  window.timeplusOnGymStatusChange = (status) => {
+    const gymInp = document.getElementById('edit-addr-gym');
+    if (!gymInp) return;
+    if (status === 'no') {
+      gymInp.placeholder = 'No aplica (No asiste al gimnasio)';
+      gymInp.value = '';
+    } else if (status === 'casa') {
+      gymInp.placeholder = 'Entrena en casa (no requiere sede)';
+    } else if (status === 'parque') {
+      gymInp.placeholder = 'Parque o aire libre habitual';
+    } else {
+      gymInp.placeholder = 'Ej: SmartFit Calle 100, Bogotá';
+    }
   };
 
   // Acordeón de sedes adicionales

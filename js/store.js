@@ -120,8 +120,11 @@ class TimePlusStore {
           interests: extra.interests || '',
           learningGoal: extra.learningGoal || '',
           addrHome: extra.addrHome || '',
+          workStatus: extra.workStatus || 'Presencial',
           addrWork: extra.addrWork || '',
+          familyKinship: extra.familyKinship || 'Mamá',
           addrFamily: extra.addrFamily || '',
+          gymStatus: extra.gymStatus || 'si',
           addrGym: extra.addrGym || '',
           availability: extra.availability || '',
           notifyPref: extra.notifyPref || 'WhatsApp',
@@ -400,14 +403,17 @@ class TimePlusStore {
     if (user.addrHome && !userPlaces.some(p => p.id === 'plc-home')) {
       userPlaces.unshift({ id: 'plc-home', name: 'Casa / Residencia', address: user.addrHome, category: 'casa', visitsCount: 1, avgTravelTime: 'Punto Base', userEmail });
     }
-    if (user.addrWork && !userPlaces.some(p => p.id === 'plc-work')) {
+    const noTrabaja = user.workStatus === 'no_trabaja' || (user.addrWork && user.addrWork.toLowerCase().includes('no trabaja'));
+    if (user.addrWork && !noTrabaja && !userPlaces.some(p => p.id === 'plc-work')) {
       userPlaces.push({ id: 'plc-work', name: 'Trabajo / Estudio', address: user.addrWork, category: 'trabajo', visitsCount: 0, avgTravelTime: '~20 min', userEmail });
     }
-    if (user.addrGym && !userPlaces.some(p => p.id === 'plc-gym')) {
+    const noGym = user.gymStatus === 'no' || (user.addrGym && user.addrGym.toLowerCase().includes('no asiste'));
+    if (user.addrGym && !noGym && !userPlaces.some(p => p.id === 'plc-gym')) {
       userPlaces.push({ id: 'plc-gym', name: 'Gimnasio Habitual', address: user.addrGym, category: 'gym', visitsCount: 0, avgTravelTime: '~15 min', userEmail });
     }
     if (user.addrFamily && !userPlaces.some(p => p.id === 'plc-family')) {
-      userPlaces.push({ id: 'plc-family', name: 'Familiar / Principal', address: user.addrFamily, category: 'familiar', visitsCount: 0, avgTravelTime: '~25 min', userEmail });
+      const familyName = user.familyKinship ? `Familiar (${user.familyKinship})` : 'Familiar / Principal';
+      userPlaces.push({ id: 'plc-family', name: familyName, address: user.addrFamily, category: 'familiar', visitsCount: 0, avgTravelTime: '~25 min', userEmail });
     }
 
     return userPlaces;

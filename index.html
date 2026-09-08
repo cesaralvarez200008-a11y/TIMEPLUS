@@ -315,11 +315,49 @@
               <div><label style="font-size:0.71rem;font-weight:700;display:block;margin-bottom:0.2rem;">🏠 Dirección Casa *</label><input type="text" id="reg-addr-home" placeholder="Ej: Cra 7 # 45-20, Chapinero" class="login-panel-input" required></div>
             </div>
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.4rem;">
-              <div><label style="font-size:0.71rem;font-weight:700;display:block;margin-bottom:0.2rem;">🏢 Trabajo / Estudio (opc.)</label><input type="text" id="reg-addr-work" placeholder="Dirección de trabajo o campus" class="login-panel-input"></div>
-              <div><label style="font-size:0.71rem;font-weight:700;display:block;margin-bottom:0.2rem;">👨‍👩‍👧 Familiar / Alt. (opc.)</label><input type="text" id="reg-addr-family" placeholder="Dirección de familiar cercano" class="login-panel-input"></div>
+              <div>
+                <label style="font-size:0.71rem;font-weight:700;display:block;margin-bottom:0.2rem;">🏢 Situación Laboral / Estudio</label>
+                <select id="reg-work-status" class="login-panel-input" style="background:#fff;margin-bottom:0.25rem;" onchange="timeplusOnRegWorkStatusChange(this.value)">
+                  <option value="presencial">🏢 Trabajo / Estudio Presencial</option>
+                  <option value="hibrido">🔄 Trabajo Híbrido</option>
+                  <option value="remoto">💻 Trabajo Remoto / Home Office</option>
+                  <option value="no_trabaja">⏸️ Actualmente no trabajo / Desempleado(a)</option>
+                  <option value="pensionado">🏖️ Jubilado / Pensionado</option>
+                  <option value="independiente">💼 Independiente / Freelance</option>
+                  <option value="solo_estudio">🎓 Solo Estudio (Virtual / Distancia)</option>
+                </select>
+                <input type="text" id="reg-addr-work" placeholder="Dirección de trabajo o sede" class="login-panel-input">
+              </div>
+              <div>
+                <label style="font-size:0.71rem;font-weight:700;display:block;margin-bottom:0.2rem;">👨‍👩‍👧 Parentesco Familiar (De quién es la casa)</label>
+                <select id="reg-family-kinship" class="login-panel-input" style="background:#fff;margin-bottom:0.25rem;">
+                  <option value="Mamá">👩 Mamá</option>
+                  <option value="Papá">👨 Papá</option>
+                  <option value="Papás">👫 Papás (Mamá y Papá)</option>
+                  <option value="Hermano(a)">👦 Hermano / Hermana</option>
+                  <option value="Abuelos">👴👵 Abuelos</option>
+                  <option value="Hijo(a)">👶 Hijo / Hija</option>
+                  <option value="Pareja">💍 Pareja / Cónyuge</option>
+                  <option value="Tío(a)">🏠 Tío(a) / Primo(a)</option>
+                  <option value="Otro">📍 Otro Familiar</option>
+                </select>
+                <input type="text" id="reg-addr-family" placeholder="Dirección de la casa familiar" class="login-panel-input">
+              </div>
             </div>
-            <div><label style="font-size:0.71rem;font-weight:700;display:block;margin-bottom:0.2rem;">🏋️ Gimnasio / Sede Habitual (opc.)</label><input type="text" id="reg-addr-gym" placeholder="Ej: SmartFit Calle 100, Bogotá" class="login-panel-input"></div>
-            <div style="background:#EFF6FF;border:1px solid #BFDBFE;border-radius:0.45rem;padding:0.38rem 0.6rem;font-size:0.63rem;color:#1E40AF;">🚗 Rutas IA: Casa → Gym · Trabajo → Gym · Familiar → Gym</div>
+            <div>
+              <label style="font-size:0.71rem;font-weight:700;display:block;margin-bottom:0.2rem;">🏋️ Asistencia a Gimnasio / Deporte</label>
+              <div style="display:grid;grid-template-columns:1.2fr 1.8fr;gap:0.35rem;align-items:center;">
+                <select id="reg-gym-status" class="login-panel-input" style="background:#fff;" onchange="timeplusOnRegGymStatusChange(this.value)">
+                  <option value="si">🏋️ Sí, voy a Gimnasio</option>
+                  <option value="no">🚫 No voy al gym actualmente</option>
+                  <option value="casa">🏡 Entreno en casa / Calistenia</option>
+                  <option value="parque">🌳 Entreno al aire libre / Parque</option>
+                  <option value="otro_deporte">⚽ Practico otro deporte</option>
+                </select>
+                <input type="text" id="reg-addr-gym" placeholder="Ej: SmartFit Calle 100, Bogotá" class="login-panel-input">
+              </div>
+            </div>
+            <div style="background:#EFF6FF;border:1px solid #BFDBFE;border-radius:0.45rem;padding:0.38rem 0.6rem;font-size:0.63rem;color:#1E40AF;">🚗 Rutas IA: Se calculan automáticamente adaptándose a si trabajas, no vas al gym o visitas familiares.</div>
             <div style="display:flex;justify-content:space-between;"><button type="button" class="btn-secondary" style="padding:0.42rem 0.9rem;font-size:0.74rem;" onclick="timeplusWizardGoTo(3)">← Atrás</button><button type="button" class="login-panel-submit" style="padding:0.42rem 1.25rem;font-size:0.78rem;" onclick="timeplusWizardNext(4)">Siguiente →</button></div>
           </div>
 
@@ -531,12 +569,12 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <!-- Application Modules in Dependency Order -->
-  <script src="js/config.js?v=20260908_csv_export"></script>
-  <script src="js/supabase-client.js?v=20260908_csv_export"></script>
-  <script src="js/store.js?v=20260908_csv_export"></script>
-  <script src="js/ai-engine.js?v=20260908_csv_export"></script>
-  <script src="js/router.js?v=20260908_csv_export"></script>
-  <script src="js/app.js?v=20260908_csv_export"></script>
+  <script src="js/config.js?v=20260908_mobility_dropdowns"></script>
+  <script src="js/supabase-client.js?v=20260908_mobility_dropdowns"></script>
+  <script src="js/store.js?v=20260908_mobility_dropdowns"></script>
+  <script src="js/ai-engine.js?v=20260908_mobility_dropdowns"></script>
+  <script src="js/router.js?v=20260908_mobility_dropdowns"></script>
+  <script src="js/app.js?v=20260908_mobility_dropdowns"></script>
 
   <!-- Landing Page Logic con Verificación de Aprobación en Supabase -->
   <script>
@@ -577,6 +615,37 @@
       const code = codes[country] || '+57';
       let current = phoneInp.value.trim().replace(/^\+\d{1,4}\s*/, '');
       phoneInp.value = `${code} ${current}`.trim() + ' ';
+    }
+
+    function timeplusOnRegWorkStatusChange(val) {
+      const workInp = document.getElementById('reg-addr-work');
+      if (!workInp) return;
+      if (val === 'no_trabaja') {
+        workInp.placeholder = 'No aplica (Actualmente no trabaja)';
+        workInp.value = '';
+      } else if (val === 'remoto') {
+        workInp.placeholder = 'Trabajo remoto / En casa (opcional)';
+      } else if (val === 'pensionado') {
+        workInp.placeholder = 'No aplica (Jubilado / Pensionado)';
+        workInp.value = '';
+      } else {
+        workInp.placeholder = 'Dirección de trabajo o sede';
+      }
+    }
+
+    function timeplusOnRegGymStatusChange(val) {
+      const gymInp = document.getElementById('reg-addr-gym');
+      if (!gymInp) return;
+      if (val === 'no') {
+        gymInp.placeholder = 'No aplica (No asiste al gimnasio)';
+        gymInp.value = '';
+      } else if (val === 'casa') {
+        gymInp.placeholder = 'Entrena en casa (no requiere sede)';
+      } else if (val === 'parque') {
+        gymInp.placeholder = 'Parque o aire libre habitual';
+      } else {
+        gymInp.placeholder = 'Ej: SmartFit Calle 100, Bogotá';
+      }
     }
 
     /* ── Wizard: validar paso actual y avanzar ── */
@@ -718,11 +787,18 @@
       const interests     = document.getElementById('reg-interests').value.trim();
       const learningGoal  = document.getElementById('reg-goal').value.trim();
       // Paso 4
-      const city       = document.getElementById('reg-city').value.trim();
-      const addrHome   = document.getElementById('reg-addr-home').value.trim();
-      const addrWork   = document.getElementById('reg-addr-work').value.trim();
-      const addrFamily = document.getElementById('reg-addr-family').value.trim();
-      const addrGym    = document.getElementById('reg-addr-gym').value.trim();
+      const city          = document.getElementById('reg-city').value.trim();
+      const addrHome      = document.getElementById('reg-addr-home').value.trim();
+      const workStatus    = (document.getElementById('reg-work-status') || {}).value || 'presencial';
+      let   addrWork      = (document.getElementById('reg-addr-work')?.value || '').trim();
+      const familyKinship = (document.getElementById('reg-family-kinship') || {}).value || 'Mamá';
+      const addrFamily    = (document.getElementById('reg-addr-family')?.value || '').trim();
+      const gymStatus     = (document.getElementById('reg-gym-status') || {}).value || 'si';
+      let   addrGym       = (document.getElementById('reg-addr-gym')?.value || '').trim();
+
+      if (workStatus === 'no_trabaja' && !addrWork) addrWork = 'No trabaja actualmente';
+      if (gymStatus === 'no' && !addrGym) addrGym = 'No asiste al gimnasio';
+
       // Paso 5
       const plan         = document.getElementById('reg-plan').value;
       const timezone     = document.getElementById('reg-timezone').value;
@@ -748,7 +824,10 @@
           lastName: lastName,
           docType, docNumber, birthDate, gender, country,
           academicLevel, institution, program, semester, interests, learningGoal,
-          city, addrHome, addrWork, addrFamily, addrGym,
+          city, addrHome,
+          workStatus, addrWork,
+          familyKinship, addrFamily,
+          gymStatus, addrGym,
           plan, timezone, availability, notifyPref
         });
 
