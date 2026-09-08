@@ -2702,10 +2702,23 @@ document.addEventListener('DOMContentLoaded', () => {
     modal.style.display = 'flex';
 
     if (sectionToFocus) {
-      setTimeout(() => {
-        const sec = document.getElementById('section-' + sectionToFocus);
-        if (sec) sec.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      }, 100);
+      // Mostrar solo la sección del bloque clickeado
+      const allSections = ['personal', 'academico', 'movilidad', 'preferencias'];
+      allSections.forEach(s => {
+        const el = document.getElementById('section-' + s);
+        if (el) el.style.display = (s === sectionToFocus) ? '' : 'none';
+      });
+      // Actualizar título del modal para indicar qué sección se está editando
+      const titleLabels = {
+        personal: '👤 Información Personal',
+        academico: '🎓 Ficha Académica / Profesional',
+        movilidad: '🚗 Ubicaciones & Rutas de Movilidad',
+        preferencias: '⚙️ Preferencias & Cuenta'
+      };
+      const titleEl = modal.querySelector('h2');
+      if (titleEl && titleLabels[sectionToFocus]) {
+        titleEl.textContent = titleLabels[sectionToFocus];
+      }
     }
   };
 
@@ -2725,33 +2738,35 @@ document.addEventListener('DOMContentLoaded', () => {
     const fullName = [firstName, secondName, lastName1, lastName2].filter(Boolean).join(' ');
 
     const updated = {
-      name: fullName || document.getElementById('edit-name').value.trim(),
+      name: fullName || (document.getElementById('edit-name')?.value || '').trim(),
       firstName,
       secondName,
       lastName1,
       lastName2,
-      personType: document.getElementById('edit-persontype').value,
-      docType: document.getElementById('edit-doctype').value,
-      docNumber: document.getElementById('edit-docnum').value.trim(),
-      birthDate: document.getElementById('edit-birthdate').value,
-      gender: document.getElementById('edit-gender').value,
-      phone: document.getElementById('edit-phone').value.trim(),
-      country: document.getElementById('edit-country').value.trim(),
-      academicLevel: document.getElementById('edit-acadlevel').value,
-      institution: document.getElementById('edit-institution').value.trim(),
-      program: document.getElementById('edit-program').value.trim(),
-      semester: document.getElementById('edit-semester').value.trim(),
-      interests: document.getElementById('edit-interests').value.trim(),
-      learningGoal: document.getElementById('edit-goal').value.trim(),
-      city: document.getElementById('edit-city').value.trim(),
-      addrHome: document.getElementById('edit-addr-home').value.trim(),
-      addrWork: document.getElementById('edit-addr-work').value.trim(),
-      addrFamily: document.getElementById('edit-addr-family').value.trim(),
-      addrGym: document.getElementById('edit-addr-gym').value.trim(),
-      availability: document.getElementById('edit-availability').value.trim(),
-      notifyPref: document.getElementById('edit-notify').value,
-      timezone: document.getElementById('edit-timezone').value
+      personType: document.getElementById('edit-persontype')?.value || undefined,
+      docType: document.getElementById('edit-doctype')?.value || undefined,
+      docNumber: (document.getElementById('edit-docnum')?.value || '').trim() || undefined,
+      birthDate: document.getElementById('edit-birthdate')?.value || undefined,
+      gender: document.getElementById('edit-gender')?.value || undefined,
+      phone: (document.getElementById('edit-phone')?.value || '').trim() || undefined,
+      country: (document.getElementById('edit-country')?.value || '').trim() || undefined,
+      academicLevel: document.getElementById('edit-acadlevel')?.value || undefined,
+      institution: (document.getElementById('edit-institution')?.value || '').trim() || undefined,
+      program: (document.getElementById('edit-program')?.value || '').trim() || undefined,
+      semester: (document.getElementById('edit-semester')?.value || '').trim() || undefined,
+      interests: (document.getElementById('edit-interests')?.value || '').trim() || undefined,
+      learningGoal: (document.getElementById('edit-goal')?.value || '').trim() || undefined,
+      city: (document.getElementById('edit-city')?.value || '').trim() || undefined,
+      addrHome: (document.getElementById('edit-addr-home')?.value || '').trim() || undefined,
+      addrWork: (document.getElementById('edit-addr-work')?.value || '').trim() || undefined,
+      addrFamily: (document.getElementById('edit-addr-family')?.value || '').trim() || undefined,
+      addrGym: (document.getElementById('edit-addr-gym')?.value || '').trim() || undefined,
+      availability: (document.getElementById('edit-availability')?.value || '').trim() || undefined,
+      notifyPref: document.getElementById('edit-notify')?.value || undefined,
+      timezone: document.getElementById('edit-timezone')?.value || undefined
     };
+    // Limpiar claves undefined para no sobreescribir datos existentes con vacíos
+    Object.keys(updated).forEach(k => { if (updated[k] === undefined) delete updated[k]; });
 
     try {
       await store.updateUserProfile(updated);
