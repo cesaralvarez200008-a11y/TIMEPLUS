@@ -169,3 +169,4 @@ TIMEPLUS/
 ├── .gitignore          # Archivos ignorados por Git
 └── README.md           # Documentación completa del proyecto
 ```
+"# EduCol" 
