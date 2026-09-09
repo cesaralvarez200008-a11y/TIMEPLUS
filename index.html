@@ -355,14 +355,14 @@
               </div>
             </div>
             <div>
-              <label style="font-size:0.71rem;font-weight:700;display:block;margin-bottom:0.2rem;">🏋️ Asistencia a Gimnasio / Deporte</label>
+              <label style="font-size:0.71rem;font-weight:700;display:block;margin-bottom:0.2rem;">🏋️ Actividad Física / Deporte</label>
               <div style="display:grid;grid-template-columns:1.2fr 1.8fr;gap:0.35rem;align-items:center;">
                 <select id="reg-gym-status" class="login-panel-input" style="background:#fff;" onchange="timeplusOnRegGymStatusChange(this.value)">
-                  <option value="si">🏋️ Sí, voy a Gimnasio</option>
-                  <option value="no">🚫 No voy al gym actualmente</option>
-                  <option value="casa">🏡 Entreno en casa / Calistenia</option>
-                  <option value="parque">🌳 Entreno al aire libre / Parque</option>
+                  <option value="si">🏋️ Voy al Gimnasio</option>
+                  <option value="parque">🌳 Al aire libre / Parque</option>
+                  <option value="casa">🏡 Desde la casa</option>
                   <option value="otro_deporte">⚽ Practico otro deporte</option>
+                  <option value="no">🚫 No realizo ejercicio</option>
                 </select>
                 <input type="text" id="reg-addr-gym" placeholder="Ej: SmartFit Calle 100, Bogotá" class="login-panel-input">
               </div>
@@ -649,12 +649,12 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <!-- Application Modules in Dependency Order -->
-  <script src="js/config.js?v=20260909_act_modal_fixes"></script>
-  <script src="js/supabase-client.js?v=20260909_act_modal_fixes"></script>
-  <script src="js/store.js?v=20260909_act_modal_fixes"></script>
-  <script src="js/ai-engine.js?v=20260909_act_modal_fixes"></script>
-  <script src="js/router.js?v=20260909_act_modal_fixes"></script>
-  <script src="js/app.js?v=20260909_act_modal_fixes"></script>
+  <script src="js/config.js?v=20260909_fitness_profile"></script>
+  <script src="js/supabase-client.js?v=20260909_fitness_profile"></script>
+  <script src="js/store.js?v=20260909_fitness_profile"></script>
+  <script src="js/ai-engine.js?v=20260909_fitness_profile"></script>
+  <script src="js/router.js?v=20260909_fitness_profile"></script>
+  <script src="js/app.js?v=20260909_fitness_profile"></script>
 
   <!-- Landing Page Logic con Verificación de Aprobación en Supabase -->
   <script>
@@ -717,14 +717,24 @@
       const gymInp = document.getElementById('reg-addr-gym');
       if (!gymInp) return;
       if (val === 'no') {
-        gymInp.placeholder = 'No aplica (No asiste al gimnasio)';
+        gymInp.placeholder = 'No aplica';
         gymInp.value = '';
-      } else if (val === 'casa') {
-        gymInp.placeholder = 'Entrena en casa (no requiere sede)';
-      } else if (val === 'parque') {
-        gymInp.placeholder = 'Parque o aire libre habitual';
+        gymInp.disabled = true;
+        gymInp.style.opacity = '0.5';
+        gymInp.style.background = '#F1F5F9';
       } else {
-        gymInp.placeholder = 'Ej: SmartFit Calle 100, Bogotá';
+        gymInp.disabled = false;
+        gymInp.style.opacity = '1';
+        gymInp.style.background = '#fff';
+        if (val === 'casa') {
+          gymInp.placeholder = 'Entrena en casa (no requiere sede)';
+        } else if (val === 'parque') {
+          gymInp.placeholder = 'Parque o aire libre habitual';
+        } else if (val === 'otro_deporte') {
+          gymInp.placeholder = 'Ej: Cancha, Club, etc.';
+        } else {
+          gymInp.placeholder = 'Ej: SmartFit Calle 100, Bogotá';
+        }
       }
     }
 

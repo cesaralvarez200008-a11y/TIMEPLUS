@@ -872,22 +872,65 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Conexión directa con la configuración del perfil del usuario
     const isGymUser = user?.gymStatus === 'si' || (!user?.gymStatus && user?.addrGym && !user.addrGym.toLowerCase().includes('no asiste'));
-    const isOutdoorUser = user?.gymStatus === 'parque' || user?.gymStatus === 'no';
+    const isOutdoorUser = user?.gymStatus === 'parque';
     const isHomeUser = user?.gymStatus === 'casa';
+    const isOtherSport = user?.gymStatus === 'otro_deporte';
+    const isNoExercise = user?.gymStatus === 'no';
 
-    const defaultTab = isGymUser ? 'gym' : (isOutdoorUser ? 'outdoor' : (isHomeUser ? 'home' : 'gym'));
-    const subtitleText = isGymUser 
-      ? `Conectado a tu perfil: 🏋️ Gimnasio en ${user?.addrGym || 'SmartFit Habitual'}. Registra los músculos y ejercicios trabajados hoy.`
-      : (isOutdoorUser 
-          ? `Conectado a tu perfil: 🌳 Al Aire Libre (Sin Gym). Registra tus caminatas o trotes por kilómetros recorridos.` 
-          : `Conectado a tu perfil: 🏡 En Casa. Registra tus rutinas de calistenia, peso corporal o yoga.`);
+    const defaultTab = isGymUser ? 'gym' : (isOutdoorUser ? 'outdoor' : (isHomeUser ? 'home' : (isOtherSport ? 'outdoor' : (isNoExercise ? 'outdoor' : 'gym'))));
 
-    const primaryBtnLabel = isGymUser ? '＋ Registrar Rutina de Gym' : (isOutdoorUser ? '＋ Registrar Kilómetros' : '＋ Registrar Rutina en Casa');
-    const primaryBtnColor = isGymUser ? 'linear-gradient(135deg, #2563EB, #1D4ED8)' : (isOutdoorUser ? 'linear-gradient(135deg, #16A34A, #15803D)' : 'linear-gradient(135deg, #D97706, #B45309)');
-    const voicePrompt = isGymUser ? 'Hoy entrené pierna en el gym' : (isOutdoorUser ? 'Hoy caminé 5 km' : 'Hoy entrené en casa');
-    const voiceLabel = isGymUser ? '🎙️ Dictar Rutina de Gym' : (isOutdoorUser ? '🎙️ Dictar Kilómetros' : '🎙️ Dictar Sesión en Casa');
+    // Textos dinámicos según el perfil
+    let subtitleText, primaryBtnLabel, primaryBtnColor, voicePrompt, voiceLabel;
+    if (isNoExercise) {
+      subtitleText = '⚙️ Tu perfil indica: Sin actividad física configurada. Puedes iniciar con una caminata suave o cambiar tu configuración en Mi Perfil.';
+      primaryBtnLabel = '🚶 Iniciar Caminata Suave (15 min)';
+      primaryBtnColor = 'linear-gradient(135deg, #6B7280, #4B5563)';
+      voicePrompt = 'Hoy caminé 15 minutos';
+      voiceLabel = '🎙️ Dictar Actividad';
+    } else if (isOtherSport) {
+      subtitleText = 'Conectado a tu perfil: ⚽ Practicas otro deporte. Registra tus sesiones de entrenamiento.';
+      primaryBtnLabel = '＋ Registrar Sesión de Deporte';
+      primaryBtnColor = 'linear-gradient(135deg, #7C3AED, #6D28D9)';
+      voicePrompt = 'Hoy entrené mi deporte';
+      voiceLabel = '🎙️ Dictar Sesión';
+    } else if (isGymUser) {
+      subtitleText = `Conectado a tu perfil: 🏋️ Gimnasio en ${user?.addrGym || 'SmartFit Habitual'}. Registra los músculos y ejercicios trabajados hoy.`;
+      primaryBtnLabel = '＋ Registrar Rutina de Gym';
+      primaryBtnColor = 'linear-gradient(135deg, #2563EB, #1D4ED8)';
+      voicePrompt = 'Hoy entrené pierna en el gym';
+      voiceLabel = '🎙️ Dictar Rutina de Gym';
+    } else if (isOutdoorUser) {
+      subtitleText = 'Conectado a tu perfil: 🌳 Al Aire Libre (Parque). Registra tus caminatas o trotes por kilómetros recorridos.';
+      primaryBtnLabel = '＋ Registrar Kilómetros';
+      primaryBtnColor = 'linear-gradient(135deg, #16A34A, #15803D)';
+      voicePrompt = 'Hoy caminé 5 km';
+      voiceLabel = '🎙️ Dictar Kilómetros';
+    } else {
+      subtitleText = 'Conectado a tu perfil: 🏡 En Casa. Registra tus rutinas de calistenia, peso corporal o yoga.';
+      primaryBtnLabel = '＋ Registrar Rutina en Casa';
+      primaryBtnColor = 'linear-gradient(135deg, #D97706, #B45309)';
+      voicePrompt = 'Hoy entrené en casa';
+      voiceLabel = '🎙️ Dictar Sesión en Casa';
+    }
+
+    // Banner especial para "No hace ejercicio"
+    const noExerciseBanner = isNoExercise ? `
+      <div style="background: linear-gradient(135deg, #FEF3C7, #FFFBEB); border: 1.5px solid #FCD34D; border-radius: 0.85rem; padding: 1.25rem; margin-bottom: 1.25rem; text-align: center;">
+        <div style="font-size: 2rem; margin-bottom: 0.5rem;">🧘</div>
+        <div style="font-weight: 800; color: #92400E; font-size: 0.9rem; margin-bottom: 0.35rem;">Sin actividad física configurada</div>
+        <p style="font-size: 0.78rem; color: #B45309; margin: 0 0 0.75rem;">Tu perfil indica que actualmente no realizas ejercicio. ¡No pasa nada! Puedes empezar con algo pequeño.</p>
+        <div style="display: flex; gap: 0.5rem; justify-content: center; flex-wrap: wrap;">
+          <button class="btn-primary" onclick="window.timeplusOpenFitnessModal('outdoor')" style="padding: 0.5rem 1rem; font-size: 0.78rem; background: linear-gradient(135deg, #16A34A, #15803D); box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+            🚶 Iniciar Caminata Suave (15 min)
+          </button>
+          <button class="btn-secondary" onclick="location.hash='#/perfil'" style="padding: 0.5rem 1rem; font-size: 0.78rem;">
+            ⚙️ Cambiar en Mi Perfil
+          </button>
+        </div>
+      </div>` : '';
 
     contentEl.innerHTML = `
+      ${noExerciseBanner}
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 0.75rem;">
         <div>
           <h2>Fitness &amp; Actividad Física</h2>
@@ -919,6 +962,29 @@ document.addEventListener('DOMContentLoaded', () => {
           <div class="stat-card-value" style="color: #16A34A;">${fit.caloriesBurned} kcal</div>
           <div class="stat-card-desc">Estimadas por la IA</div>
         </div>
+        ${isNoExercise ? `
+        <div class="stat-card" style="cursor: pointer; background: linear-gradient(135deg, #FEF3C7, #FFFBEB); border: 1.5px dashed #FCD34D;" onclick="location.hash='#/perfil'">
+          <div class="stat-card-title" style="color: #92400E; font-weight: 800;">
+            🧘 Sin Rutina Activa
+          </div>
+          <div style="font-size: 0.76rem; color: #B45309; font-weight: 700; margin-top: 0.35rem;">
+            Configura tu actividad en Mi Perfil
+          </div>
+          <button class="btn-primary" style="margin-top: 0.5rem; width: 100%; justify-content: center; font-size: 0.75rem; padding: 0.4rem; background: #92400E;">
+            ⚙️ Ir a Mi Perfil
+          </button>
+        </div>` : (isOtherSport ? `
+        <div class="stat-card" style="cursor: pointer; background: linear-gradient(135deg, #F5F3FF, #EDE9FE); border: 1.5px dashed #C4B5FD;" onclick="window.timeplusOpenFitnessModal('outdoor')">
+          <div class="stat-card-title" style="color: #5B21B6; font-weight: 800;">
+            ⚽ Tu Sesión de Deporte
+          </div>
+          <div style="font-size: 0.76rem; color: #7C3AED; font-weight: 700; margin-top: 0.35rem;">
+            Registra tu entrenamiento
+          </div>
+          <button class="btn-primary" style="margin-top: 0.5rem; width: 100%; justify-content: center; font-size: 0.75rem; padding: 0.4rem; background: #7C3AED;">
+            ＋ Registrar Sesión
+          </button>
+        </div>` : `
         <div class="stat-card" style="cursor: pointer; background: ${isGymUser ? 'linear-gradient(135deg, #EFF6FF, #DBEAFE)' : (isOutdoorUser ? 'linear-gradient(135deg, #F0FDF4, #DCFCE7)' : 'linear-gradient(135deg, #FEF3C7, #FDE68A)')}; border: 1.5px dashed ${isGymUser ? '#93C5FD' : (isOutdoorUser ? '#86EFAC' : '#FCD34D')};" onclick="window.timeplusOpenFitnessModal('${defaultTab}')">
           <div class="stat-card-title" style="color: ${isGymUser ? '#1E40AF' : (isOutdoorUser ? '#166534' : '#92400E')}; font-weight: 800;">
             ${isGymUser ? '🏋️ Tu Sesión de Gym' : (isOutdoorUser ? '🌳 Tu Actividad Aire Libre' : '🏡 Tu Sesión en Casa')}
@@ -929,14 +995,14 @@ document.addEventListener('DOMContentLoaded', () => {
           <button class="btn-primary" style="margin-top: 0.5rem; width: 100%; justify-content: center; font-size: 0.75rem; padding: 0.4rem; background: ${isGymUser ? '#2563EB' : (isOutdoorUser ? '#16A34A' : '#D97706')};">
             ${isGymUser ? '＋ Registrar Músculos & Series' : (isOutdoorUser ? '＋ Registrar Kilómetros' : '＋ Registrar Rutina')}
           </button>
-        </div>
+        </div>`)}
       </div>
 
       <div class="timeline-card" style="margin-top: 1.5rem;">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: 0.5rem;">
           <div>
             <h3>Historial de Entrenamientos y Actividades</h3>
-            <p style="font-size: 0.75rem; color: #64748B;">${isGymUser ? 'Rutinas de gimnasio por músculos y series registradas.' : (isOutdoorUser ? 'Caminatas y trotes con distancia en kilómetros.' : 'Entrenamientos registrados en casa.')}</p>
+            <p style="font-size: 0.75rem; color: #64748B;">${isNoExercise ? 'Aún sin rutina activa. Registra cualquier actividad para comenzar.' : (isOtherSport ? 'Sesiones de deporte y actividad registradas.' : (isGymUser ? 'Rutinas de gimnasio por músculos y series registradas.' : (isOutdoorUser ? 'Caminatas y trotes con distancia en kilómetros.' : 'Entrenamientos registrados en casa.')))}</p>
           </div>
           <button class="btn-secondary" onclick="window.timeplusOpenFitnessModal('${defaultTab}')" style="font-size: 0.72rem; padding: 0.3rem 0.7rem;">＋ Nueva Sesión</button>
         </div>
@@ -3493,16 +3559,16 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>
 
             <div style="margin-bottom:0.75rem;">
-              <label style="font-size:0.7rem;font-weight:700;display:block;margin-bottom:0.2rem;">🏋️ Asistencia a Gimnasio / Deporte</label>
+              <label style="font-size:0.7rem;font-weight:700;display:block;margin-bottom:0.2rem;">🏋️ Actividad Física / Deporte</label>
               <div style="display:grid;grid-template-columns:1.2fr 1.8fr;gap:0.4rem;align-items:center;">
                 <select id="edit-gym-status" class="login-panel-input" style="background:#fff;" onchange="window.timeplusOnGymStatusChange(this.value)">
-                  <option value="si" ${(user.gymStatus === 'si' || !user.gymStatus) ? 'selected' : ''}>🏋️ Sí, voy a Gimnasio</option>
-                  <option value="no" ${user.gymStatus === 'no' ? 'selected' : ''}>🚫 No voy al gym actualmente</option>
-                  <option value="casa" ${user.gymStatus === 'casa' ? 'selected' : ''}>🏡 Entreno en casa / Calistenia</option>
-                  <option value="parque" ${user.gymStatus === 'parque' ? 'selected' : ''}>🌳 Entreno al aire libre / Parque</option>
+                  <option value="si" ${(user.gymStatus === 'si' || !user.gymStatus) ? 'selected' : ''}>🏋️ Voy al Gimnasio</option>
+                  <option value="parque" ${user.gymStatus === 'parque' ? 'selected' : ''}>🌳 Al aire libre / Parque</option>
+                  <option value="casa" ${user.gymStatus === 'casa' ? 'selected' : ''}>🏡 Desde la casa</option>
                   <option value="otro_deporte" ${user.gymStatus === 'otro_deporte' ? 'selected' : ''}>⚽ Practico otro deporte</option>
+                  <option value="no" ${user.gymStatus === 'no' ? 'selected' : ''}>🚫 No realizo ejercicio</option>
                 </select>
-                <input type="text" id="edit-addr-gym" value="${user.addrGym || ''}" class="login-panel-input" placeholder="Ej: SmartFit Calle 100, Bogotá">
+                <input type="text" id="edit-addr-gym" value="${user.addrGym || ''}" class="login-panel-input" placeholder="${user.gymStatus === 'no' ? 'No aplica' : (user.gymStatus === 'casa' ? 'Entrena en casa (no requiere sede)' : (user.gymStatus === 'parque' ? 'Parque o aire libre habitual' : (user.gymStatus === 'otro_deporte' ? 'Ej: Cancha, Club, etc.' : 'Ej: SmartFit Calle 100, Bogotá')))}" ${user.gymStatus === 'no' ? 'disabled style="opacity:0.5;background:#F1F5F9;"' : ''}>
               </div>
             </div>
 
@@ -3726,14 +3792,24 @@ document.addEventListener('DOMContentLoaded', () => {
     const gymInp = document.getElementById('edit-addr-gym');
     if (!gymInp) return;
     if (status === 'no') {
-      gymInp.placeholder = 'No aplica (No asiste al gimnasio)';
+      gymInp.placeholder = 'No aplica';
       gymInp.value = '';
-    } else if (status === 'casa') {
-      gymInp.placeholder = 'Entrena en casa (no requiere sede)';
-    } else if (status === 'parque') {
-      gymInp.placeholder = 'Parque o aire libre habitual';
+      gymInp.disabled = true;
+      gymInp.style.opacity = '0.5';
+      gymInp.style.background = '#F1F5F9';
     } else {
-      gymInp.placeholder = 'Ej: SmartFit Calle 100, Bogotá';
+      gymInp.disabled = false;
+      gymInp.style.opacity = '1';
+      gymInp.style.background = '#fff';
+      if (status === 'casa') {
+        gymInp.placeholder = 'Entrena en casa (no requiere sede)';
+      } else if (status === 'parque') {
+        gymInp.placeholder = 'Parque o aire libre habitual';
+      } else if (status === 'otro_deporte') {
+        gymInp.placeholder = 'Ej: Cancha, Club, etc.';
+      } else {
+        gymInp.placeholder = 'Ej: SmartFit Calle 100, Bogotá';
+      }
     }
   };
 
@@ -3833,9 +3909,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const user = store.getCurrentUser();
     const isGymUser = user?.gymStatus === 'si' || (!user?.gymStatus && user?.addrGym && !user.addrGym.toLowerCase().includes('no asiste'));
-    const isOutdoorUser = user?.gymStatus === 'parque' || user?.gymStatus === 'no';
+    const isOutdoorUser = user?.gymStatus === 'parque';
     const isHomeUser = user?.gymStatus === 'casa';
-    const targetTab = initialTab || (isGymUser ? 'gym' : (isOutdoorUser ? 'outdoor' : (isHomeUser ? 'home' : 'gym')));
+    const isOtherSport = user?.gymStatus === 'otro_deporte';
+    const isNoExercise = user?.gymStatus === 'no';
+    const targetTab = initialTab || (isGymUser ? 'gym' : (isOutdoorUser ? 'outdoor' : (isHomeUser ? 'home' : (isOtherSport ? 'outdoor' : (isNoExercise ? 'outdoor' : 'gym')))));
 
     const defaultGym = user?.addrGym && !user.addrGym.toLowerCase().includes('no asiste') ? user.addrGym : 'SmartFit';
 
