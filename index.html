@@ -6,13 +6,23 @@
   <title>TIMEPLUS — Tu tiempo. Tu vida. Organizada por IA.</title>
   <meta name="description" content="Dile a TimePlus qué necesitas y la IA organiza el resto. Agenda, reuniones, salud, fitness, proyectos y movilidad.">
 
+  <!-- PWA & Mobile App Settings for APK & Web -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#2563EB">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="TIMEPLUS">
+  <link rel="icon" type="image/svg+xml" href="assets/icons/icon.svg">
+  <link rel="apple-touch-icon" href="assets/icons/icon.svg">
+
   <!-- Zero-Cache -->
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
 
   <!-- Native Stylesheet (Zero CDN) -->
-  <link rel="stylesheet" href="css/timeplus-os.css?v=20260907_auth_strict">
+  <link rel="stylesheet" href="css/timeplus-os.css?v=20260908_mobile_ui_optimized">
 </head>
 <body>
 
@@ -980,6 +990,15 @@
         menuToggle.addEventListener('click', () => sidebar.classList.toggle('open'));
       }
     });
+
+    // ── Registro de Service Worker para PWA y APK ──
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js')
+          .then((reg) => console.log('TIMEPLUS Service Worker listo:', reg.scope))
+          .catch((err) => console.log('Error registrando Service Worker:', err));
+      });
+    }
   </script>
 
 </body>
