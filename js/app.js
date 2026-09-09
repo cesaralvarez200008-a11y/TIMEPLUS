@@ -431,11 +431,11 @@ document.addEventListener('DOMContentLoaded', () => {
         </div>
         <div class="timeline-content" style="padding-right: 2.5rem;">
           <div class="timeline-title">${act.title}</div>
-          <div class="timeline-sub">
+          <div class="timeline-sub" style="display:flex; flex-wrap:wrap; gap:0.5rem; align-items:center; margin-top:0.25rem;">
             <span>⏱️ ${act.duration}</span>
-            ${act.placeName ? `<span>📍 ${act.placeName}</span>` : ''}
-            ${act.attendees ? `<span>👥 ${act.attendees.join(', ')}</span>` : ''}
-            ${act.meetLink ? `<a href="${act.meetLink}" target="_blank" style="color: var(--primary); font-weight: bold;">🔗 Google Meet</a>` : ''}
+            ${act.placeName ? `<span style="color:#2563EB; font-weight:600;">📍 ${act.placeName}</span>` : ''}
+            ${act.attendees && act.attendees.length ? `<span>👥 ${act.attendees.join(', ')}</span>` : ''}
+            ${act.meetLink ? `<a href="${act.meetLink}" target="_blank" style="color: #2563EB; font-weight: 700; background:#EFF6FF; border:1px solid #BFDBFE; padding:0.15rem 0.55rem; border-radius:6px; font-size:0.75rem; text-decoration:none; display:inline-flex; align-items:center; gap:0.25rem;">🔗 Unirse a Reunión (Meet / Zoom)</a>` : ''}
           </div>
 
           <!-- Si es medicamento, mostrar estado de confirmación -->
@@ -452,18 +452,20 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>
           ` : ''}
 
-          <!-- Si es cita presencial, mostrar caja de movilidad (Visión 3 & 5) -->
-          ${act.recommendedDeparture ? `
-            <div class="mobility-box">
+          <!-- Si es cita presencial, mostrar caja de movilidad con dirección y recomendación de salida -->
+          ${act.type === 'cita_presencial' || act.recommendedDeparture ? `
+            <div class="mobility-box" style="margin-top:0.5rem; background:#F8FAFC; border:1px solid #E2E8F0; border-radius:8px; padding:0.5rem 0.75rem; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.5rem;">
               <div style="display: flex; align-items: center; gap: 0.5rem;">
-                <span>🚗</span>
-                <span style="font-size: 0.75rem;">
-                  Tráfico estimado: <strong>${act.travelTimeMin} min</strong> + ${act.prepTimeMin} min preparación.
+                <span style="font-size:1.1rem;">🚗</span>
+                <span style="font-size: 0.75rem; color:#334155;">
+                  ${act.placeName ? `Destino: <strong>${act.placeName}</strong> • ` : ''}Tráfico est: <strong>${act.travelTimeMin || 35} min</strong>
                 </span>
               </div>
-              <div class="mobility-time-badge">
-                Salir a las: ${act.recommendedDeparture}
-              </div>
+              ${act.recommendedDeparture ? `
+                <div class="mobility-time-badge" style="background:#EFF6FF; color:#1D4ED8; font-weight:800; padding:0.2rem 0.6rem; border-radius:999px; font-size:0.72rem;">
+                  Salir a las: ${act.recommendedDeparture}
+                </div>
+              ` : ''}
             </div>
           ` : ''}
         </div>
@@ -2750,7 +2752,7 @@ document.addEventListener('DOMContentLoaded', () => {
             <label style="color:#a5b4fc;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.8px;display:block;margin-bottom:6px;">
               📝 Título de la actividad *
             </label>
-            <input id="tp-act-title" type="text" placeholder="Ej: Reunión con el equipo..." class="login-panel-input" style="width:100%;box-sizing:border-box;" />
+            <input id="tp-act-title" type="text" placeholder="Ej: Cita con Cardiólogo, Examen de laboratorio, Reunión..." class="login-panel-input" style="width:100%;box-sizing:border-box;" />
           </div>
 
           <!-- Categoría + Tipo en grid -->
@@ -2761,8 +2763,8 @@ document.addEventListener('DOMContentLoaded', () => {
               </label>
               <select id="tp-act-category" class="login-panel-input" style="width:100%;box-sizing:border-box;" onchange="window.timeplusActivityCategoryChange()">
                 <option value="trabajo">💼 Trabajo</option>
+                <option value="salud">💊 Salud &amp; Medicina</option>
                 <option value="personal">🌱 Personal</option>
-                <option value="salud">💊 Salud</option>
                 <option value="estudio">📚 Estudio</option>
                 <option value="fitness">🏋️ Fitness</option>
                 <option value="urgente">🚨 Urgente</option>
@@ -2771,15 +2773,15 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>
             <div>
               <label style="color:#a5b4fc;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.8px;display:block;margin-bottom:6px;">
-                📋 Tipo
+                📋 Tipo de Actividad
               </label>
-              <select id="tp-act-type" class="login-panel-input" style="width:100%;box-sizing:border-box;">
-                <option value="personal">Personal</option>
-                <option value="reunion_virtual">Reunión Virtual</option>
-                <option value="cita_presencial">Cita Presencial</option>
-                <option value="medicamento">Medicamento</option>
-                <option value="fitness">Fitness / Deporte</option>
-                <option value="entrega_trabajo">Entrega / Tarea</option>
+              <select id="tp-act-type" class="login-panel-input" style="width:100%;box-sizing:border-box;" onchange="window.timeplusActivityTypeChange()">
+                <option value="reunion_virtual">💻 Reunión Virtual / Telemedicina</option>
+                <option value="cita_presencial">📍 Cita Presencial (Consulta, Examen, Oficina)</option>
+                <option value="medicamento">💊 Toma de Medicamento / Pastilla</option>
+                <option value="fitness">🏋️ Fitness / Deporte</option>
+                <option value="entrega_trabajo">📋 Entrega / Tarea</option>
+                <option value="personal">🌱 Personal / General</option>
               </select>
             </div>
           </div>
@@ -2814,20 +2816,30 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>
           </div>
 
-          <!-- Campo condicional: Dosis (salud/medicamento) -->
-          <div id="tp-act-dosis-wrap" style="display:none;">
-            <label style="color:#a5b4fc;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.8px;display:block;margin-bottom:6px;">
-              💊 Dosis / Medicamento
+          <!-- Campo condicional: Ubicación / Dirección (Cita Presencial) -->
+          <div id="tp-act-location-wrap" style="display:none; background:rgba(37,99,235,0.08); border:1px solid rgba(59,130,246,0.3); border-radius:10px; padding:10px 12px;">
+            <label style="color:#93c5fd;font-size:12px;font-weight:700;letter-spacing:.5px;display:flex;align-items:center;gap:4px;margin-bottom:6px;">
+              📍 Ubicación / Dirección / Consultorio
             </label>
-            <input id="tp-act-dosis" type="text" placeholder="Ej: Losartán 50mg — 1 comprimido" class="login-panel-input" style="width:100%;box-sizing:border-box;" />
+            <input id="tp-act-location" type="text" placeholder="Ej: Clínica Santa Fe, Consultorio 304, Cra 7 # 117 o Sede Trabajo" class="login-panel-input" style="width:100%;box-sizing:border-box;background:#0d1117;" />
+            <span style="font-size:11px;color:#94a3b8;margin-top:4px;display:block;">🚗 TIMEPLUS calculará el tiempo de viaje y te notificará la hora recomendada de salida.</span>
           </div>
 
-          <!-- Campo condicional: Enlace reunión -->
-          <div id="tp-act-meetlink-wrap" style="display:none;">
-            <label style="color:#a5b4fc;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.8px;display:block;margin-bottom:6px;">
-              🔗 Enlace de reunión
+          <!-- Campo condicional: Enlace reunión (Reunión Virtual / Telemedicina) -->
+          <div id="tp-act-meetlink-wrap" style="display:none; background:rgba(99,102,241,0.08); border:1px solid rgba(99,102,241,0.3); border-radius:10px; padding:10px 12px;">
+            <label style="color:#a5b4fc;font-size:12px;font-weight:700;letter-spacing:.5px;display:flex;align-items:center;gap:4px;margin-bottom:6px;">
+              🔗 Enlace de Reunión Virtual (Google Meet, Zoom, Teams)
             </label>
-            <input id="tp-act-meetlink" type="url" placeholder="https://meet.google.com/..." class="login-panel-input" style="width:100%;box-sizing:border-box;" />
+            <input id="tp-act-meetlink" type="url" placeholder="https://meet.google.com/xyz... o link de Zoom" class="login-panel-input" style="width:100%;box-sizing:border-box;background:#0d1117;" />
+          </div>
+
+          <!-- Campo condicional: Dosis (SOLO cuando el tipo es Medicamento) -->
+          <div id="tp-act-dosis-wrap" style="display:none; background:rgba(234,179,8,0.08); border:1px solid rgba(234,179,8,0.3); border-radius:10px; padding:10px 12px;">
+            <label style="color:#fde047;font-size:12px;font-weight:700;letter-spacing:.5px;display:flex;align-items:center;gap:4px;margin-bottom:6px;">
+              💊 Dosis / Indicación de Toma
+            </label>
+            <input id="tp-act-dosis" type="text" placeholder="Ej: Losartán 50mg — 1 pastilla con agua" class="login-panel-input" style="width:100%;box-sizing:border-box;background:#0d1117;" />
+            <span style="font-size:11px;color:#94a3b8;margin-top:4px;display:block;">Se creará el recordatorio de toma en tu dispensario de salud.</span>
           </div>
 
           <!-- Campo condicional: Ejercicios fitness -->
@@ -2837,7 +2849,7 @@ document.addEventListener('DOMContentLoaded', () => {
             </label>
             <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:8px;">
               ${['🏃 Cardio','💪 Fuerza','🧘 Yoga','🚴 Ciclismo','🏊 Natación','⚽ Deporte'].map(e=>`
-                <button onclick="this.style.background=this.style.background.includes('6366f1')?'rgba(255,255,255,0.05)':'rgba(99,102,241,0.4)';this.style.borderColor=this.style.borderColor.includes('6366f1')?'rgba(255,255,255,0.15)':'#6366f1';document.getElementById('tp-act-fitness-text').value=(document.getElementById('tp-act-fitness-text').value?document.getElementById('tp-act-fitness-text').value+', ':'')+this.textContent.trim()" style="
+                <button type="button" onclick="this.style.background=this.style.background.includes('6366f1')?'rgba(255,255,255,0.05)':'rgba(99,102,241,0.4)';this.style.borderColor=this.style.borderColor.includes('6366f1')?'rgba(255,255,255,0.15)':'#6366f1';document.getElementById('tp-act-fitness-text').value=(document.getElementById('tp-act-fitness-text').value?document.getElementById('tp-act-fitness-text').value+', ':'')+this.textContent.trim()" style="
                   background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.15);
                   color:#e2e8f0;border-radius:20px;padding:5px 12px;cursor:pointer;font-size:12px;transition:all .2s;
                 ">${e}</button>
@@ -2885,18 +2897,52 @@ document.addEventListener('DOMContentLoaded', () => {
 
     document.body.appendChild(overlay);
     overlay.addEventListener('click', (e) => { if (e.target === overlay) window.timeplusCloseNewActivityModal(); });
-    setTimeout(() => document.getElementById('tp-act-title')?.focus(), 100);
+    setTimeout(() => {
+      window.timeplusActivityTypeChange();
+      document.getElementById('tp-act-title')?.focus();
+    }, 50);
   };
 
   window.timeplusActivityCategoryChange = () => {
     const cat = document.getElementById('tp-act-category')?.value || '';
     const typeEl = document.getElementById('tp-act-type');
-    document.getElementById('tp-act-dosis-wrap').style.display = (cat === 'salud') ? 'block' : 'none';
-    document.getElementById('tp-act-meetlink-wrap').style.display = (cat === 'trabajo') ? 'block' : 'none';
-    document.getElementById('tp-act-fitness-wrap').style.display = (cat === 'fitness') ? 'block' : 'none';
-    if (cat === 'salud' && typeEl) typeEl.value = 'medicamento';
-    if (cat === 'fitness' && typeEl) typeEl.value = 'fitness';
-    if (cat === 'trabajo' && typeEl) typeEl.value = 'reunion_virtual';
+    if (typeEl) {
+      if (cat === 'salud') typeEl.value = 'cita_presencial'; // Cita Médica / Consulta / Examen por defecto
+      else if (cat === 'trabajo') typeEl.value = 'reunion_virtual';
+      else if (cat === 'fitness') typeEl.value = 'fitness';
+      else if (cat === 'personal' || cat === 'estudio') typeEl.value = 'personal';
+    }
+    window.timeplusActivityTypeChange();
+  };
+
+  window.timeplusActivityTypeChange = () => {
+    const cat = document.getElementById('tp-act-category')?.value || '';
+    const type = document.getElementById('tp-act-type')?.value || 'personal';
+
+    const locationWrap = document.getElementById('tp-act-location-wrap');
+    const meetlinkWrap = document.getElementById('tp-act-meetlink-wrap');
+    const dosisWrap = document.getElementById('tp-act-dosis-wrap');
+    const fitnessWrap = document.getElementById('tp-act-fitness-wrap');
+
+    // 1. Ubicación / Dirección: Citas Presenciales
+    if (locationWrap) {
+      locationWrap.style.display = (type === 'cita_presencial') ? 'block' : 'none';
+    }
+
+    // 2. Enlace de Reunión: Reunión Virtual (Telemedicina, Trabajo, etc.)
+    if (meetlinkWrap) {
+      meetlinkWrap.style.display = (type === 'reunion_virtual') ? 'block' : 'none';
+    }
+
+    // 3. Dosis / Medicamento: ÚNICAMENTE cuando el tipo es Toma de Medicamento
+    if (dosisWrap) {
+      dosisWrap.style.display = (type === 'medicamento') ? 'block' : 'none';
+    }
+
+    // 4. Fitness / Rutina: Fitness
+    if (fitnessWrap) {
+      fitnessWrap.style.display = (type === 'fitness' || cat === 'fitness') ? 'block' : 'none';
+    }
   };
 
   window.timeplusCloseNewActivityModal = () => {
@@ -2920,9 +2966,30 @@ document.addEventListener('DOMContentLoaded', () => {
     const time = document.getElementById('tp-act-time')?.value || '08:00';
     const duration = document.getElementById('tp-act-duration')?.value || '1h';
     const notes = document.getElementById('tp-act-notes')?.value || '';
-    const dosis = document.getElementById('tp-act-dosis')?.value || '';
-    const meetLink = document.getElementById('tp-act-meetlink')?.value || '';
-    const fitnessText = document.getElementById('tp-act-fitness-text')?.value || '';
+    const location = (document.getElementById('tp-act-location')?.value || '').trim();
+    const meetLink = (document.getElementById('tp-act-meetlink')?.value || '').trim();
+    const dosis = (document.getElementById('tp-act-dosis')?.value || '').trim();
+    const fitnessText = (document.getElementById('tp-act-fitness-text')?.value || '').trim();
+
+    let travelTimeMin = 0;
+    let prepTimeMin = 0;
+    let recommendedDeparture = null;
+
+    if (type === 'cita_presencial') {
+      travelTimeMin = 35;
+      prepTimeMin = 15;
+      try {
+        const [h, m] = (time || '08:00').split(':').map(Number);
+        const totalM = (h * 60 + m) - 50;
+        if (totalM >= 0) {
+          const depH = Math.floor(totalM / 60);
+          const depM = totalM % 60;
+          recommendedDeparture = `${String(depH).padStart(2,'0')}:${String(depM).padStart(2,'0')}`;
+        }
+      } catch(e) {}
+    }
+
+    const cleanMeetLink = meetLink ? (meetLink.startsWith('http') ? meetLink : `https://${meetLink}`) : '';
 
     const newActivity = {
       id: 'act-' + Date.now(),
@@ -2932,8 +2999,9 @@ document.addEventListener('DOMContentLoaded', () => {
       time,
       date,
       duration,
-      notes: [notes, dosis ? '💊 ' + dosis : '', fitnessText ? '🏋️ ' + fitnessText : ''].filter(Boolean).join(' | '),
-      meetLink,
+      placeName: location || (type === 'cita_presencial' ? 'Sede / Consultorio Presencial' : ''),
+      meetLink: cleanMeetLink,
+      notes: [notes, dosis ? '💊 ' + dosis : '', fitnessText ? '🏋️ ' + fitnessText : '', location ? '📍 ' + location : ''].filter(Boolean).join(' | '),
       userEmail: user.email || '',
       userId: user.id || '',
       userName: user.name || '',
@@ -2941,13 +3009,15 @@ document.addEventListener('DOMContentLoaded', () => {
       attendees: [],
       exercises: fitnessText ? fitnessText.split(',').map(s => s.trim()).filter(Boolean) : [],
       subtasks: [],
-      travelTimeMin: 0,
+      travelTimeMin,
+      prepTimeMin,
+      recommendedDeparture
     };
 
     const act = store.addActivity(newActivity);
 
-    // Si es medicamento y se especificó dosis, asegurar que exista en el dispensario con stock mensual
-    if (category === 'salud' || type === 'medicamento') {
+    // ÚNICAMENTE si el tipo es toma de medicamento se registra en el dispensario
+    if (type === 'medicamento') {
       if (store.addMedication) {
         store.addMedication({
           name: title.replace(/^Medicamento\s*[—–-]\s*/i, ''),
@@ -2958,7 +3028,7 @@ document.addEventListener('DOMContentLoaded', () => {
           takesPerDay: 1,
           time: time,
           instructions: dosis || notes || 'Tomar 1 pastilla al día'
-        });
+        }, true);
       }
     }
 

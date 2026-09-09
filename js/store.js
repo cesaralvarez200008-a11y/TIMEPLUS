@@ -189,7 +189,23 @@ class TimePlusStore {
 
   // --- Activities Management con Aislamiento Estricto por Cliente ---
   getActivities() {
-    const acts = this.state.activities || [];
+    let acts = this.state.activities || [];
+
+    // Auto-sanear actividades que hayan quedado mal categorizadas como "medicamento"
+    let changed = false;
+    acts.forEach(a => {
+      if (a.type === 'medicamento') {
+        const lower = (a.title || '').toLowerCase();
+        if (lower.includes('examen') || lower.includes('laboratorio') || lower.includes('cita') || lower.includes('consulta') || lower.includes('odontol') || lower.includes('terapia')) {
+          a.type = 'cita_presencial';
+          a.title = a.title.replace(/^Medicamento\s*[—–-]\s*/i, '');
+          if (!a.placeName) a.placeName = 'Laboratorio / Centro Médico';
+          changed = true;
+        }
+      }
+    });
+    if (changed) this.saveState();
+
     const user = this.getCurrentUser();
     if (!user) return [];
     if (user.role === 'admin') return acts; // SuperAdmin controla y ve todo
@@ -245,7 +261,7 @@ class TimePlusStore {
     return meds.filter(m => m.userEmail && m.userEmail.trim().toLowerCase() === userEmail);
   }
 
-  addMedication(med) {
+  addMedication(med, skipActivityCreation = false) {
     if (!this.state.medications) this.state.medications = [];
     if (!med.id) med.id = 'med-' + Date.now();
     const user = this.getCurrentUser();
@@ -255,8 +271,8 @@ class TimePlusStore {
     }
     this.state.medications.push(med);
 
-    // Si tiene hora programada, crear la actividad en agenda para hoy
-    if (med.time) {
+    // Si tiene hora programada y no se omitió, crear la actividad en agenda para hoy
+    if (med.time && !skipActivityCreation) {
       this.addActivity({
         id: 'act-' + med.id,
         title: `Medicamento — ${med.name}`,
