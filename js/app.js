@@ -3989,11 +3989,11 @@ document.addEventListener('DOMContentLoaded', () => {
           </div>
         </div>
 
-        <!-- PANEL 2: GIMNASIO (MUSCULACIÓN & SERIES) -->
+        <!-- PANEL 2: GIMNASIO (MUSCULACIÓN & SERIES) - VISUAL CON AVATARES -->
         <div id="fitness-panel-gym" style="display:none;flex-direction:column;gap:0.85rem;">
           <div style="background:#EFF6FF;border:1px solid #BFDBFE;border-radius:0.75rem;padding:0.85rem;">
-            <div style="font-weight:800;color:#1E40AF;font-size:0.78rem;margin-bottom:0.25rem;">🏋️ Sesión en Gimnasio / Musculación</div>
-            <p style="font-size:0.72rem;color:#1D4ED8;margin:0;">Elige el grupo muscular trabajado y registra tus ejercicios con series y peso.</p>
+            <div style="font-weight:800;color:#1E40AF;font-size:0.78rem;margin-bottom:0.25rem;">🏋️ Ejercicios Compuestos — Toca para registrar</div>
+            <p style="font-size:0.72rem;color:#1D4ED8;margin:0;">Haz clic en cada ejercicio que realizaste hoy. Se marcará automáticamente como ✅ hecho.</p>
           </div>
 
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.5rem;">
@@ -4001,45 +4001,39 @@ document.addEventListener('DOMContentLoaded', () => {
               <label style="font-size:0.71rem;font-weight:700;display:block;margin-bottom:0.25rem;">Sede de Gimnasio</label>
               <input type="text" id="fit-gym-location" value="${defaultGym}" class="login-panel-input" placeholder="Ej: SmartFit Calle 100">
             </div>
-            <div>
-              <label style="font-size:0.71rem;font-weight:700;display:block;margin-bottom:0.25rem;">Grupo Muscular</label>
-              <select id="fit-gym-muscle" class="login-panel-input" style="background:#fff;">
-                <option value="Pecho & Tríceps">💪 Pecho &amp; Tríceps</option>
-                <option value="Pierna & Glúteos">🦵 Pierna &amp; Glúteos</option>
-                <option value="Espalda & Bíceps">🔙 Espalda &amp; Bíceps</option>
-                <option value="Hombros & Trapecio">🏋️ Hombros &amp; Trapecio</option>
-                <option value="Brazos Completo">🦾 Brazos (Bíceps + Tríceps)</option>
-                <option value="Abdomen & Core">🧘 Abdomen &amp; Core</option>
-                <option value="Cardio & Spinning">🚴 Cardio / Spinning</option>
-                <option value="Full Body">🔥 Full Body / Funcional</option>
-              </select>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.35rem;">
+              <div>
+                <label style="font-size:0.71rem;font-weight:700;display:block;margin-bottom:0.25rem;">Duración</label>
+                <select id="fit-gym-duration" class="login-panel-input" style="background:#fff;font-size:0.72rem;">
+                  <option value="45 min">45 min</option>
+                  <option value="1 hora" selected>1 hora</option>
+                  <option value="1 hora 30 min">1h 30m</option>
+                  <option value="2 horas">2 horas</option>
+                </select>
+              </div>
+              <div>
+                <label style="font-size:0.71rem;font-weight:700;display:block;margin-bottom:0.25rem;">Intensidad</label>
+                <select id="fit-gym-intensity" class="login-panel-input" style="background:#fff;font-size:0.72rem;">
+                  <option value="Moderada">Moderada</option>
+                  <option value="Alta" selected>Alta</option>
+                  <option value="Máxima">Máxima</option>
+                </select>
+              </div>
             </div>
           </div>
 
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.5rem;">
-            <div>
-              <label style="font-size:0.71rem;font-weight:700;display:block;margin-bottom:0.25rem;">Duración de la Sesión</label>
-              <select id="fit-gym-duration" class="login-panel-input" style="background:#fff;">
-                <option value="45 min">45 minutos</option>
-                <option value="1 hora" selected>1 hora</option>
-                <option value="1 hora 15 min">1 hora 15 min</option>
-                <option value="1 hora 30 min">1 hora 30 min</option>
-                <option value="2 horas">2 horas</option>
-              </select>
-            </div>
-            <div>
-              <label style="font-size:0.71rem;font-weight:700;display:block;margin-bottom:0.25rem;">Intensidad</label>
-              <select id="fit-gym-intensity" class="login-panel-input" style="background:#fff;">
-                <option value="Moderada">Moderada (~380 kcal)</option>
-                <option value="Alta" selected>Alta (~480 kcal)</option>
-                <option value="Máxima">Intensa / Pesada (~600 kcal)</option>
-              </select>
-            </div>
+          <!-- GRILLA VISUAL DE EJERCICIOS COMPUESTOS POR MÚSCULO -->
+          <div id="tp-exercise-grid" style="display:flex;flex-direction:column;gap:0.75rem;"></div>
+
+          <!-- Ejercicios seleccionados resumen -->
+          <div id="tp-selected-exercises-summary" style="background:#F0FDF4;border:1px dashed #86EFAC;border-radius:0.65rem;padding:0.65rem 0.85rem;display:none;">
+            <div style="font-size:0.72rem;font-weight:800;color:#166534;margin-bottom:0.25rem;">✅ Ejercicios Marcados Hoy</div>
+            <div id="tp-selected-exercises-list" style="font-size:0.72rem;color:#15803D;"></div>
           </div>
 
           <div>
-            <label style="font-size:0.71rem;font-weight:700;display:block;margin-bottom:0.25rem;">Ejercicios Realizados (Series × Reps y Peso)</label>
-            <textarea id="fit-gym-exercises" rows="3" class="login-panel-input" style="resize:vertical;" placeholder="Ej:&#10;• Press de Banca: 4 series × 10 reps (60 kg)&#10;• Aperturas: 3 series × 12 reps (14 kg)&#10;• Fondos en Paralelas: 3 series × 12 reps"></textarea>
+            <label style="font-size:0.71rem;font-weight:700;display:block;margin-bottom:0.25rem;">Notas adicionales (opcional)</label>
+            <textarea id="fit-gym-exercises" rows="2" class="login-panel-input" style="resize:vertical;font-size:0.72rem;" placeholder="Ej: Hoy me enfoqué en peso pesado, subí 5kg en press..."></textarea>
           </div>
 
           <div style="display:flex;justify-content:flex-end;gap:0.5rem;margin-top:0.5rem;">
@@ -4085,6 +4079,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     modal.style.display = 'flex';
     window.timeplusSwitchFitnessTab(targetTab);
+    window.timeplusInitGymExerciseGrid();
   };
 
   window.timeplusCloseFitnessModal = () => {
@@ -4111,6 +4106,495 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       }
     });
+    if (tab === 'gym') {
+      window.timeplusInitGymExerciseGrid();
+    }
+  };
+
+  /* ── 9.1 EJERCICIOS COMPUESTOS VISUALES & AVATARES DE GÉNERO ── */
+  const TIMEPLUS_COMPOUND_EXERCISES = [
+    // PECHO (Rojo)
+    { id: 'press_plano', name: 'Press plano', muscle: 'PECHO', isKey: true, line: 1, targetSets: 4, desc: 'Pectoral mayor, tríceps y deltoides ant.' },
+    { id: 'fondos_pecho', name: 'Fondos de pecho', muscle: 'PECHO', isKey: false, line: 2, targetSets: 3, desc: 'Pectoral inferior y tríceps' },
+    { id: 'flexiones_abiertas', name: 'Flexiones abiertas', muscle: 'PECHO', isKey: false, line: 3, targetSets: 3, desc: 'Pectoral ancho, serrato y core' },
+    // HOMBROS (Rojo)
+    { id: 'press_militar', name: 'Press militar', muscle: 'HOMBROS', isKey: true, line: 1, targetSets: 4, desc: 'Deltoides anterior/lateral y tríceps' },
+    { id: 'press_arnold', name: 'Press arnold', muscle: 'HOMBROS', isKey: false, line: 2, targetSets: 3, desc: 'Deltoides completo con rotación' },
+    { id: 'remo_menton', name: 'Remo al mentón', muscle: 'HOMBROS', isKey: false, line: 3, targetSets: 3, desc: 'Trapecio y deltoides lateral' },
+    // ESPALDA (Rojo)
+    { id: 'peso_muerto', name: 'Peso muerto', muscle: 'ESPALDA', isKey: true, line: 1, targetSets: 4, desc: 'Cadena posterior, lumbares y glúteos' },
+    { id: 'remo_barra', name: 'Remo con barra', muscle: 'ESPALDA', isKey: false, line: 2, targetSets: 4, desc: 'Dorsal ancho, romboides y bíceps' },
+    { id: 'dominadas', name: 'Dominadas', muscle: 'ESPALDA', isKey: false, line: 3, targetSets: 3, desc: 'Dorsal en tracción vertical y bíceps' },
+    // PIERNAS (Rojo)
+    { id: 'sentadilla_trasera', name: 'Sentadilla trasera', muscle: 'PIERNAS', isKey: true, line: 1, targetSets: 4, desc: 'Cuádriceps, glúteos y femorales' },
+    { id: 'sentadilla_frontal', name: 'Sentadilla frontal', muscle: 'PIERNAS', isKey: false, line: 2, targetSets: 3, desc: 'Énfasis cuádriceps y core vertical' },
+    { id: 'prensa_inclinada', name: 'Prensa inclinada', muscle: 'PIERNAS', isKey: false, line: 3, targetSets: 4, desc: 'Empuje con soporte lumbar en 45°' }
+  ];
+
+  window.timeplusGymTracked = {};
+  window.timeplusGymActiveGender = 'masculino';
+  window.timeplusGymMuscleFilter = 'todos';
+
+  // Generador de Avatares SVG Deportivos Dinámicos (Femenino vs Masculino)
+  window.timeplusGetExerciseAvatarSvg = (exId, gender = 'masculino') => {
+    const isFem = (gender === 'femenino');
+    const skin = isFem ? '#FBCFE8' : '#FED7AA';
+    const primaryCloth = isFem ? '#EC4899' : '#2563EB';
+    const secondaryCloth = isFem ? '#4F46E5' : '#1E293B';
+    const hair = isFem ? '#78350F' : '#0F172A';
+
+    // Base de silueta según ejercicio
+    let motionContent = '';
+
+    if (exId === 'press_plano') {
+      // Press plano en banca horizontal
+      motionContent = `
+        <rect x="15" y="44" width="70" height="6" rx="2" fill="#64748B"/>
+        <line x1="25" y1="50" x2="25" y2="58" stroke="#475569" stroke-width="3"/>
+        <line x1="75" y1="50" x2="75" y2="58" stroke="#475569" stroke-width="3"/>
+        <!-- Cuerpo acostado -->
+        <rect x="25" y="38" width="45" height="7" rx="3" fill="${secondaryCloth}"/>
+        <circle cx="28" cy="40" r="5" fill="${skin}"/>
+        <!-- Barra y discos -->
+        <line x1="30" y1="22" x2="68" y2="22" stroke="#94A3B8" stroke-width="3"/>
+        <rect x="26" y="16" width="4" height="12" rx="1" fill="#DC2626"/>
+        <rect x="68" y="16" width="4" height="12" rx="1" fill="#DC2626"/>
+        <!-- Brazos empujando -->
+        <path d="M40 38 L42 23 M56 38 L54 23" stroke="${skin}" stroke-width="3" stroke-linecap="round"/>
+        <!-- Torso -->
+        <rect x="36" y="36" width="22" height="6" rx="2" fill="${primaryCloth}"/>
+      `;
+    } else if (exId === 'fondos_pecho') {
+      // Fondos de pecho en paralelas
+      motionContent = `
+        <line x1="24" y1="20" x2="24" y2="58" stroke="#64748B" stroke-width="4"/>
+        <line x1="76" y1="20" x2="76" y2="58" stroke="#64748B" stroke-width="4"/>
+        <!-- Atleta suspendido -->
+        <circle cx="50" cy="18" r="6" fill="${skin}"/>
+        ${isFem ? '<path d="M45 17 Q40 12 36 19 Q41 23 45 20" fill="' + hair + '"/>' : ''}
+        <rect x="42" y="24" width="16" height="15" rx="3" fill="${primaryCloth}"/>
+        <path d="M44 39 L47 52 M56 39 L53 52" stroke="${secondaryCloth}" stroke-width="4" stroke-linecap="round"/>
+        <!-- Brazos apoyados en barras -->
+        <path d="M42 26 L26 30 M58 26 L74 30" stroke="${skin}" stroke-width="3.5" stroke-linecap="round"/>
+      `;
+    } else if (exId === 'flexiones_abiertas') {
+      // Flexiones abiertas en el suelo
+      motionContent = `
+        <line x1="12" y1="52" x2="88" y2="52" stroke="#CBD5E1" stroke-width="2"/>
+        <!-- Cuerpo en plancha inclinada -->
+        <circle cx="70" cy="34" r="5" fill="${skin}"/>
+        <path d="M68 36 L40 44 L25 48" stroke="${secondaryCloth}" stroke-width="5" stroke-linecap="round"/>
+        <rect x="52" y="36" width="16" height="8" rx="3" transform="rotate(-15 52 36)" fill="${primaryCloth}"/>
+        <!-- Brazos abiertos al suelo -->
+        <path d="M58 40 L65 52 M54 41 L46 52" stroke="${skin}" stroke-width="3" stroke-linecap="round"/>
+      `;
+    } else if (exId === 'press_militar') {
+      // Press militar de pie empujando barra sobre cabeza
+      motionContent = `
+        <circle cx="50" cy="24" r="6" fill="${skin}"/>
+        ${isFem ? '<path d="M45 23 Q40 18 36 25 Q41 29 46 26" fill="' + hair + '"/>' : ''}
+        <rect x="42" y="30" width="16" height="16" rx="3" fill="${primaryCloth}"/>
+        <line x1="45" y1="46" x2="43" y2="58" stroke="${secondaryCloth}" stroke-width="4"/>
+        <line x1="55" y1="46" x2="57" y2="58" stroke="${secondaryCloth}" stroke-width="4"/>
+        <!-- Barra overhead -->
+        <line x1="22" y1="12" x2="78" y2="12" stroke="#94A3B8" stroke-width="3.5"/>
+        <rect x="18" y="7" width="4" height="10" rx="1" fill="#DC2626"/>
+        <rect x="78" y="7" width="4" height="10" rx="1" fill="#DC2626"/>
+        <path d="M42 32 L36 14 M58 32 L64 14" stroke="${skin}" stroke-width="3.5" stroke-linecap="round"/>
+      `;
+    } else if (exId === 'press_arnold') {
+      // Press arnold sentado con mancuernas
+      motionContent = `
+        <rect x="35" y="42" width="30" height="6" rx="2" fill="#64748B"/>
+        <line x1="50" y1="48" x2="50" y2="58" stroke="#475569" stroke-width="3"/>
+        <circle cx="50" cy="20" r="6" fill="${skin}"/>
+        <rect x="43" y="26" width="14" height="16" rx="3" fill="${primaryCloth}"/>
+        <path d="M44 42 L38 56 M56 42 L62 56" stroke="${secondaryCloth}" stroke-width="4"/>
+        <!-- Mancuernas laterales a hombros -->
+        <rect x="26" y="16" width="6" height="12" rx="1" fill="#DC2626"/>
+        <rect x="68" y="16" width="6" height="12" rx="1" fill="#DC2626"/>
+        <path d="M43 28 L30 22 M57 28 L70 22" stroke="${skin}" stroke-width="3" stroke-linecap="round"/>
+      `;
+    } else if (exId === 'remo_menton') {
+      // Remo al mentón (codos altos)
+      motionContent = `
+        <circle cx="50" cy="20" r="6" fill="${skin}"/>
+        <rect x="43" y="26" width="14" height="16" rx="3" fill="${primaryCloth}"/>
+        <line x1="46" y1="42" x2="45" y2="58" stroke="${secondaryCloth}" stroke-width="4"/>
+        <line x1="54" y1="42" x2="55" y2="58" stroke="${secondaryCloth}" stroke-width="4"/>
+        <!-- Barra al mentón con codos arriba -->
+        <line x1="36" y1="28" x2="64" y2="28" stroke="#94A3B8" stroke-width="3"/>
+        <rect x="33" y="24" width="3" height="8" fill="#DC2626"/>
+        <rect x="64" y="24" width="3" height="8" fill="#DC2626"/>
+        <path d="M43 28 L34 23 L44 28 M57 28 L66 23 L56 28" stroke="${skin}" stroke-width="3" stroke-linecap="round"/>
+      `;
+    } else if (exId === 'peso_muerto') {
+      // Peso muerto desde el suelo
+      motionContent = `
+        <line x1="15" y1="56" x2="85" y2="56" stroke="#94A3B8" stroke-width="3.5"/>
+        <rect x="12" y="47" width="5" height="18" rx="2" fill="#DC2626"/>
+        <rect x="83" y="47" width="5" height="18" rx="2" fill="#DC2626"/>
+        <!-- Atleta inclinado agarrando barra -->
+        <circle cx="50" cy="24" r="6" fill="${skin}"/>
+        <path d="M50 28 L46 40 L44 54" stroke="${secondaryCloth}" stroke-width="4.5" stroke-linecap="round"/>
+        <rect x="43" y="28" width="14" height="13" rx="3" fill="${primaryCloth}"/>
+        <path d="M44 32 L36 54 M56 32 L64 54" stroke="${skin}" stroke-width="3" stroke-linecap="round"/>
+      `;
+    } else if (exId === 'remo_barra') {
+      // Remo con barra inclinado
+      motionContent = `
+        <circle cx="38" cy="24" r="6" fill="${skin}"/>
+        <path d="M38 29 L50 38 L60 56" stroke="${secondaryCloth}" stroke-width="4.5" stroke-linecap="round"/>
+        <rect x="36" y="29" width="16" height="12" rx="3" transform="rotate(35 36 29)" fill="${primaryCloth}"/>
+        <!-- Barra subiendo al abdomen -->
+        <line x1="28" y1="44" x2="68" y2="44" stroke="#94A3B8" stroke-width="3.5"/>
+        <rect x="25" y="38" width="4" height="12" fill="#DC2626"/>
+        <rect x="68" y="38" width="4" height="12" fill="#DC2626"/>
+        <path d="M44 34 L48 44" stroke="${skin}" stroke-width="3" stroke-linecap="round"/>
+      `;
+    } else if (exId === 'dominadas') {
+      // Dominadas colgado de barra alta
+      motionContent = `
+        <line x1="15" y1="12" x2="85" y2="12" stroke="#475569" stroke-width="4"/>
+        <circle cx="50" cy="23" r="6" fill="${skin}"/>
+        ${isFem ? '<path d="M45 22 Q40 17 36 24 Q41 28 46 25" fill="' + hair + '"/>' : ''}
+        <rect x="42" y="29" width="16" height="15" rx="3" fill="${primaryCloth}"/>
+        <path d="M46 44 L44 56 M54 44 L56 56" stroke="${secondaryCloth}" stroke-width="4" stroke-linecap="round"/>
+        <!-- Brazos agarrando barra arriba -->
+        <path d="M43 31 L32 14 M57 31 L68 14" stroke="${skin}" stroke-width="3.5" stroke-linecap="round"/>
+      `;
+    } else if (exId === 'sentadilla_trasera') {
+      // Sentadilla trasera profunda con barra
+      motionContent = `
+        <line x1="20" y1="24" x2="80" y2="24" stroke="#94A3B8" stroke-width="3.5"/>
+        <rect x="16" y="17" width="5" height="14" rx="1" fill="#DC2626"/>
+        <rect x="79" y="17" width="5" height="14" rx="1" fill="#DC2626"/>
+        <circle cx="50" cy="22" r="6" fill="${skin}"/>
+        <rect x="42" y="27" width="16" height="14" rx="3" fill="${primaryCloth}"/>
+        <!-- Piernas en ángulo de sentadilla 90° -->
+        <path d="M44 40 L34 46 L38 58 M56 40 L66 46 L62 58" stroke="${secondaryCloth}" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M42 29 L32 24 M58 29 L68 24" stroke="${skin}" stroke-width="3" stroke-linecap="round"/>
+      `;
+    } else if (exId === 'sentadilla_frontal') {
+      // Sentadilla frontal con barra en clavículas
+      motionContent = `
+        <line x1="22" y1="28" x2="78" y2="28" stroke="#94A3B8" stroke-width="3"/>
+        <rect x="19" y="22" width="4" height="12" rx="1" fill="#DC2626"/>
+        <rect x="77" y="22" width="4" height="12" rx="1" fill="#DC2626"/>
+        <circle cx="50" cy="20" r="6" fill="${skin}"/>
+        <rect x="43" y="26" width="14" height="14" rx="3" fill="${primaryCloth}"/>
+        <path d="M45 40 L36 46 L38 58 M55 40 L64 46 L62 58" stroke="${secondaryCloth}" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M44 28 L40 28 M56 28 L60 28" stroke="${skin}" stroke-width="3" stroke-linecap="round"/>
+      `;
+    } else {
+      // Prensa inclinada en 45 grados
+      motionContent = `
+        <!-- Rampa 45° -->
+        <line x1="20" y1="56" x2="75" y2="20" stroke="#64748B" stroke-width="3"/>
+        <!-- Plataforma y peso -->
+        <rect x="60" y="14" width="18" height="12" rx="2" transform="rotate(-35 60 14)" fill="#DC2626"/>
+        <!-- Asiento y atleta -->
+        <rect x="22" y="44" width="20" height="6" rx="2" fill="#475569"/>
+        <circle cx="28" cy="40" r="5" fill="${skin}"/>
+        <rect x="30" y="42" width="14" height="7" rx="2" fill="${primaryCloth}"/>
+        <!-- Piernas empujando hacia arriba 45° -->
+        <path d="M38 45 L52 36 L66 26" stroke="${secondaryCloth}" stroke-width="4.5" stroke-linecap="round"/>
+      `;
+    }
+
+    return `
+      <svg viewBox="0 0 100 64" width="100%" height="64" style="display:block;background:${isFem ? '#FFF1F2' : '#EFF6FF'};border-radius:0.5rem;overflow:hidden;">
+        ${motionContent}
+      </svg>
+    `;
+  };
+
+  // Feedback por voz (SpeechSynthesis) y beeps agradables
+  window.timeplusSpeakExercise = (text) => {
+    try {
+      const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.frequency.setValueAtTime(587.33, audioCtx.currentTime); // D5
+      osc.frequency.setValueAtTime(880, audioCtx.currentTime + 0.08); // A5
+      gain.gain.setValueAtTime(0.12, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.25);
+      osc.start();
+      osc.stop(audioCtx.currentTime + 0.25);
+    } catch (e) {}
+
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.cancel();
+      const u = new SpeechSynthesisUtterance(text);
+      u.lang = 'es-ES';
+      u.rate = 1.1;
+      u.pitch = (window.timeplusGymActiveGender === 'femenino') ? 1.25 : 0.95;
+      window.speechSynthesis.speak(u);
+    }
+  };
+
+  // Cambiar avatar entre Femenino y Masculino
+  window.timeplusSetGymGender = (gender) => {
+    window.timeplusGymActiveGender = gender;
+    window.timeplusRenderCompoundExercisesGrid(window.timeplusGymMuscleFilter);
+  };
+
+  // Filtrar por grupo muscular
+  window.timeplusFilterGymMuscle = (filter) => {
+    window.timeplusGymMuscleFilter = filter;
+    window.timeplusRenderCompoundExercisesGrid(filter);
+  };
+
+  // Un clic: ¡Hice esta serie!
+  window.timeplusRecordExerciseSet = (exId) => {
+    const ex = TIMEPLUS_COMPOUND_EXERCISES.find(e => e.id === exId);
+    if (!ex) return;
+
+    if (!window.timeplusGymTracked[exId]) {
+      window.timeplusGymTracked[exId] = { ...ex, sets: 0 };
+    }
+    window.timeplusGymTracked[exId].sets += 1;
+    const currentSets = window.timeplusGymTracked[exId].sets;
+
+    // Pronuncia con voz clara el registro
+    window.timeplusSpeakExercise(`¡Hice esta serie de ${ex.name}! Serie ${currentSets}`);
+
+    if (window.timeplusShowToast) {
+      window.timeplusShowToast(`✅ ¡Hice esta serie! ${ex.name} (${currentSets}/${ex.targetSets})`);
+    }
+
+    window.timeplusUpdateExerciseCardUI(exId);
+    window.timeplusSyncExercisesSummary();
+  };
+
+  // Restar serie si se equivocó
+  window.timeplusDecrementExerciseSet = (exId, evt) => {
+    if (evt) evt.stopPropagation();
+    if (!window.timeplusGymTracked[exId] || window.timeplusGymTracked[exId].sets <= 0) return;
+
+    window.timeplusGymTracked[exId].sets -= 1;
+    window.timeplusUpdateExerciseCardUI(exId);
+    window.timeplusSyncExercisesSummary();
+  };
+
+  // Actualizar tarjeta específica
+  window.timeplusUpdateExerciseCardUI = (exId) => {
+    const ex = TIMEPLUS_COMPOUND_EXERCISES.find(e => e.id === exId);
+    const card = document.getElementById(`tp-card-${exId}`);
+    if (!card || !ex) return;
+
+    const sets = window.timeplusGymTracked[exId]?.sets || 0;
+    const isDone = sets > 0;
+
+    card.style.borderColor = isDone ? '#10B981' : (ex.isKey ? '#FCA5A5' : '#E2E8F0');
+    card.style.background = isDone ? '#F0FDF4' : '#FFFFFF';
+    card.style.boxShadow = isDone ? '0 4px 14px rgba(16,185,129,0.18)' : '0 1px 3px rgba(0,0,0,0.05)';
+
+    const actionWrap = card.querySelector('.tp-card-action');
+    if (actionWrap) {
+      if (isDone) {
+        actionWrap.innerHTML = `
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:0.35rem;width:100%;">
+            <button type="button" onclick="window.timeplusRecordExerciseSet('${exId}')" style="flex:1;background:#10B981;color:#fff;border:none;border-radius:6px;padding:0.4rem 0.5rem;font-size:0.72rem;font-weight:800;display:flex;align-items:center;justify-content:center;gap:0.25rem;cursor:pointer;box-shadow:0 2px 6px rgba(16,185,129,0.3);">
+              <span>✅ ¡Hice esta serie!</span>
+              <span style="background:rgba(0,0,0,0.2);padding:0.1rem 0.35rem;border-radius:4px;font-size:0.68rem;">${sets}/${ex.targetSets}</span>
+            </button>
+            <button type="button" onclick="window.timeplusDecrementExerciseSet('${exId}', event)" title="Restar 1 serie" style="background:#F1F5F9;color:#64748B;border:1px solid #CBD5E1;border-radius:6px;width:1.75rem;height:1.75rem;font-size:0.85rem;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;">
+              −
+            </button>
+          </div>
+        `;
+      } else {
+        actionWrap.innerHTML = `
+          <button type="button" onclick="window.timeplusRecordExerciseSet('${exId}')" style="width:100%;background:${ex.isKey ? '#EF4444' : '#2563EB'};color:#fff;border:none;border-radius:6px;padding:0.4rem 0.5rem;font-size:0.72rem;font-weight:800;display:flex;align-items:center;justify-content:center;gap:0.3rem;cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,0.1);">
+            <span>＋ ¡Hice esta serie!</span>
+            <span style="opacity:0.75;font-size:0.65rem;">(0/${ex.targetSets})</span>
+          </button>
+        `;
+      }
+    }
+  };
+
+  // Sincronizar resumen visual y textarea de notas
+  window.timeplusSyncExercisesSummary = () => {
+    const summaryBox = document.getElementById('tp-selected-exercises-summary');
+    const summaryList = document.getElementById('tp-selected-exercises-list');
+    const notesTextarea = document.getElementById('fit-gym-exercises');
+
+    const trackedList = Object.values(window.timeplusGymTracked).filter(item => item.sets > 0);
+
+    if (trackedList.length === 0) {
+      if (summaryBox) summaryBox.style.display = 'none';
+      return;
+    }
+
+    if (summaryBox && summaryList) {
+      summaryBox.style.display = 'block';
+      const totalSets = trackedList.reduce((acc, cur) => acc + cur.sets, 0);
+      summaryList.innerHTML = `
+        <div style="font-weight:700;margin-bottom:0.35rem;color:#166534;">
+          ${trackedList.length} ejercicios realizados • ${totalSets} series acumuladas
+        </div>
+        <div style="display:flex;flex-wrap:wrap;gap:0.35rem;">
+          ${trackedList.map(t => `
+            <span style="background:#DCFCE7;border:1px solid #86EFAC;padding:0.2rem 0.5rem;border-radius:999px;font-size:0.7rem;color:#14532D;font-weight:700;">
+              ${t.muscle}: ${t.name} (${t.sets} series)
+            </span>
+          `).join('')}
+        </div>
+      `;
+    }
+
+    if (notesTextarea && (!notesTextarea.value || notesTextarea.value.startsWith('• '))) {
+      notesTextarea.value = trackedList.map(t => `• ${t.name} [${t.muscle}]: ${t.sets} series × 10-12 reps`).join('\n');
+    }
+  };
+
+  // Renderizar la grilla completa con avatares de género
+  window.timeplusRenderCompoundExercisesGrid = (muscleFilter = 'todos') => {
+    const container = document.getElementById('tp-exercise-grid');
+    if (!container) return;
+
+    const curGender = window.timeplusGymActiveGender;
+    const isFem = (curGender === 'femenino');
+
+    // Filtrado de ejercicios
+    const filtered = (muscleFilter === 'todos') 
+      ? TIMEPLUS_COMPOUND_EXERCISES 
+      : TIMEPLUS_COMPOUND_EXERCISES.filter(e => e.muscle.toLowerCase() === muscleFilter.toLowerCase());
+
+    const muscleCounts = {
+      todos: TIMEPLUS_COMPOUND_EXERCISES.length,
+      pecho: TIMEPLUS_COMPOUND_EXERCISES.filter(e => e.muscle === 'PECHO').length,
+      hombros: TIMEPLUS_COMPOUND_EXERCISES.filter(e => e.muscle === 'HOMBROS').length,
+      espalda: TIMEPLUS_COMPOUND_EXERCISES.filter(e => e.muscle === 'ESPALDA').length,
+      piernas: TIMEPLUS_COMPOUND_EXERCISES.filter(e => e.muscle === 'PIERNAS').length,
+    };
+
+    container.innerHTML = `
+      <!-- BARRA DE GÉNERO & SELECCIÓN DE AVATAR -->
+      <div style="display:flex;justify-content:space-between;align-items:center;background:${isFem ? 'linear-gradient(135deg,#FFF1F2,#FFE4E6)' : 'linear-gradient(135deg,#EFF6FF,#DBEAFE)'};border:1.5px solid ${isFem ? '#FDA4AF' : '#93C5FD'};border-radius:0.75rem;padding:0.65rem 0.85rem;flex-wrap:wrap;gap:0.5rem;">
+        <div style="display:flex;align-items:center;gap:0.5rem;">
+          <div style="font-size:1.6rem;background:#fff;border-radius:50%;width:2.4rem;height:2.4rem;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 6px rgba(0,0,0,0.08);">
+            ${isFem ? '👩' : '👨'}
+          </div>
+          <div>
+            <div style="font-size:0.78rem;font-weight:900;color:${isFem ? '#9F1239' : '#1E40AF'};">
+              ${isFem ? 'Atleta Femenina — Modo Activo' : 'Atleta Masculino — Modo Activo'}
+            </div>
+            <div style="font-size:0.68rem;color:${isFem ? '#BE123C' : '#1D4ED8'};">
+              Ilustraciones adaptadas con silueta ${isFem ? 'femenina' : 'masculina'}
+            </div>
+          </div>
+        </div>
+
+        <div style="display:flex;gap:0.35rem;background:#fff;padding:0.25rem;border-radius:0.5rem;box-shadow:0 1px 3px rgba(0,0,0,0.06);">
+          <button type="button" onclick="window.timeplusSetGymGender('femenino')" style="border:none;background:${isFem ? '#F43F5E' : 'transparent'};color:${isFem ? '#fff' : '#64748B'};font-size:0.72rem;font-weight:800;padding:0.35rem 0.65rem;border-radius:0.4rem;cursor:pointer;">
+            👩 Femenino
+          </button>
+          <button type="button" onclick="window.timeplusSetGymGender('masculino')" style="border:none;background:${!isFem ? '#2563EB' : 'transparent'};color:${!isFem ? '#fff' : '#64748B'};font-size:0.72rem;font-weight:800;padding:0.35rem 0.65rem;border-radius:0.4rem;cursor:pointer;">
+            👨 Masculino
+          </button>
+        </div>
+      </div>
+
+      <!-- FILTROS POR GRUPO MUSCULAR (PECHO, HOMBROS, ESPALDA, PIERNAS) -->
+      <div style="display:flex;gap:0.35rem;overflow-x:auto;padding-bottom:0.25rem;">
+        <button type="button" onclick="window.timeplusFilterGymMuscle('todos')" style="border:none;background:${muscleFilter === 'todos' ? '#1E293B' : '#F1F5F9'};color:${muscleFilter === 'todos' ? '#fff' : '#475569'};font-size:0.7rem;font-weight:800;padding:0.35rem 0.65rem;border-radius:999px;cursor:pointer;white-space:nowrap;">
+          Todos (${muscleCounts.todos})
+        </button>
+        <button type="button" onclick="window.timeplusFilterGymMuscle('pecho')" style="border:none;background:${muscleFilter === 'pecho' ? '#DC2626' : '#FEE2E2'};color:${muscleFilter === 'pecho' ? '#fff' : '#991B1B'};font-size:0.7rem;font-weight:800;padding:0.35rem 0.65rem;border-radius:999px;cursor:pointer;white-space:nowrap;">
+          Pecho (${muscleCounts.pecho})
+        </button>
+        <button type="button" onclick="window.timeplusFilterGymMuscle('hombros')" style="border:none;background:${muscleFilter === 'hombros' ? '#DC2626' : '#FEE2E2'};color:${muscleFilter === 'hombros' ? '#fff' : '#991B1B'};font-size:0.7rem;font-weight:800;padding:0.35rem 0.65rem;border-radius:999px;cursor:pointer;white-space:nowrap;">
+          Hombros (${muscleCounts.hombros})
+        </button>
+        <button type="button" onclick="window.timeplusFilterGymMuscle('espalda')" style="border:none;background:${muscleFilter === 'espalda' ? '#DC2626' : '#FEE2E2'};color:${muscleFilter === 'espalda' ? '#fff' : '#991B1B'};font-size:0.7rem;font-weight:800;padding:0.35rem 0.65rem;border-radius:999px;cursor:pointer;white-space:nowrap;">
+          Espalda (${muscleCounts.espalda})
+        </button>
+        <button type="button" onclick="window.timeplusFilterGymMuscle('piernas')" style="border:none;background:${muscleFilter === 'piernas' ? '#DC2626' : '#FEE2E2'};color:${muscleFilter === 'piernas' ? '#fff' : '#991B1B'};font-size:0.7rem;font-weight:800;padding:0.35rem 0.65rem;border-radius:999px;cursor:pointer;white-space:nowrap;">
+          Piernas (${muscleCounts.piernas})
+        </button>
+      </div>
+
+      <!-- NOTA CLAVE DE LA IMAGEN -->
+      <div style="background:#FFFBEB;border:1px solid #FCD34D;border-radius:0.5rem;padding:0.45rem 0.75rem;font-size:0.71rem;color:#92400E;display:flex;align-items:center;gap:0.4rem;">
+        <span>⭐</span>
+        <span><strong>Ejercicios claves:</strong> Especialmente los de la primera línea (Press plano, Militar, Peso muerto, Sentadilla trasera).</span>
+      </div>
+
+      <!-- GRILLA DE TARJETAS DE EJERCICIOS (4 COLUMNAS O 2 EN MOVIL) -->
+      <div style="display:grid;grid-template-columns:repeat(auto-fill, minmax(130px, 1fr));gap:0.6rem;">
+        ${filtered.map(ex => {
+          const sets = window.timeplusGymTracked[ex.id]?.sets || 0;
+          const isDone = sets > 0;
+          return `
+            <div id="tp-card-${ex.id}" class="tp-exercise-card" style="background:${isDone ? '#F0FDF4' : '#FFFFFF'};border:1.5px solid ${isDone ? '#10B981' : (ex.isKey ? '#FCA5A5' : '#E2E8F0')};border-radius:0.75rem;padding:0.6rem;display:flex;flex-direction:column;gap:0.4rem;transition:all 0.2s ease;box-shadow:${isDone ? '0 4px 14px rgba(16,185,129,0.18)' : '0 1px 3px rgba(0,0,0,0.04)'};">
+              
+              <!-- Encabezado con Músculo y Tag Clave -->
+              <div style="display:flex;justify-content:space-between;align-items:center;">
+                <span style="background:#DC2626;color:#fff;font-size:0.6rem;font-weight:900;padding:0.15rem 0.4rem;border-radius:4px;letter-spacing:0.04em;">
+                  ${ex.muscle}
+                </span>
+                ${ex.isKey ? '<span style="font-size:0.62rem;color:#DC2626;font-weight:800;" title="Ejercicio Clave Primera Línea">⭐ 1ª Línea</span>' : ''}
+              </div>
+
+              <!-- Ilustración Avatar SVG Dinámica -->
+              <div onclick="window.timeplusRecordExerciseSet('${ex.id}')" style="cursor:pointer;" title="Toca para registrar serie">
+                ${window.timeplusGetExerciseAvatarSvg(ex.id, curGender)}
+              </div>
+
+              <!-- Título y detalles -->
+              <div onclick="window.timeplusRecordExerciseSet('${ex.id}')" style="cursor:pointer;">
+                <div style="font-size:0.76rem;font-weight:800;color:#1E293B;line-height:1.2;">
+                  ${ex.name}
+                </div>
+                <div style="font-size:0.65rem;color:#64748B;margin-top:0.15rem;line-height:1.15;">
+                  ${ex.desc}
+                </div>
+              </div>
+
+              <!-- Botón interactivo: ¡Hice esta serie! -->
+              <div class="tp-card-action" style="margin-top:auto;">
+                ${isDone ? `
+                  <div style="display:flex;align-items:center;justify-content:space-between;gap:0.35rem;width:100%;">
+                    <button type="button" onclick="window.timeplusRecordExerciseSet('${ex.id}')" style="flex:1;background:#10B981;color:#fff;border:none;border-radius:6px;padding:0.4rem 0.5rem;font-size:0.72rem;font-weight:800;display:flex;align-items:center;justify-content:center;gap:0.25rem;cursor:pointer;box-shadow:0 2px 6px rgba(16,185,129,0.3);">
+                      <span>✅ ¡Hice esta serie!</span>
+                      <span style="background:rgba(0,0,0,0.2);padding:0.1rem 0.35rem;border-radius:4px;font-size:0.68rem;">${sets}/${ex.targetSets}</span>
+                    </button>
+                    <button type="button" onclick="window.timeplusDecrementExerciseSet('${ex.id}', event)" title="Restar 1 serie" style="background:#F1F5F9;color:#64748B;border:1px solid #CBD5E1;border-radius:6px;width:1.75rem;height:1.75rem;font-size:0.85rem;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;">
+                      −
+                    </button>
+                  </div>
+                ` : `
+                  <button type="button" onclick="window.timeplusRecordExerciseSet('${ex.id}')" style="width:100%;background:${ex.isKey ? '#EF4444' : '#2563EB'};color:#fff;border:none;border-radius:6px;padding:0.4rem 0.5rem;font-size:0.72rem;font-weight:800;display:flex;align-items:center;justify-content:center;gap:0.3rem;cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,0.1);">
+                    <span>＋ ¡Hice esta serie!</span>
+                    <span style="opacity:0.75;font-size:0.65rem;">(0/${ex.targetSets})</span>
+                  </button>
+                `}
+              </div>
+
+            </div>
+          `;
+        }).join('')}
+      </div>
+    `;
+
+    window.timeplusSyncExercisesSummary();
+  };
+
+  // Inicializador al abrir modal o cambiar a gym
+  window.timeplusInitGymExerciseGrid = () => {
+    const user = store.getCurrentUser();
+    // Detectar género del usuario
+    if (user?.gender === 'Femenino') {
+      window.timeplusGymActiveGender = 'femenino';
+    } else {
+      window.timeplusGymActiveGender = 'masculino';
+    }
+    window.timeplusRenderCompoundExercisesGrid('todos');
   };
 
   window.timeplusCalculateOutdoorCal = (kmVal) => {
@@ -4153,7 +4637,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
   window.timeplusSaveGymWorkout = () => {
     const gymLocation = (document.getElementById('fit-gym-location')?.value || '').trim();
-    const muscle = document.getElementById('fit-gym-muscle')?.value || 'Rutina de Gimnasio';
     const duration = document.getElementById('fit-gym-duration')?.value || '1 hora';
     const intensity = document.getElementById('fit-gym-intensity')?.value || 'Alta';
     const rawExercises = (document.getElementById('fit-gym-exercises')?.value || '').trim();
@@ -4162,20 +4645,37 @@ document.addEventListener('DOMContentLoaded', () => {
     const cal = calMap[intensity] || 480;
 
     let exercises = [];
-    if (rawExercises) {
+    const trackedKeys = Object.keys(window.timeplusGymTracked || {}).filter(k => window.timeplusGymTracked[k].sets > 0);
+
+    if (trackedKeys.length > 0) {
+      exercises = trackedKeys.map(k => {
+        const item = window.timeplusGymTracked[k];
+        return {
+          name: `${item.name} (${item.muscle})`,
+          sets: item.sets,
+          reps: '10-12 reps',
+          weight: item.isKey ? '⭐ 1ª Línea' : 'Compuesto'
+        };
+      });
+      if (rawExercises) {
+        exercises.push({ name: `Notas: ${rawExercises}`, sets: null, reps: null, weight: null });
+      }
+    } else if (rawExercises) {
       exercises = rawExercises.split('\n').filter(Boolean).map(line => {
         const clean = line.replace(/^[•\-\*]\s*/, '').trim();
         return { name: clean, sets: null, reps: null, weight: null };
       });
     } else {
-      exercises = [{ name: muscle, sets: 4, reps: '10-12 reps', weight: 'Progresivo' }];
+      exercises = [{ name: 'Entrenamiento de Gimnasio', sets: 4, reps: '10-12 reps', weight: 'Progresivo' }];
     }
 
+    const muscleTitles = [...new Set(trackedKeys.map(k => window.timeplusGymTracked[k].muscle))].join(' & ') || 'Musculación';
+
     store.recordWorkout({
-      title: `🏋️ ${muscle}`,
+      title: `🏋️ ${trackedKeys.length > 0 ? `${trackedKeys.length} Ejercicios Compuestos (${muscleTitles})` : 'Rutina de Gimnasio'}`,
       category: 'fitness',
       activityType: 'gym',
-      muscleGroup: muscle,
+      muscleGroup: muscleTitles,
       duration: duration,
       durationHours: duration.includes('2') ? 2 : (duration.includes('30') ? 1.5 : 1),
       calories: cal,
@@ -4184,7 +4684,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     window.timeplusCloseFitnessModal();
-    if (window.timeplusShowToast) window.timeplusShowToast(`🏋️ Registrado: ${muscle} en ${gymLocation || 'Gimnasio'} (~${cal} kcal).`);
+    if (window.timeplusShowToast) window.timeplusShowToast(`🏋️ Registrado: ${exercises.length} ejercicios en ${gymLocation || 'Gimnasio'} (~${cal} kcal).`);
     renderFitness();
   };
 
