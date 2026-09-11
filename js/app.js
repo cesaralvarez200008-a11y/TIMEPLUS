@@ -815,54 +815,17 @@ document.addEventListener('DOMContentLoaded', () => {
         </div>
       ` : ''}
 
-      <!-- Pestañas / Bloques: Tomas de Hoy vs Dispensario & Inventario -->
-      <div style="margin-bottom:1.25rem;display:flex;gap:0.5rem;border-bottom:1px solid #E2E8F0;padding-bottom:0.75rem;">
-        <span style="font-weight:700;font-size:0.9rem;color:#1E293B;display:flex;align-items:center;gap:0.4rem;">
-          🕒 Tomas Programadas Hoy (${medActs.length})
-        </span>
-      </div>
-
-      <!-- Cuadrícula de Tomas de Hoy -->
-      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1rem; margin-bottom: 2rem;">
-        ${medActs.length === 0 ? `
-          <div style="grid-column:1/-1;text-align:center;padding:2.5rem 1.5rem;background:#F8FAFC;border:1.5px dashed #CBD5E1;border-radius:var(--radius-lg);color:#64748B;">
-            <div style="font-size:2rem;margin-bottom:0.5rem;">💊</div>
-            <p style="font-weight:700;color:#1E293B;">No tienes tomas de medicamentos para hoy.</p>
-            <p style="font-size:0.8rem;margin-top:0.25rem;">Registra tu receta en el botón de arriba o pide a la IA: <em>"Recuérdame tomar Losartán a las 8am"</em>.</p>
-          </div>
-        ` : medActs.map(m => `
-          <div class="med-card" style="border-left:4px solid ${m.confirmedTaken ? '#10B981' : '#F59E0B'};">
-            <div class="med-header">
-              <span style="font-size: 1.5rem;">💊</span>
-              <span style="font-size: 0.75rem; font-weight: 800; color: #A16207; background: #FEFCE8; padding: 0.2rem 0.5rem; border-radius: var(--radius-full);">
-                ${m.time}
-              </span>
-            </div>
-            <h4 style="font-size: 1rem; margin-top: 0.25rem;">${m.title}</h4>
-            <p style="font-size: 0.75rem;">Dosis: <strong>${m.dosage || '1 dosis'}</strong></p>
-            <p style="font-size: 0.6875rem; color: ${m.confirmedTaken ? '#10B981' : '#D97706'}; font-weight:600;">
-              Estado: ${m.confirmedTaken ? '✅ Tomado hoy (' + (m.takenAt || 'confirmado') + ')' : '⏳ Pendiente por tomar'}
-            </p>
-
-            <div style="background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: var(--radius-md); padding: 0.75rem; margin-top: 0.5rem;">
-              <span style="font-size: 0.75rem; font-weight: bold; display: block; margin-bottom: 0.5rem;">¿Tomaste este medicamento hoy?</span>
-              <div class="med-actions">
-                <button class="btn-confirm-yes" onclick="window.timeplusConfirmMed('${m.id}', true)">✓ Sí, tomado (-1 dosis)</button>
-                <button class="btn-confirm-no" onclick="window.timeplusConfirmMed('${m.id}', false)">Recordar después</button>
-              </div>
-            </div>
-          </div>
-        `).join('')}
-      </div>
-
-      <!-- SECCIÓN DISPENSARIO, BOTIQUÍN & CONTROL DE STOCK Y VENCIMIENTOS -->
-      <div style="margin-bottom:1rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:0.75rem;border-bottom:1px solid #E2E8F0;padding-bottom:0.75rem;">
+      <!-- SECCIÓN 1: 📦 DISPENSARIO & BOTIQUÍN COMPLETO (INVENTARIO GENERAL DEL HOGAR) -->
+      <div style="margin-bottom:1rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:0.75rem;border-bottom:2px solid #E2E8F0;padding-bottom:0.75rem;">
         <div>
-          <h3 style="font-size:1.15rem;margin:0;display:flex;align-items:center;gap:0.5rem;">
+          <div style="font-size:0.72rem;font-weight:800;color:#059669;letter-spacing:.05em;display:flex;align-items:center;gap:0.35rem;">
+            <span>📦 PASO 1</span> • <span>INVENTARIO GENERAL DEL HOGAR</span>
+          </div>
+          <h3 style="font-size:1.25rem;margin:0.2rem 0 0 0;display:flex;align-items:center;gap:0.5rem;color:#0F172A;">
             📦 Dispensario & Botiquín Completo
           </h3>
-          <span style="font-size:0.75rem;color:#64748B;">
-            Registra todo lo que tienes en casa (en tratamiento activo o de reserva ocasional) con su <strong>fecha de vencimiento</strong>.
+          <span style="font-size:0.78rem;color:#64748B;">
+            Primero registra todo lo que tienes en casa (pastillas, algodón, alcohol, curas, etc.) y desde cada tarjeta <strong>selecciona si lo tomas a diario</strong>.
           </span>
         </div>
 
@@ -871,28 +834,29 @@ document.addEventListener('DOMContentLoaded', () => {
           <button onclick="window.timeplusFilterDispensary('todos')" style="border:none;background:${currentFilter === 'todos' ? '#1E293B' : '#F1F5F9'};color:${currentFilter === 'todos' ? '#fff' : '#475569'};font-size:0.72rem;font-weight:700;padding:0.35rem 0.7rem;border-radius:999px;cursor:pointer;">
             Todos (${counts.todos})
           </button>
-          <button onclick="window.timeplusFilterDispensary('activos')" style="border:none;background:${currentFilter === 'activos' ? '#059669' : '#ECFDF5'};color:${currentFilter === 'activos' ? '#fff' : '#047857'};font-size:0.72rem;font-weight:700;padding:0.35rem 0.7rem;border-radius:999px;cursor:pointer;">
-            💊 En Tratamiento (${counts.activos})
-          </button>
           <button onclick="window.timeplusFilterDispensary('botiquin')" style="border:none;background:${currentFilter === 'botiquin' ? '#2563EB' : '#EFF6FF'};color:${currentFilter === 'botiquin' ? '#fff' : '#1D4ED8'};font-size:0.72rem;font-weight:700;padding:0.35rem 0.7rem;border-radius:999px;cursor:pointer;">
-            📦 Botiquín / Reserva (${counts.botiquin})
+            📦 En Botiquín / Reserva (${counts.botiquin})
+          </button>
+          <button onclick="window.timeplusFilterDispensary('activos')" style="border:none;background:${currentFilter === 'activos' ? '#059669' : '#ECFDF5'};color:${currentFilter === 'activos' ? '#fff' : '#047857'};font-size:0.72rem;font-weight:700;padding:0.35rem 0.7rem;border-radius:999px;cursor:pointer;">
+            ⏰ Tomas Diarias Activas (${counts.activos})
           </button>
           <button onclick="window.timeplusFilterDispensary('vencidos')" style="border:none;background:${currentFilter === 'vencidos' ? '#DC2626' : '#FEF2F2'};color:${currentFilter === 'vencidos' ? '#fff' : '#B91C1C'};font-size:0.72rem;font-weight:700;padding:0.35rem 0.7rem;border-radius:999px;cursor:pointer;">
-            ⚠️ Por Vencer / Vencidos (${counts.vencidos})
+            ⚠️ Vencidos / Por Vencer (${counts.vencidos})
           </button>
         </div>
       </div>
 
-      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 1rem;">
+      <!-- Cuadrícula de productos del Dispensario -->
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 1rem; margin-bottom: 2.5rem;">
         ${displayedMeds.length === 0 ? `
           <div style="grid-column:1/-1;text-align:center;padding:2.5rem 1.5rem;background:#F8FAFC;border:1.5px dashed #CBD5E1;border-radius:var(--radius-lg);color:#64748B;">
             <div style="font-size:2rem;margin-bottom:0.5rem;">📦</div>
-            <p style="font-weight:700;color:#1E293B;">No hay medicamentos en esta categoría.</p>
+            <p style="font-weight:700;color:#1E293B;">No tienes productos registrados en esta categoría del dispensario.</p>
             <p style="font-size:0.8rem;margin-top:0.25rem;">
-              Puedes registrar medicamentos que tomas a diario o productos que guardas en tu botiquín con fecha de caducidad.
+              Registra primero todo lo que tienes en casa: pastillas, alcohol, algodón, curas, con fecha de vencimiento.
             </p>
             <button onclick="window.timeplusOpenAddMedicationModal()" class="btn-primary" style="margin-top:0.75rem;font-size:0.8rem;padding:0.5rem 1.25rem;">
-              + Registrar Medicamento / Botiquín
+              + Registrar en Dispensario / Botiquín
             </button>
           </div>
         ` : displayedMeds.map(med => {
@@ -917,7 +881,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:0.6rem;flex-wrap:wrap;gap:0.35rem;">
                   <div style="display:flex;gap:0.35rem;flex-wrap:wrap;">
                     <span style="font-size:0.68rem;font-weight:800;color:${isBotiquin ? '#1D4ED8' : '#047857'};background:${isBotiquin ? '#EFF6FF' : '#ECFDF5'};border:1px solid ${isBotiquin ? '#BFDBFE' : '#A7F3D0'};padding:0.18rem 0.5rem;border-radius:6px;">
-                      ${isBotiquin ? '📦 BOTIQUÍN / RESERVA' : '💊 TRATAMIENTO DIARIO'}
+                      ${isBotiquin ? '📦 EN BOTIQUÍN / RESERVA' : `💊 TOMA DIARIA (${med.time || '08:00'})`}
                     </span>
                     ${med.locationNotes ? `
                       <span style="font-size:0.65rem;color:#475569;background:#F1F5F9;padding:0.18rem 0.45rem;border-radius:6px;">
@@ -933,7 +897,17 @@ document.addEventListener('DOMContentLoaded', () => {
                   <span>${isBotiquin ? '🩹' : '💊'}</span> <span>${med.name}</span>
                 </h4>
                 <div style="font-size:0.75rem;color:#64748B;margin-bottom:0.75rem;">
-                  ${med.instructions || (isBotiquin ? 'Uso ocasional / botiquín de emergencia' : '1 dosis diaria con agua')}
+                  ${med.instructions || (isBotiquin ? 'Uso ocasional / botiquín del hogar' : 'Tratamiento diario con receta')}
+                </div>
+
+                <!-- SELECTOR DIRECTO: ¿LO TOMAS A DIARIO? -->
+                <div style="background:${isBotiquin ? '#F8FAFC' : '#ECFDF5'};border:1px dashed ${isBotiquin ? '#CBD5E1' : '#6EE7B7'};border-radius:8px;padding:0.5rem 0.75rem;margin-bottom:0.85rem;display:flex;align-items:center;justify-content:space-between;gap:0.5rem;">
+                  <div style="font-size:0.72rem;color:${isBotiquin ? '#475569' : '#047857'};font-weight:700;">
+                    ${isBotiquin ? '¿Tomas esto a diario?' : `✅ Programado a las ${med.time || '08:00'}`}
+                  </div>
+                  <button type="button" onclick="window.timeplusToggleDailySchedule('${med.id}')" style="border:none;background:${isBotiquin ? '#059669' : '#F1F5F9'};color:${isBotiquin ? '#fff' : '#475569'};font-size:0.72rem;font-weight:800;padding:0.35rem 0.65rem;border-radius:6px;cursor:pointer;display:flex;align-items:center;gap:0.25rem;box-shadow:${isBotiquin ? '0 2px 4px rgba(5,150,105,0.25)' : 'none'};">
+                    ${isBotiquin ? '⏰ Activar Toma Diaria' : '⚙️ Pausar / Modificar'}
+                  </button>
                 </div>
 
                 <!-- BADGE DE FECHA DE VENCIMIENTO -->
@@ -962,9 +936,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
                   <div style="display:flex;justify-content:space-between;font-size:0.75rem;color:#64748B;">
                     ${isBotiquin ? `
-                      <span>Uso: <strong>Ocasional / Botiquín</strong></span>
+                      <span>Uso: <strong>Reserva / Botiquín</strong></span>
                       <span style="font-weight:700;color:${stock > 0 ? '#10B981' : '#EF4444'};">
-                        ${stock > 0 ? '✅ Stock disponible' : '⛔ Agotado'}
+                        ${stock > 0 ? '✅ Disponible' : '⛔ Agotado'}
                       </span>
                     ` : `
                       <span>Consumo: <strong>${dailyTotal} al día</strong></span>
@@ -991,6 +965,58 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>
           `;
         }).join('')}
+      </div>
+
+      <!-- SECCIÓN 2: 🕒 TOMAS PROGRAMADAS HOY (Se desprenden del dispensario) -->
+      <div style="margin-bottom:1.25rem;border-top:2px dashed #E2E8F0;padding-top:1.5rem;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.4rem;">
+          <div>
+            <div style="font-size:0.72rem;font-weight:800;color:#2563EB;letter-spacing:.05em;display:flex;align-items:center;gap:0.35rem;">
+              <span>🕒 PASO 2</span> • <span>AGENDA Y TOMAS DE HOY</span>
+            </div>
+            <h3 style="font-size:1.15rem;margin:0.2rem 0 0 0;display:flex;align-items:center;gap:0.4rem;color:#0F172A;">
+              🕒 Tomas Programadas Hoy (${medActs.length})
+            </h3>
+            <span style="font-size:0.75rem;color:#64748B;">
+              Estas tomas se generan automáticamente de las pastillas que activaste en el dispensario de arriba.
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Cuadrícula de Tomas de Hoy -->
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1rem; margin-bottom: 2rem;">
+        ${medActs.length === 0 ? `
+          <div style="grid-column:1/-1;text-align:center;padding:2.5rem 1.5rem;background:#F8FAFC;border:1.5px dashed #CBD5E1;border-radius:var(--radius-lg);color:#64748B;">
+            <div style="font-size:2rem;margin-bottom:0.5rem;">💊</div>
+            <p style="font-weight:700;color:#1E293B;">No tienes tomas diarias activadas para hoy.</p>
+            <p style="font-size:0.8rem;margin-top:0.25rem;">
+              En tu <strong>Dispensario & Botiquín</strong> de arriba, busca el medicamento que debes tomar y presiona <strong>"⏰ Activar Toma Diaria"</strong>.
+            </p>
+          </div>
+        ` : medActs.map(m => `
+          <div class="med-card" style="border-left:4px solid ${m.confirmedTaken ? '#10B981' : '#F59E0B'};">
+            <div class="med-header">
+              <span style="font-size: 1.5rem;">💊</span>
+              <span style="font-size: 0.75rem; font-weight: 800; color: #A16207; background: #FEFCE8; padding: 0.2rem 0.5rem; border-radius: var(--radius-full);">
+                ${m.time}
+              </span>
+            </div>
+            <h4 style="font-size: 1rem; margin-top: 0.25rem;">${m.title}</h4>
+            <p style="font-size: 0.75rem;">Dosis: <strong>${m.dosage || '1 dosis'}</strong></p>
+            <p style="font-size: 0.6875rem; color: ${m.confirmedTaken ? '#10B981' : '#D97706'}; font-weight:600;">
+              Estado: ${m.confirmedTaken ? '✅ Tomado hoy (' + (m.takenAt || 'confirmado') + ')' : '⏳ Pendiente por tomar'}
+            </p>
+
+            <div style="background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: var(--radius-md); padding: 0.75rem; margin-top: 0.5rem;">
+              <span style="font-size: 0.75rem; font-weight: bold; display: block; margin-bottom: 0.5rem;">¿Tomaste este medicamento hoy?</span>
+              <div class="med-actions">
+                <button class="btn-confirm-yes" onclick="window.timeplusConfirmMed('${m.id}', true)">✓ Sí, tomado (-1 dosis)</button>
+                <button class="btn-confirm-no" onclick="window.timeplusConfirmMed('${m.id}', false)">Recordar después</button>
+              </div>
+            </div>
+          </div>
+        `).join('')}
       </div>
     `;
   }
@@ -2657,6 +2683,55 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   };
 
+  window.timeplusToggleDailySchedule = (medId) => {
+    const meds = store.getMedications ? store.getMedications() : [];
+    const med = meds.find(m => m.id === medId);
+    if (!med) return;
+
+    const isCurrentlyActive = (med.usageType !== 'botiquin' && med.usageType !== 'reserva');
+
+    if (isCurrentlyActive) {
+      if (confirm(`¿Deseas pausar las tomas diarias de "${med.name}" y dejarlo guardado en tu Botiquín/Dispensario de reserva?`)) {
+        store.updateMedication(medId, { usageType: 'botiquin' });
+        // Remover actividades de toma diaria programada asociadas
+        if (store.state?.activities) {
+          store.state.activities = store.state.activities.filter(a => a.medicationId !== medId);
+          store.saveState();
+        }
+        window.timeplusShowToast(`📦 "${med.name}" ahora está como Botiquín de Reserva (sin tomas diarias).`);
+        renderHealth();
+      }
+    } else {
+      const hora = prompt(`⏰ ¿A qué hora tomas "${med.name}" a diario? (Formato 24h, ej: 08:00 o 20:00):`, med.time || '08:00');
+      if (hora && hora.trim()) {
+        const dosis = prompt(`💊 ¿Cuántas unidades tomas en cada horario? (Ej: 1 pastilla, 2 gotas):`, `${med.dosePerTake || 1} ${med.unit || 'pastilla(s)'}`);
+        const cleanHora = hora.trim();
+        const cleanDose = parseInt(dosis) || med.dosePerTake || 1;
+        store.updateMedication(medId, {
+          usageType: 'activo',
+          time: cleanHora,
+          dosePerTake: cleanDose
+        });
+        // Agregar actividad diaria de hoy
+        store.addActivity({
+          id: 'act-' + med.id,
+          title: `Medicamento — ${med.name}`,
+          category: 'salud',
+          time: cleanHora,
+          date: 'today',
+          duration: '15m',
+          type: 'medicamento',
+          dosage: dosis || `${cleanDose} ${med.unit || 'pastilla(s)'}`,
+          medicationId: med.id,
+          confirmedTaken: false,
+          notes: med.instructions || 'Tomar según prescripción médica'
+        });
+        window.timeplusShowToast(`⏰ ¡Toma diaria activada para "${med.name}" a las ${cleanHora}!`);
+        renderHealth();
+      }
+    }
+  };
+
   window.timeplusOnMedUsageChange = (val) => {
     const schedBlock = document.getElementById('tp-med-schedule-fields');
     const noticeBlock = document.getElementById('tp-med-botiquin-notice');
@@ -2719,8 +2794,8 @@ document.addEventListener('DOMContentLoaded', () => {
               🎯 Modo de Uso / Finalidad *
             </label>
             <select id="tp-med-usage-type" class="login-panel-input" style="width:100%;box-sizing:border-box;font-weight:700;background:#1e293b;color:#fff;" onchange="window.timeplusOnMedUsageChange(this.value)">
-              <option value="activo">💊 En Tratamiento Activo / Diario (con horario de toma programado)</option>
-              <option value="botiquin">📦 Botiquín / Reserva ("Así no lo tome a diario")</option>
+              <option value="botiquin" selected>📦 Guardar en Botiquín / Reserva ("Así no lo tome a diario")</option>
+              <option value="activo">💊 En Tratamiento Activo / Diario (Programar horario de toma)</option>
             </select>
           </div>
 
@@ -2854,6 +2929,7 @@ document.addEventListener('DOMContentLoaded', () => {
     `;
 
     document.body.appendChild(overlay);
+    window.timeplusOnMedUsageChange('botiquin');
     overlay.addEventListener('click', (e) => { if (e.target === overlay) window.timeplusCloseAddMedicationModal(); });
     setTimeout(() => document.getElementById('tp-med-name')?.focus(), 100);
   };
