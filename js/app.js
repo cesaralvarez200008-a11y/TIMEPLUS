@@ -5013,20 +5013,22 @@ document.addEventListener('DOMContentLoaded', () => {
     window.timeplusSyncExercisesSummary();
   };
 
-  // Actualizar tarjeta específica con los 3 estados
+  // Actualizar tarjeta específica con los 3 estados + peso/reps/series
   window.timeplusUpdateExerciseCardUI = (exId) => {
     const ex = TIMEPLUS_COMPOUND_EXERCISES.find(e => e.id === exId);
     const card = document.getElementById(`tp-card-${exId}`);
     if (!card || !ex) return;
 
     const tracked = window.timeplusGymTracked[exId];
-    const status = tracked?.status || 'unplanned'; // unplanned | planned | done | partial | skipped
-    const sets = tracked?.sets || ex.targetSets;
-    const actualReps = tracked?.actualReps;
+    const status     = tracked?.status     || 'unplanned';
+    const sets       = tracked?.sets       || ex.targetSets;
+    const actualReps = tracked?.actualReps || null;
+    const weightKg   = tracked?.weightKg   || '';
+    const repsPerSet = tracked?.repsPerSet || 10;
 
     // Estilos por estado
     const styles = {
-      unplanned: { border: ex.isKey ? '#FCA5A5' : '#E2E8F0', bg: '#FFFFFF', shadow: '0 1px 3px rgba(0,0,0,0.04)' },
+      unplanned: { border: ex.isKey ? '#FCA5A5' : '#E2E8F0', bg: '#FFFFFF',  shadow: '0 1px 3px rgba(0,0,0,0.04)' },
       planned:   { border: '#93C5FD', bg: '#EFF6FF', shadow: '0 2px 8px rgba(37,99,235,0.12)' },
       done:      { border: '#10B981', bg: '#F0FDF4', shadow: '0 4px 14px rgba(16,185,129,0.18)' },
       partial:   { border: '#F59E0B', bg: '#FFFBEB', shadow: '0 3px 10px rgba(245,158,11,0.15)' },
@@ -5035,82 +5037,131 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const s = styles[status] || styles.unplanned;
     card.style.borderColor = s.border;
-    card.style.background = s.bg;
-    card.style.boxShadow = s.shadow;
+    card.style.background  = s.bg;
+    card.style.boxShadow   = s.shadow;
 
     const actionWrap = card.querySelector('.tp-card-action');
     if (!actionWrap) return;
 
-    if (status === 'unplanned') {
-      // Sin planificar — botón de agregar a la rutina del día
-      actionWrap.innerHTML = `
-        <button type="button" onclick="window.timeplusSetExerciseStatus('${exId}','planned')"
-          style="width:100%;background:${ex.isKey ? '#EF4444' : '#2563EB'};color:#fff;border:none;border-radius:6px;padding:0.4rem 0.5rem;font-size:0.72rem;font-weight:800;cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,0.1);">
-          ＋ ¡Hice esta serie! <span style="opacity:0.75;font-size:0.65rem;">(0/${sets})</span>
-        </button>`;
+    // Helper: inputs de peso + reps + series
+    const weightInputs = (idPrefix, wVal, rVal, sVal) => `
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:0.2rem;margin-top:0.25rem;">
+        <div>
+          <div style="font-size:0.58rem;font-weight:800;color:#475569;text-align:center;margin-bottom:0.1rem;">💪 Peso (kg)</div>
+          <input id="${idPrefix}-kg" type="number" min="0" step="0.5" placeholder="Ej: 80"
+            value="${wVal}"
+            style="width:100%;border:1.5px solid #CBD5E1;border-radius:5px;padding:0.25rem 0.2rem;font-size:0.75rem;font-weight:700;text-align:center;background:#fff;color:#1E293B;outline:none;box-sizing:border-box;">
+        </div>
+        <div>
+          <div style="font-size:0.58rem;font-weight:800;color:#475569;text-align:center;margin-bottom:0.1rem;">🔁 Reps</div>
+          <input id="${idPrefix}-reps" type="number" min="1" max="100" placeholder="10"
+            value="${rVal}"
+            style="width:100%;border:1.5px solid #CBD5E1;border-radius:5px;padding:0.25rem 0.2rem;font-size:0.75rem;font-weight:700;text-align:center;background:#fff;color:#1E293B;outline:none;box-sizing:border-box;">
+        </div>
+        <div>
+          <div style="font-size:0.58rem;font-weight:800;color:#475569;text-align:center;margin-bottom:0.1rem;">📋 Series</div>
+          <input id="${idPrefix}-sets" type="number" min="1" max="20" placeholder="${ex.targetSets}"
+            value="${sVal}"
+            style="width:100%;border:1.5px solid #CBD5E1;border-radius:5px;padding:0.25rem 0.2rem;font-size:0.75rem;font-weight:700;text-align:center;background:#fff;color:#1E293B;outline:none;box-sizing:border-box;">
+        </div>
+      </div>`;
 
-    } else if (status === 'planned') {
-      // Planificado — botones de ejecución
+    // Función de guardado inline (lee los inputs y actualiza status)
+    // llamada como: timeplusSaveExerciseData(exId, 'done')
+    if (!window.timeplusSaveExerciseData) {
+      window.timeplusSaveExerciseData = (id, newStatus) => {
+        const kg   = parseFloat(document.getElementById(`tp-ex-${id}-kg`)?.value)   || null;
+        const reps = parseInt(document.getElementById(`tp-ex-${id}-reps`)?.value)   || 10;
+        const sts  = parseInt(document.getElementById(`tp-ex-${id}-sets`)?.value)   || ex?.targetSets || 3;
+        if (!window.timeplusGymTracked[id]) {
+          const exRef = TIMEPLUS_COMPOUND_EXERCISES.find(e => e.id === id);
+          window.timeplusGymTracked[id] = { ...exRef, status: 'planned', actualReps: null, weightKg: null, repsPerSet: 10 };
+        }
+        window.timeplusGymTracked[id].weightKg   = kg;
+        window.timeplusGymTracked[id].repsPerSet = reps;
+        window.timeplusGymTracked[id].sets       = sts;
+        window.timeplusSetExerciseStatus(id, newStatus);
+      };
+    }
+
+    if (status === 'unplanned') {
+      // Sin planificar — botón + inputs de peso/reps/series
       actionWrap.innerHTML = `
         <div style="display:flex;flex-direction:column;gap:0.3rem;">
-          <div style="font-size:0.66rem;font-weight:800;color:#1D4ED8;text-align:center;">📋 Planificado — ¿Lo hiciste?</div>
-          <div style="display:flex;gap:0.25rem;">
-            <button type="button" onclick="window.timeplusSetExerciseStatus('${exId}','done')"
-              style="flex:1;background:#10B981;color:#fff;border:none;border-radius:5px;padding:0.35rem 0.3rem;font-size:0.68rem;font-weight:800;cursor:pointer;">
+          ${weightInputs(`tp-ex-${exId}`, '', repsPerSet, sets)}
+          <button type="button" onclick="window.timeplusSaveExerciseData('${exId}','planned')"
+            style="width:100%;background:${ex.isKey ? '#EF4444' : '#2563EB'};color:#fff;border:none;border-radius:6px;padding:0.4rem 0.5rem;font-size:0.72rem;font-weight:800;cursor:pointer;margin-top:0.15rem;">
+            ＋ ¡Hice esta serie!
+          </button>
+        </div>`;
+
+    } else if (status === 'planned') {
+      // Planificado — confirmar con peso/reps/series y marcar estado
+      actionWrap.innerHTML = `
+        <div style="display:flex;flex-direction:column;gap:0.3rem;">
+          <div style="font-size:0.66rem;font-weight:800;color:#1D4ED8;text-align:center;">💪 Edita y confirma — ¿Lo hiciste?</div>
+          ${weightInputs(`tp-ex-${exId}`, weightKg, repsPerSet, sets)}
+          <div style="display:flex;gap:0.2rem;margin-top:0.15rem;">
+            <button type="button" onclick="window.timeplusSaveExerciseData('${exId}','done')"
+              style="flex:1;background:#10B981;color:#fff;border:none;border-radius:5px;padding:0.35rem 0.2rem;font-size:0.65rem;font-weight:800;cursor:pointer;">
               ✅ Completo
             </button>
-            <button type="button" onclick="window.timeplusSetExerciseStatus('${exId}','partial')"
-              style="flex:1;background:#F59E0B;color:#fff;border:none;border-radius:5px;padding:0.35rem 0.3rem;font-size:0.68rem;font-weight:800;cursor:pointer;">
+            <button type="button" onclick="window.timeplusSaveExerciseData('${exId}','partial')"
+              style="flex:1;background:#F59E0B;color:#fff;border:none;border-radius:5px;padding:0.35rem 0.2rem;font-size:0.65rem;font-weight:800;cursor:pointer;">
               ⚠️ Parcial
             </button>
             <button type="button" onclick="window.timeplusSetExerciseStatus('${exId}','skipped')"
-              style="flex:1;background:#EF4444;color:#fff;border:none;border-radius:5px;padding:0.35rem 0.3rem;font-size:0.68rem;font-weight:800;cursor:pointer;">
+              style="flex:1;background:#EF4444;color:#fff;border:none;border-radius:5px;padding:0.35rem 0.2rem;font-size:0.65rem;font-weight:800;cursor:pointer;">
               ❌ No hice
             </button>
           </div>
           <button type="button" onclick="window.timeplusDecrementExerciseSet('${exId}', event)"
-            style="background:transparent;border:none;color:#94a3b8;font-size:0.62rem;cursor:pointer;text-decoration:underline;">
+            style="background:transparent;border:none;color:#94a3b8;font-size:0.6rem;cursor:pointer;text-decoration:underline;text-align:center;">
             Quitar de la rutina
           </button>
         </div>`;
 
     } else if (status === 'done') {
-      // Completado ✅
+      // Completado ✅ — mostrar badge con peso/reps/series
+      const kgText  = weightKg ? `${weightKg} kg` : 'Peso s/d';
+      const repsText = `${repsPerSet} reps`;
+      const setsText = `${sets} series`;
       actionWrap.innerHTML = `
         <div style="display:flex;flex-direction:column;gap:0.3rem;">
           <div style="background:#10B981;color:#fff;border-radius:6px;padding:0.3rem 0.5rem;text-align:center;font-size:0.7rem;font-weight:900;">
-            ✅ ¡Completo! ${sets} series × 10-12 reps
+            ✅ ${kgText} × ${repsText} × ${setsText}
           </div>
-          <div style="display:flex;gap:0.25rem;">
+          <div style="display:flex;gap:0.2rem;">
+            <button type="button" onclick="window.timeplusSetExerciseStatus('${exId}','planned')"
+              style="flex:1;background:#DBEAFE;color:#1E40AF;border:1px solid #93C5FD;border-radius:5px;padding:0.22rem;font-size:0.6rem;font-weight:700;cursor:pointer;">
+              ✏️ Editar datos
+            </button>
             <button type="button" onclick="window.timeplusSetExerciseStatus('${exId}','partial')"
-              style="flex:1;background:#FEF3C7;color:#92400E;border:1px solid #FCD34D;border-radius:5px;padding:0.25rem;font-size:0.62rem;font-weight:700;cursor:pointer;">
-              ⚠️ Fue parcial
+              style="flex:1;background:#FEF3C7;color:#92400E;border:1px solid #FCD34D;border-radius:5px;padding:0.22rem;font-size:0.6rem;font-weight:700;cursor:pointer;">
+              ⚠️ Parcial
             </button>
             <button type="button" onclick="window.timeplusDecrementExerciseSet('${exId}', event)"
-              style="flex:1;background:#FFF1F2;color:#991B1B;border:1px solid #FECACA;border-radius:5px;padding:0.25rem;font-size:0.62rem;font-weight:700;cursor:pointer;">
-              ↩ Deshacer
+              style="flex:1;background:#FFF1F2;color:#991B1B;border:1px solid #FECACA;border-radius:5px;padding:0.22rem;font-size:0.6rem;font-weight:700;cursor:pointer;">
+              ↩ Borrar
             </button>
           </div>
         </div>`;
 
     } else if (status === 'partial') {
-      // Parcial ⚠️ — con input de reps reales
+      // Parcial ⚠️ — editar datos + reps reales
+      const kgText = weightKg ? `${weightKg} kg` : '';
       actionWrap.innerHTML = `
         <div style="display:flex;flex-direction:column;gap:0.3rem;">
-          <div style="font-size:0.66rem;font-weight:800;color:#92400E;">⚠️ Parcial — ¿Cuántas reps hiciste?</div>
-          <div style="display:flex;gap:0.25rem;align-items:center;">
-            <input id="tp-partial-${exId}" type="number" min="1" max="200"
-              value="${actualReps || ''}" placeholder="Reps"
-              style="flex:1;border:1.5px solid #F59E0B;border-radius:5px;padding:0.3rem 0.4rem;font-size:0.75rem;font-weight:700;text-align:center;background:#FFFBEB;color:#92400E;outline:none;">
-            <button type="button" onclick="window.timeplusSavePartialReps('${exId}')"
-              style="background:#F59E0B;color:#fff;border:none;border-radius:5px;padding:0.35rem 0.5rem;font-size:0.68rem;font-weight:800;cursor:pointer;white-space:nowrap;">
-              💾 Guardar
-            </button>
-          </div>
-          ${actualReps ? `<div style="font-size:0.65rem;color:#78350F;font-weight:700;text-align:center;">📊 ${actualReps} reps registradas (de ~${sets * 11} objetivo)</div>` : ''}
-          <button type="button" onclick="window.timeplusSetExerciseStatus('${exId}','done')"
-            style="background:#F0FDF4;color:#166534;border:1px solid #86EFAC;border-radius:5px;padding:0.25rem;font-size:0.62rem;font-weight:700;cursor:pointer;">
-            ✅ Actualizar a completo
+          <div style="font-size:0.64rem;font-weight:800;color:#92400E;">⚠️ Parcial — ¿Cuánto hiciste realmente?</div>
+          ${weightInputs(`tp-ex-${exId}`, weightKg, actualReps || repsPerSet, sets)}
+          <button type="button" onclick="window.timeplusSaveExerciseData('${exId}','partial')"
+            style="background:#F59E0B;color:#fff;border:none;border-radius:5px;padding:0.32rem;font-size:0.68rem;font-weight:800;cursor:pointer;width:100%;">
+            💾 Guardar datos parciales
+          </button>
+          ${(weightKg || actualReps) ? `<div style="font-size:0.62rem;color:#78350F;font-weight:700;text-align:center;">📊 ${kgText}${kgText ? ' · ' : ''}${actualReps ? actualReps + ' reps · ' : ''}${sets} series guardadas</div>` : ''}
+          <button type="button" onclick="window.timeplusSaveExerciseData('${exId}','done')"
+            style="background:#F0FDF4;color:#166534;border:1px solid #86EFAC;border-radius:5px;padding:0.22rem;font-size:0.6rem;font-weight:700;cursor:pointer;">
+            ✅ Fue completo
           </button>
         </div>`;
 
@@ -5121,12 +5172,12 @@ document.addEventListener('DOMContentLoaded', () => {
           <div style="background:#FFF1F2;color:#991B1B;border:1px solid #FECACA;border-radius:6px;padding:0.3rem 0.5rem;text-align:center;font-size:0.7rem;font-weight:800;text-decoration:line-through;opacity:0.8;">
             ❌ No realizado hoy
           </div>
-          <button type="button" onclick="window.timeplusSetExerciseStatus('${exId}','done')"
+          <button type="button" onclick="window.timeplusSetExerciseStatus('${exId}','planned')"
             style="background:#F0FDF4;color:#166534;border:1px solid #86EFAC;border-radius:5px;padding:0.25rem;font-size:0.62rem;font-weight:700;cursor:pointer;">
-            ✅ Sí lo hice — marcar completo
+            ✅ Sí lo hice — ingresar datos
           </button>
           <button type="button" onclick="window.timeplusDecrementExerciseSet('${exId}', event)"
-            style="background:transparent;border:none;color:#94a3b8;font-size:0.62rem;cursor:pointer;text-decoration:underline;">
+            style="background:transparent;border:none;color:#94a3b8;font-size:0.6rem;cursor:pointer;text-decoration:underline;text-align:center;">
             Quitar de la rutina
           </button>
         </div>`;
@@ -5156,8 +5207,15 @@ document.addEventListener('DOMContentLoaded', () => {
     if (summaryBox && summaryList) {
       summaryBox.style.display = 'block';
 
-      const makeBadge = (t, bg, border, color, label) =>
-        `<span style="background:${bg};border:1px solid ${border};padding:0.2rem 0.5rem;border-radius:999px;font-size:0.7rem;color:${color};font-weight:700;">${label} ${t.name}${t.actualReps ? ' (' + t.actualReps + ' reps)' : ''}</span>`;
+      const makeBadge = (t, bg, border, color, label) => {
+        const kgInfo   = t.weightKg   ? ` · ${t.weightKg}kg` : '';
+        const repsInfo = t.repsPerSet ? ` · ${t.repsPerSet}r` : '';
+        const setsInfo = t.sets       ? ` · ${t.sets}s` : '';
+        const partialInfo = (t.actualReps && t.status === 'partial') ? ` (${t.actualReps} reps reales)` : '';
+        return `<span style="background:${bg};border:1px solid ${border};padding:0.2rem 0.5rem;border-radius:999px;font-size:0.7rem;color:${color};font-weight:700;" title="${t.name}: ${t.weightKg || '?'}kg × ${t.repsPerSet || '?'} reps × ${t.sets || '?'} series">
+          ${label} ${t.name}${kgInfo}${repsInfo}${setsInfo}${partialInfo}
+        </span>`;
+      };
 
       summaryList.innerHTML = `
         <div style="font-weight:700;margin-bottom:0.35rem;color:#1E293B;font-size:0.75rem;">
@@ -5172,13 +5230,19 @@ document.addEventListener('DOMContentLoaded', () => {
       `;
     }
 
-    // Actualizar notas con el reporte completo de ejecución
-    if (notesTextarea && (!notesTextarea.value || notesTextarea.value.startsWith('• '))) {
+    // Actualizar notas con el reporte completo incluyendo peso/reps/series
+    if (notesTextarea && (!notesTextarea.value || notesTextarea.value.startsWith('• ') || notesTextarea.value.startsWith('✅') || notesTextarea.value.startsWith('⚠️'))) {
       const lines = [];
-      if (done.length)    lines.push(...done.map(t    => `✅ ${t.name} [${t.muscle}]: ${t.sets} series completas`));
-      if (partial.length) lines.push(...partial.map(t => `⚠️ ${t.name} [${t.muscle}]: ${t.actualReps ? t.actualReps + ' reps (parcial)' : 'parcial'}`));
+      const fmtEx = t => {
+        const kg   = t.weightKg   ? `${t.weightKg}kg` : 'sin peso';
+        const reps = t.repsPerSet ? `${t.repsPerSet} reps` : '? reps';
+        const sts  = t.sets       ? `${t.sets} series` : '? series';
+        return `${kg} × ${reps} × ${sts}`;
+      };
+      if (done.length)    lines.push(...done.map(t    => `✅ ${t.name} [${t.muscle}]: ${fmtEx(t)} — completo`));
+      if (partial.length) lines.push(...partial.map(t => `⚠️ ${t.name} [${t.muscle}]: ${fmtEx(t)}${t.actualReps ? ' · ' + t.actualReps + ' reps reales' : ''} — parcial`));
       if (skipped.length) lines.push(...skipped.map(t => `❌ ${t.name} [${t.muscle}]: omitido`));
-      if (planned.length) lines.push(...planned.map(t => `📋 ${t.name} [${t.muscle}]: planificado (sin confirmar)`));
+      if (planned.length) lines.push(...planned.map(t => `📋 ${t.name} [${t.muscle}]: ${fmtEx(t)} — pendiente de confirmar`));
       notesTextarea.value = lines.join('\n');
     }
   };
