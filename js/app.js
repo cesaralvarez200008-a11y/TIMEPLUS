@@ -5087,7 +5087,7 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     container.innerHTML = `
-      <!-- BARRA DE GÉNERO & SELECCIÓN DE AVATAR -->
+      <!-- BARRA DE GÉNERO — DETECCIÓN AUTOMÁTICA POR PERFIL -->
       <div style="display:flex;justify-content:space-between;align-items:center;background:${isFem ? 'linear-gradient(135deg,#FFF1F2,#FFE4E6)' : 'linear-gradient(135deg,#EFF6FF,#DBEAFE)'};border:1.5px solid ${isFem ? '#FDA4AF' : '#93C5FD'};border-radius:0.75rem;padding:0.65rem 0.85rem;flex-wrap:wrap;gap:0.5rem;">
         <div style="display:flex;align-items:center;gap:0.5rem;">
           <div style="font-size:1.6rem;background:#fff;border-radius:50%;width:2.4rem;height:2.4rem;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 6px rgba(0,0,0,0.08);">
@@ -5103,15 +5103,15 @@ document.addEventListener('DOMContentLoaded', () => {
           </div>
         </div>
 
-        <div style="display:flex;gap:0.35rem;background:#fff;padding:0.25rem;border-radius:0.5rem;box-shadow:0 1px 3px rgba(0,0,0,0.06);">
-          <button type="button" onclick="window.timeplusSetGymGender('femenino')" style="border:none;background:${isFem ? '#F43F5E' : 'transparent'};color:${isFem ? '#fff' : '#64748B'};font-size:0.72rem;font-weight:800;padding:0.35rem 0.65rem;border-radius:0.4rem;cursor:pointer;">
-            👩 Femenino
-          </button>
-          <button type="button" onclick="window.timeplusSetGymGender('masculino')" style="border:none;background:${!isFem ? '#2563EB' : 'transparent'};color:${!isFem ? '#fff' : '#64748B'};font-size:0.72rem;font-weight:800;padding:0.35rem 0.65rem;border-radius:0.4rem;cursor:pointer;">
-            👨 Masculino
-          </button>
+        <!-- Badge automático — solo informativo, sin toggle manual -->
+        <div style="display:flex;align-items:center;gap:0.4rem;background:#fff;padding:0.3rem 0.65rem;border-radius:0.5rem;box-shadow:0 1px 3px rgba(0,0,0,0.06);">
+          <span style="font-size:0.68rem;font-weight:800;color:${isFem ? '#F43F5E' : '#2563EB'};">
+            ${isFem ? '👩 Femenino' : '👨 Masculino'}
+          </span>
+          <span style="font-size:0.6rem;color:#94a3b8;font-weight:600;">• Tu perfil</span>
         </div>
       </div>
+
 
       <!-- FILTROS POR GRUPO MUSCULAR (PECHO, HOMBROS, ESPALDA, PIERNAS) -->
       <div style="display:flex;gap:0.35rem;overflow-x:auto;padding-bottom:0.25rem;">
