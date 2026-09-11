@@ -4960,108 +4960,226 @@ document.addEventListener('DOMContentLoaded', () => {
     window.timeplusRenderCompoundExercisesGrid(filter);
   };
 
-  // Un clic: ¡Hice esta serie!
-  window.timeplusRecordExerciseSet = (exId) => {
-    const ex = TIMEPLUS_COMPOUND_EXERCISES.find(e => e.id === exId);
-    if (!ex) return;
+  // Sistema de 3 estados: 'planned' → 'done' → 'partial' → 'skipped' → 'planned'
+  // timeplusGymTracked[exId] = { sets, status: 'planned'|'done'|'partial'|'skipped', actualReps: number }
 
+  window.timeplusSetExerciseStatus = (exId, status) => {
     if (!window.timeplusGymTracked[exId]) {
-      window.timeplusGymTracked[exId] = { ...ex, sets: 0 };
+      const ex = TIMEPLUS_COMPOUND_EXERCISES.find(e => e.id === exId);
+      window.timeplusGymTracked[exId] = { ...ex, sets: ex?.targetSets || 3, status: 'planned', actualReps: null };
     }
-    window.timeplusGymTracked[exId].sets += 1;
-    const currentSets = window.timeplusGymTracked[exId].sets;
+    const tracked = window.timeplusGymTracked[exId];
+    tracked.status = status;
 
-    // Pronuncia con voz clara el registro
-    window.timeplusSpeakExercise(`¡Hice esta serie de ${ex.name}! Serie ${currentSets}`);
-
-    if (window.timeplusShowToast) {
-      window.timeplusShowToast(`✅ ¡Hice esta serie! ${ex.name} (${currentSets}/${ex.targetSets})`);
+    if (status === 'done') {
+      tracked.sets = tracked.sets || TIMEPLUS_COMPOUND_EXERCISES.find(e => e.id === exId)?.targetSets || 3;
+      tracked.actualReps = null; // completo = todas las reps
+      window.timeplusSpeakExercise && window.timeplusSpeakExercise(`¡Completado! ${tracked.name}`);
+      window.timeplusShowToast && window.timeplusShowToast(`✅ ${tracked.name} — ¡Series completas!`);
+    } else if (status === 'skipped') {
+      window.timeplusShowToast && window.timeplusShowToast(`❌ ${tracked.name} — Omitido hoy.`);
     }
 
     window.timeplusUpdateExerciseCardUI(exId);
     window.timeplusSyncExercisesSummary();
   };
 
-  // Restar serie si se equivocó
+  window.timeplusSavePartialReps = (exId) => {
+    const input = document.getElementById(`tp-partial-${exId}`);
+    const val = parseInt(input?.value) || 0;
+    if (!window.timeplusGymTracked[exId]) return;
+    window.timeplusGymTracked[exId].actualReps = val;
+    window.timeplusGymTracked[exId].status = 'partial';
+    window.timeplusShowToast && window.timeplusShowToast(`⚠️ ${window.timeplusGymTracked[exId].name} — ${val} reps registradas.`);
+    window.timeplusUpdateExerciseCardUI(exId);
+    window.timeplusSyncExercisesSummary();
+  };
+
+  // Mantener compatibilidad con el clic en el avatar (ahora planifica/marca completo)
+  window.timeplusRecordExerciseSet = (exId) => {
+    const cur = window.timeplusGymTracked[exId]?.status;
+    if (!cur || cur === 'planned') {
+      window.timeplusSetExerciseStatus(exId, 'done');
+    } else if (cur === 'done') {
+      // segundo clic → nada, usar los botones de estado
+    }
+  };
+
   window.timeplusDecrementExerciseSet = (exId, evt) => {
     if (evt) evt.stopPropagation();
-    if (!window.timeplusGymTracked[exId] || window.timeplusGymTracked[exId].sets <= 0) return;
-
-    window.timeplusGymTracked[exId].sets -= 1;
+    // Resetear a sin planificar
+    delete window.timeplusGymTracked[exId];
     window.timeplusUpdateExerciseCardUI(exId);
     window.timeplusSyncExercisesSummary();
   };
 
-  // Actualizar tarjeta específica
+  // Actualizar tarjeta específica con los 3 estados
   window.timeplusUpdateExerciseCardUI = (exId) => {
     const ex = TIMEPLUS_COMPOUND_EXERCISES.find(e => e.id === exId);
     const card = document.getElementById(`tp-card-${exId}`);
     if (!card || !ex) return;
 
-    const sets = window.timeplusGymTracked[exId]?.sets || 0;
-    const isDone = sets > 0;
+    const tracked = window.timeplusGymTracked[exId];
+    const status = tracked?.status || 'unplanned'; // unplanned | planned | done | partial | skipped
+    const sets = tracked?.sets || ex.targetSets;
+    const actualReps = tracked?.actualReps;
 
-    card.style.borderColor = isDone ? '#10B981' : (ex.isKey ? '#FCA5A5' : '#E2E8F0');
-    card.style.background = isDone ? '#F0FDF4' : '#FFFFFF';
-    card.style.boxShadow = isDone ? '0 4px 14px rgba(16,185,129,0.18)' : '0 1px 3px rgba(0,0,0,0.05)';
+    // Estilos por estado
+    const styles = {
+      unplanned: { border: ex.isKey ? '#FCA5A5' : '#E2E8F0', bg: '#FFFFFF', shadow: '0 1px 3px rgba(0,0,0,0.04)' },
+      planned:   { border: '#93C5FD', bg: '#EFF6FF', shadow: '0 2px 8px rgba(37,99,235,0.12)' },
+      done:      { border: '#10B981', bg: '#F0FDF4', shadow: '0 4px 14px rgba(16,185,129,0.18)' },
+      partial:   { border: '#F59E0B', bg: '#FFFBEB', shadow: '0 3px 10px rgba(245,158,11,0.15)' },
+      skipped:   { border: '#EF4444', bg: '#FFF1F2', shadow: '0 2px 6px rgba(239,68,68,0.1)' }
+    };
+
+    const s = styles[status] || styles.unplanned;
+    card.style.borderColor = s.border;
+    card.style.background = s.bg;
+    card.style.boxShadow = s.shadow;
 
     const actionWrap = card.querySelector('.tp-card-action');
-    if (actionWrap) {
-      if (isDone) {
-        actionWrap.innerHTML = `
-          <div style="display:flex;align-items:center;justify-content:space-between;gap:0.35rem;width:100%;">
-            <button type="button" onclick="window.timeplusRecordExerciseSet('${exId}')" style="flex:1;background:#10B981;color:#fff;border:none;border-radius:6px;padding:0.4rem 0.5rem;font-size:0.72rem;font-weight:800;display:flex;align-items:center;justify-content:center;gap:0.25rem;cursor:pointer;box-shadow:0 2px 6px rgba(16,185,129,0.3);">
-              <span>✅ ¡Hice esta serie!</span>
-              <span style="background:rgba(0,0,0,0.2);padding:0.1rem 0.35rem;border-radius:4px;font-size:0.68rem;">${sets}/${ex.targetSets}</span>
+    if (!actionWrap) return;
+
+    if (status === 'unplanned') {
+      // Sin planificar — botón de agregar a la rutina del día
+      actionWrap.innerHTML = `
+        <button type="button" onclick="window.timeplusSetExerciseStatus('${exId}','planned')"
+          style="width:100%;background:${ex.isKey ? '#EF4444' : '#2563EB'};color:#fff;border:none;border-radius:6px;padding:0.4rem 0.5rem;font-size:0.72rem;font-weight:800;cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,0.1);">
+          ＋ ¡Hice esta serie! <span style="opacity:0.75;font-size:0.65rem;">(0/${sets})</span>
+        </button>`;
+
+    } else if (status === 'planned') {
+      // Planificado — botones de ejecución
+      actionWrap.innerHTML = `
+        <div style="display:flex;flex-direction:column;gap:0.3rem;">
+          <div style="font-size:0.66rem;font-weight:800;color:#1D4ED8;text-align:center;">📋 Planificado — ¿Lo hiciste?</div>
+          <div style="display:flex;gap:0.25rem;">
+            <button type="button" onclick="window.timeplusSetExerciseStatus('${exId}','done')"
+              style="flex:1;background:#10B981;color:#fff;border:none;border-radius:5px;padding:0.35rem 0.3rem;font-size:0.68rem;font-weight:800;cursor:pointer;">
+              ✅ Completo
             </button>
-            <button type="button" onclick="window.timeplusDecrementExerciseSet('${exId}', event)" title="Restar 1 serie" style="background:#F1F5F9;color:#64748B;border:1px solid #CBD5E1;border-radius:6px;width:1.75rem;height:1.75rem;font-size:0.85rem;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;">
-              −
+            <button type="button" onclick="window.timeplusSetExerciseStatus('${exId}','partial')"
+              style="flex:1;background:#F59E0B;color:#fff;border:none;border-radius:5px;padding:0.35rem 0.3rem;font-size:0.68rem;font-weight:800;cursor:pointer;">
+              ⚠️ Parcial
+            </button>
+            <button type="button" onclick="window.timeplusSetExerciseStatus('${exId}','skipped')"
+              style="flex:1;background:#EF4444;color:#fff;border:none;border-radius:5px;padding:0.35rem 0.3rem;font-size:0.68rem;font-weight:800;cursor:pointer;">
+              ❌ No hice
             </button>
           </div>
-        `;
-      } else {
-        actionWrap.innerHTML = `
-          <button type="button" onclick="window.timeplusRecordExerciseSet('${exId}')" style="width:100%;background:${ex.isKey ? '#EF4444' : '#2563EB'};color:#fff;border:none;border-radius:6px;padding:0.4rem 0.5rem;font-size:0.72rem;font-weight:800;display:flex;align-items:center;justify-content:center;gap:0.3rem;cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,0.1);">
-            <span>＋ ¡Hice esta serie!</span>
-            <span style="opacity:0.75;font-size:0.65rem;">(0/${ex.targetSets})</span>
+          <button type="button" onclick="window.timeplusDecrementExerciseSet('${exId}', event)"
+            style="background:transparent;border:none;color:#94a3b8;font-size:0.62rem;cursor:pointer;text-decoration:underline;">
+            Quitar de la rutina
           </button>
-        `;
-      }
+        </div>`;
+
+    } else if (status === 'done') {
+      // Completado ✅
+      actionWrap.innerHTML = `
+        <div style="display:flex;flex-direction:column;gap:0.3rem;">
+          <div style="background:#10B981;color:#fff;border-radius:6px;padding:0.3rem 0.5rem;text-align:center;font-size:0.7rem;font-weight:900;">
+            ✅ ¡Completo! ${sets} series × 10-12 reps
+          </div>
+          <div style="display:flex;gap:0.25rem;">
+            <button type="button" onclick="window.timeplusSetExerciseStatus('${exId}','partial')"
+              style="flex:1;background:#FEF3C7;color:#92400E;border:1px solid #FCD34D;border-radius:5px;padding:0.25rem;font-size:0.62rem;font-weight:700;cursor:pointer;">
+              ⚠️ Fue parcial
+            </button>
+            <button type="button" onclick="window.timeplusDecrementExerciseSet('${exId}', event)"
+              style="flex:1;background:#FFF1F2;color:#991B1B;border:1px solid #FECACA;border-radius:5px;padding:0.25rem;font-size:0.62rem;font-weight:700;cursor:pointer;">
+              ↩ Deshacer
+            </button>
+          </div>
+        </div>`;
+
+    } else if (status === 'partial') {
+      // Parcial ⚠️ — con input de reps reales
+      actionWrap.innerHTML = `
+        <div style="display:flex;flex-direction:column;gap:0.3rem;">
+          <div style="font-size:0.66rem;font-weight:800;color:#92400E;">⚠️ Parcial — ¿Cuántas reps hiciste?</div>
+          <div style="display:flex;gap:0.25rem;align-items:center;">
+            <input id="tp-partial-${exId}" type="number" min="1" max="200"
+              value="${actualReps || ''}" placeholder="Reps"
+              style="flex:1;border:1.5px solid #F59E0B;border-radius:5px;padding:0.3rem 0.4rem;font-size:0.75rem;font-weight:700;text-align:center;background:#FFFBEB;color:#92400E;outline:none;">
+            <button type="button" onclick="window.timeplusSavePartialReps('${exId}')"
+              style="background:#F59E0B;color:#fff;border:none;border-radius:5px;padding:0.35rem 0.5rem;font-size:0.68rem;font-weight:800;cursor:pointer;white-space:nowrap;">
+              💾 Guardar
+            </button>
+          </div>
+          ${actualReps ? `<div style="font-size:0.65rem;color:#78350F;font-weight:700;text-align:center;">📊 ${actualReps} reps registradas (de ~${sets * 11} objetivo)</div>` : ''}
+          <button type="button" onclick="window.timeplusSetExerciseStatus('${exId}','done')"
+            style="background:#F0FDF4;color:#166534;border:1px solid #86EFAC;border-radius:5px;padding:0.25rem;font-size:0.62rem;font-weight:700;cursor:pointer;">
+            ✅ Actualizar a completo
+          </button>
+        </div>`;
+
+    } else if (status === 'skipped') {
+      // Omitido ❌
+      actionWrap.innerHTML = `
+        <div style="display:flex;flex-direction:column;gap:0.3rem;">
+          <div style="background:#FFF1F2;color:#991B1B;border:1px solid #FECACA;border-radius:6px;padding:0.3rem 0.5rem;text-align:center;font-size:0.7rem;font-weight:800;text-decoration:line-through;opacity:0.8;">
+            ❌ No realizado hoy
+          </div>
+          <button type="button" onclick="window.timeplusSetExerciseStatus('${exId}','done')"
+            style="background:#F0FDF4;color:#166534;border:1px solid #86EFAC;border-radius:5px;padding:0.25rem;font-size:0.62rem;font-weight:700;cursor:pointer;">
+            ✅ Sí lo hice — marcar completo
+          </button>
+          <button type="button" onclick="window.timeplusDecrementExerciseSet('${exId}', event)"
+            style="background:transparent;border:none;color:#94a3b8;font-size:0.62rem;cursor:pointer;text-decoration:underline;">
+            Quitar de la rutina
+          </button>
+        </div>`;
     }
   };
 
-  // Sincronizar resumen visual y textarea de notas
+  // Sincronizar resumen visual con los 3 estados
   window.timeplusSyncExercisesSummary = () => {
     const summaryBox = document.getElementById('tp-selected-exercises-summary');
     const summaryList = document.getElementById('tp-selected-exercises-list');
     const notesTextarea = document.getElementById('fit-gym-exercises');
 
-    const trackedList = Object.values(window.timeplusGymTracked).filter(item => item.sets > 0);
+    const allTracked = Object.values(window.timeplusGymTracked);
+    // Mostrar si hay al menos uno con cualquier estado (planned, done, partial, skipped)
+    const hasAny = allTracked.some(item => item.status && item.status !== 'unplanned');
 
-    if (trackedList.length === 0) {
+    if (!hasAny) {
       if (summaryBox) summaryBox.style.display = 'none';
       return;
     }
 
+    const done    = allTracked.filter(t => t.status === 'done');
+    const partial = allTracked.filter(t => t.status === 'partial');
+    const skipped = allTracked.filter(t => t.status === 'skipped');
+    const planned = allTracked.filter(t => t.status === 'planned');
+
     if (summaryBox && summaryList) {
       summaryBox.style.display = 'block';
-      const totalSets = trackedList.reduce((acc, cur) => acc + cur.sets, 0);
+
+      const makeBadge = (t, bg, border, color, label) =>
+        `<span style="background:${bg};border:1px solid ${border};padding:0.2rem 0.5rem;border-radius:999px;font-size:0.7rem;color:${color};font-weight:700;">${label} ${t.name}${t.actualReps ? ' (' + t.actualReps + ' reps)' : ''}</span>`;
+
       summaryList.innerHTML = `
-        <div style="font-weight:700;margin-bottom:0.35rem;color:#166534;">
-          ${trackedList.length} ejercicios realizados • ${totalSets} series acumuladas
+        <div style="font-weight:700;margin-bottom:0.35rem;color:#1E293B;font-size:0.75rem;">
+          📊 Resumen de Rutina: ${done.length} ✅ completos · ${partial.length} ⚠️ parciales · ${skipped.length} ❌ omitidos · ${planned.length} 📋 pendientes
         </div>
-        <div style="display:flex;flex-wrap:wrap;gap:0.35rem;">
-          ${trackedList.map(t => `
-            <span style="background:#DCFCE7;border:1px solid #86EFAC;padding:0.2rem 0.5rem;border-radius:999px;font-size:0.7rem;color:#14532D;font-weight:700;">
-              ${t.muscle}: ${t.name} (${t.sets} series)
-            </span>
-          `).join('')}
+        <div style="display:flex;flex-wrap:wrap;gap:0.3rem;">
+          ${done.map(t => makeBadge(t, '#DCFCE7', '#86EFAC', '#14532D', '✅')).join('')}
+          ${partial.map(t => makeBadge(t, '#FEF3C7', '#FCD34D', '#92400E', '⚠️')).join('')}
+          ${skipped.map(t => makeBadge(t, '#FFF1F2', '#FECACA', '#991B1B', '❌')).join('')}
+          ${planned.map(t => makeBadge(t, '#DBEAFE', '#93C5FD', '#1E40AF', '📋')).join('')}
         </div>
       `;
     }
 
+    // Actualizar notas con el reporte completo de ejecución
     if (notesTextarea && (!notesTextarea.value || notesTextarea.value.startsWith('• '))) {
-      notesTextarea.value = trackedList.map(t => `• ${t.name} [${t.muscle}]: ${t.sets} series × 10-12 reps`).join('\n');
+      const lines = [];
+      if (done.length)    lines.push(...done.map(t    => `✅ ${t.name} [${t.muscle}]: ${t.sets} series completas`));
+      if (partial.length) lines.push(...partial.map(t => `⚠️ ${t.name} [${t.muscle}]: ${t.actualReps ? t.actualReps + ' reps (parcial)' : 'parcial'}`));
+      if (skipped.length) lines.push(...skipped.map(t => `❌ ${t.name} [${t.muscle}]: omitido`));
+      if (planned.length) lines.push(...planned.map(t => `📋 ${t.name} [${t.muscle}]: planificado (sin confirmar)`));
+      notesTextarea.value = lines.join('\n');
     }
   };
 
