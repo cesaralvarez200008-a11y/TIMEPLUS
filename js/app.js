@@ -2729,6 +2729,18 @@ document.addEventListener('DOMContentLoaded', () => {
     if (f === 'mensual') {
       return now.getDate() === start.getDate();
     }
+    // 🌸 Ciclos Anticonceptivos Femeninos
+    if (f === 'anticonceptivo_21_7') {
+      const cycleDay = (diffDays % 28) + 1; // Días 1 a 28
+      return cycleDay <= 21; // Días 1-21: toma activa. Días 22-28: descanso/menstruación (false)
+    }
+    if (f === 'anticonceptivo_24_4') {
+      const cycleDay = (diffDays % 28) + 1;
+      return cycleDay <= 24; // Días 1-24: toma activa. Días 25-28: descanso/placebo (false)
+    }
+    if (f === 'anticonceptivo_continuo') {
+      return true; // 28 pastillas sin descanso, siempre toca
+    }
     return true;
   };
 
@@ -2757,6 +2769,39 @@ document.addEventListener('DOMContentLoaded', () => {
     if (f === 'mensual') {
       return 'Este mes';
     }
+    // 🌸 Ciclos Anticonceptivos Femeninos
+    if (f === 'anticonceptivo_21_7') {
+      const cycleDay = (diffDays % 28) + 1;
+      if (cycleDay <= 21) {
+        return `🌸 Pastilla ${cycleDay} de 21`;
+      } else {
+        const restDay = cycleDay - 21;
+        const daysUntilNew = 29 - cycleDay; // días hasta nueva caja
+        const newBoxDate = new Date();
+        newBoxDate.setDate(newBoxDate.getDate() + daysUntilNew);
+        const dd = String(newBoxDate.getDate()).padStart(2,'0');
+        const mm = String(newBoxDate.getMonth()+1).padStart(2,'0');
+        return `🩸 Descanso/Regla (Día ${restDay}/7) · Nueva caja el ${dd}/${mm}`;
+      }
+    }
+    if (f === 'anticonceptivo_24_4') {
+      const cycleDay = (diffDays % 28) + 1;
+      if (cycleDay <= 24) {
+        return `🌸 Pastilla ${cycleDay} de 24`;
+      } else {
+        const restDay = cycleDay - 24;
+        const daysUntilNew = 29 - cycleDay;
+        const newBoxDate = new Date();
+        newBoxDate.setDate(newBoxDate.getDate() + daysUntilNew);
+        const dd = String(newBoxDate.getDate()).padStart(2,'0');
+        const mm = String(newBoxDate.getMonth()+1).padStart(2,'0');
+        return `🩸 Descanso/Placebo (Día ${restDay}/4) · Nueva caja el ${dd}/${mm}`;
+      }
+    }
+    if (f === 'anticonceptivo_continuo') {
+      const cycleDay = (diffDays % 28) + 1;
+      return `🌸 Pastilla ${cycleDay} de 28 (Ciclo continuo)`;
+    }
     return 'Próximamente';
   };
 
@@ -2772,6 +2817,17 @@ document.addEventListener('DOMContentLoaded', () => {
     const currentDose = med.dosePerTake || 1;
     const currentStart = med.startDate || new Date().toISOString().slice(0, 10);
     const currentNotes = med.instructions || '';
+
+    // 🌸 Detectar género del usuario para mostrar opciones femeninas
+    const currentUser = store.getCurrentUser ? store.getCurrentUser() : null;
+    const isFemale = (currentUser?.gender || '').trim().toLowerCase() === 'femenino';
+    const femaleOptionsHtml = isFemale ? `
+      <optgroup label="🌸 Salud Femenina &amp; Anticonceptivos">
+        <option value="anticonceptivo_21_7" ${currentFreq === 'anticonceptivo_21_7' ? 'selected' : ''}>🌸 Anticonceptivo (21 días toma + 7 descanso / regla)</option>
+        <option value="anticonceptivo_24_4" ${currentFreq === 'anticonceptivo_24_4' ? 'selected' : ''}>🌸 Anticonceptivo (24 días activas + 4 descanso / placebo)</option>
+        <option value="anticonceptivo_continuo" ${currentFreq === 'anticonceptivo_continuo' ? 'selected' : ''}>🌸 Anticonceptivo continuo (28 pastillas sin descanso)</option>
+      </optgroup>
+    ` : '';
 
     const overlay = document.createElement('div');
     overlay.id = 'tp-sched-modal-overlay';
@@ -2827,8 +2883,10 @@ document.addEventListener('DOMContentLoaded', () => {
               <option value="mensual" ${currentFreq === 'mensual' ? 'selected' : ''}>🗓️ Mensual (Cada 30 días)</option>
               <option value="cada_12h" ${currentFreq === 'cada_12h' ? 'selected' : ''}>🔁 Cada 12 horas (2 veces al día)</option>
               <option value="cada_8h" ${currentFreq === 'cada_8h' ? 'selected' : ''}>🔁 Cada 8 horas (3 veces al día)</option>
+              ${femaleOptionsHtml}
             </select>
           </div>
+
 
           <!-- Hora + Dosis -->
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
@@ -2925,7 +2983,10 @@ document.addEventListener('DOMContentLoaded', () => {
       quincenal: 'Cada 15 días',
       mensual: 'Cada 30 días',
       cada_12h: 'Cada 12 horas',
-      cada_8h: 'Cada 8 horas'
+      cada_8h: 'Cada 8 horas',
+      anticonceptivo_21_7: '🌸 Ciclo 21+7 (Anticonceptivo)',
+      anticonceptivo_24_4: '🌸 Ciclo 24+4 (Anticonceptivo)',
+      anticonceptivo_continuo: '🌸 Ciclo continuo 28 días'
     };
 
     const updatedMed = {
@@ -3002,6 +3063,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
   window.timeplusOpenAddMedicationModal = () => {
     if (document.getElementById('tp-add-med-overlay')) return;
+
+    // 🌸 Detectar género para opciones anticonceptivas
+    const addMedUser = store.getCurrentUser ? store.getCurrentUser() : null;
+    const addMedIsFemale = (addMedUser?.gender || '').trim().toLowerCase() === 'femenino';
+    const femaleFreqHtml = addMedIsFemale ? `
+      <optgroup label="🌸 Salud Femenina &amp; Anticonceptivos">
+        <option value="anticonceptivo_21_7">🌸 Anticonceptivo (21 días toma + 7 descanso / regla)</option>
+        <option value="anticonceptivo_24_4">🌸 Anticonceptivo (24 días activas + 4 descanso / placebo)</option>
+        <option value="anticonceptivo_continuo">🌸 Anticonceptivo continuo (28 pastillas sin descanso)</option>
+      </optgroup>
+    ` : '';
 
     const overlay = document.createElement('div');
     overlay.id = 'tp-add-med-overlay';
@@ -3125,8 +3197,10 @@ document.addEventListener('DOMContentLoaded', () => {
                   <option value="mensual">🗓️ Mensual (Cada 30 días)</option>
                   <option value="cada_12h">🔁 Cada 12 horas (2 veces al día)</option>
                   <option value="cada_8h">🔁 Cada 8 horas (3 veces al día)</option>
+                  ${femaleFreqHtml}
                 </select>
               </div>
+
               <div>
                 <label style="color:#6ee7b7;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;display:block;margin-bottom:5px;">
                   ⏰ Dosis por cada toma
