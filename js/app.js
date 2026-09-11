@@ -695,31 +695,111 @@ document.addEventListener('DOMContentLoaded', () => {
     const medActs = store.getActivities().filter(a => a.type === 'medicamento');
     const trackedMeds = store.getMedications ? store.getMedications() : [];
     
-    // Alertas de inventario bajo (quedan 3 días o menos o menos de 5 unidades)
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const getExpiryInfo = (expStr) => {
+      if (!expStr) return { status: 'none', label: '📅 Sin fecha de vencimiento', color: '#64748B', bg: '#F8FAFC', border: '#E2E8F0', days: 999 };
+      const exp = new Date(expStr + 'T00:00:00');
+      const diffDays = Math.ceil((exp - today) / (1000 * 60 * 60 * 24));
+      if (diffDays < 0) {
+        return { status: 'expired', label: `🚨 VENCIDO: ${expStr}`, color: '#991B1B', bg: '#FEF2F2', border: '#F87171', days: diffDays };
+      } else if (diffDays <= 60) {
+        return { status: 'soon', label: `⏳ Vence en ${diffDays} días (${expStr})`, color: '#92400E', bg: '#FFFBEB', border: '#FCD34D', days: diffDays };
+      } else {
+        return { status: 'ok', label: `✅ Vence: ${expStr}`, color: '#166534', bg: '#F0FDF4', border: '#BBF7D0', days: diffDays };
+      }
+    };
+
+    // Alertas de medicamentos vencidos o por vencer
+    const expiredMeds = trackedMeds.filter(m => getExpiryInfo(m.expiryDate).status === 'expired');
+    const soonMeds = trackedMeds.filter(m => getExpiryInfo(m.expiryDate).status === 'soon');
+
+    // Alertas de inventario bajo (quedan 4 días o menos o stock <= 3)
     const lowStockMeds = trackedMeds.filter(m => {
+      const isBotiquin = m.usageType === 'botiquin' || m.usageType === 'reserva';
       const stock = Number(m.currentStock) || 0;
+      if (isBotiquin) return stock <= 3;
       const dailyUsage = (Number(m.takesPerDay) || 1) * (Number(m.dosePerTake) || 1);
       const daysLeft = dailyUsage > 0 ? Math.floor(stock / dailyUsage) : 999;
       return daysLeft <= 4 || stock <= 3;
     });
 
+    // Filtro activo de dispensario
+    const currentFilter = window.timeplusDispensaryFilter || 'todos';
+    const displayedMeds = trackedMeds.filter(m => {
+      const isBotiquin = m.usageType === 'botiquin' || m.usageType === 'reserva';
+      const expInfo = getExpiryInfo(m.expiryDate);
+      if (currentFilter === 'activos') return !isBotiquin;
+      if (currentFilter === 'botiquin') return isBotiquin;
+      if (currentFilter === 'vencidos') return expInfo.status === 'expired' || expInfo.status === 'soon';
+      return true;
+    });
+
+    const counts = {
+      todos: trackedMeds.length,
+      activos: trackedMeds.filter(m => m.usageType !== 'botiquin' && m.usageType !== 'reserva').length,
+      botiquin: trackedMeds.filter(m => m.usageType === 'botiquin' || m.usageType === 'reserva').length,
+      vencidos: expiredMeds.length + soonMeds.length
+    };
+
     contentEl.innerHTML = `
       <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:1rem;margin-bottom: 1.5rem;">
         <div>
           <h2>Salud, Medicamentos & Dispensario</h2>
-          <p style="font-size: 0.8125rem;">Control de tomas diarias, inventario de pastillas del mes y alertas de compra inteligente.</p>
+          <p style="font-size: 0.8125rem;">Control de tomas diarias, inventario de pastillas del mes, botiquín de reserva y control de fechas de vencimiento.</p>
         </div>
         <button onclick="window.timeplusOpenAddMedicationModal()" class="btn-primary" style="background:linear-gradient(135deg,#059669,#10b981);box-shadow:0 4px 12px rgba(16,185,129,0.35);display:flex;align-items:center;gap:0.5rem;font-weight:700;">
-          <span>➕</span> Registrar Medicamento / Receta
+          <span>➕</span> Registrar Medicamento / Receta / Botiquín
         </button>
       </div>
+
+      <!-- Banner de Alerta Crítica si hay medicamentos vencidos en el botiquín -->
+      ${expiredMeds.length > 0 ? `
+        <div style="background:linear-gradient(135deg,#FEF2F2,#FEE2E2);border:2px solid #EF4444;border-radius:var(--radius-lg);padding:1.25rem;margin-bottom:1.25rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem;">
+          <div style="display:flex;align-items:center;gap:1rem;">
+            <div style="width:48px;height:48px;background:#FEE2E2;border:2px solid #EF4444;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.6rem;">
+              🚨
+            </div>
+            <div>
+              <h4 style="color:#991B1B;margin:0;font-size:0.95rem;font-weight:800;">¡Peligro! Tienes medicamentos vencidos en tu dispensario/botiquín</h4>
+              <p style="color:#7F1D1D;font-size:0.8125rem;margin:0.25rem 0 0 0;">
+                Se detectaron <strong>${expiredMeds.length}</strong> producto(s) caducados: 
+                <strong>${expiredMeds.map(m => `${m.name} (${m.expiryDate})`).join(', ')}</strong>. 
+                ¡No los consumas por tu seguridad y deséchalos en un punto de recolección!
+              </p>
+            </div>
+          </div>
+          <button onclick="window.timeplusFilterDispensary('vencidos')" style="background:#DC2626;color:#fff;border:none;padding:0.6rem 1.1rem;border-radius:8px;font-weight:700;font-size:0.8125rem;cursor:pointer;box-shadow:0 2px 8px rgba(220,38,38,0.3);">
+            🔍 Ver Vencidos
+          </button>
+        </div>
+      ` : ''}
+
+      <!-- Banner de Alerta de Medicamentos Próximos a Vencer (dentro de 60 días) -->
+      ${(soonMeds.length > 0 && expiredMeds.length === 0) ? `
+        <div style="background:linear-gradient(135deg,#FFFBEB,#FEF3C7);border:1.5px solid #FCD34D;border-radius:var(--radius-lg);padding:1rem 1.25rem;margin-bottom:1.25rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem;">
+          <div style="display:flex;align-items:center;gap:0.75rem;">
+            <span style="font-size:1.5rem;">⏳</span>
+            <div>
+              <h4 style="color:#92400E;margin:0;font-size:0.9rem;font-weight:800;">Atención: Medicamentos próximos a vencer (menos de 60 días)</h4>
+              <p style="color:#B45309;font-size:0.8rem;margin:0.2rem 0 0 0;">
+                ${soonMeds.map(m => `<strong>${m.name}</strong> (vence ${m.expiryDate})`).join(', ')}.
+              </p>
+            </div>
+          </div>
+          <button onclick="window.timeplusFilterDispensary('vencidos')" style="background:#D97706;color:#fff;border:none;padding:0.5rem 1rem;border-radius:8px;font-weight:700;font-size:0.75rem;cursor:pointer;">
+            Revisar Botiquín
+          </button>
+        </div>
+      ` : ''}
 
       <!-- Banner de Alerta de Dispensario / Farmacia si hay stock bajo -->
       ${lowStockMeds.length > 0 ? `
         <div style="background:linear-gradient(135deg,rgba(239,68,68,0.12),rgba(245,158,11,0.12));border:1.5px solid #f87171;border-radius:var(--radius-lg);padding:1.25rem;margin-bottom:1.5rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem;">
           <div style="display:flex;align-items:center;gap:1rem;">
             <div style="width:46px;height:46px;background:#fee2e2;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.5rem;">
-              🚨
+              📦
             </div>
             <div>
               <h4 style="color:#b91c1c;margin:0;font-size:0.95rem;">¡Atención de Dispensario! Medicamentos por agotarse</h4>
@@ -775,31 +855,49 @@ document.addEventListener('DOMContentLoaded', () => {
         `).join('')}
       </div>
 
-      <!-- SECCIÓN DISPENSARIO & CONTROL DE INVENTARIO DEL MES -->
-      <div style="margin-bottom:1.25rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:0.5rem;border-bottom:1px solid #E2E8F0;padding-bottom:0.75rem;">
+      <!-- SECCIÓN DISPENSARIO, BOTIQUÍN & CONTROL DE STOCK Y VENCIMIENTOS -->
+      <div style="margin-bottom:1rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:0.75rem;border-bottom:1px solid #E2E8F0;padding-bottom:0.75rem;">
         <div>
-          <h3 style="font-size:1.1rem;margin:0;display:flex;align-items:center;gap:0.5rem;">
-            📦 Dispensario & Control de Stock del Mes
+          <h3 style="font-size:1.15rem;margin:0;display:flex;align-items:center;gap:0.5rem;">
+            📦 Dispensario & Botiquín Completo
           </h3>
           <span style="font-size:0.75rem;color:#64748B;">
-            La IA calcula automáticamente cuántos días de tratamiento te quedan y te avisa antes de que se acaben.
+            Registra todo lo que tienes en casa (en tratamiento activo o de reserva ocasional) con su <strong>fecha de vencimiento</strong>.
           </span>
+        </div>
+
+        <!-- Filtros rápidos -->
+        <div style="display:flex;gap:0.35rem;flex-wrap:wrap;">
+          <button onclick="window.timeplusFilterDispensary('todos')" style="border:none;background:${currentFilter === 'todos' ? '#1E293B' : '#F1F5F9'};color:${currentFilter === 'todos' ? '#fff' : '#475569'};font-size:0.72rem;font-weight:700;padding:0.35rem 0.7rem;border-radius:999px;cursor:pointer;">
+            Todos (${counts.todos})
+          </button>
+          <button onclick="window.timeplusFilterDispensary('activos')" style="border:none;background:${currentFilter === 'activos' ? '#059669' : '#ECFDF5'};color:${currentFilter === 'activos' ? '#fff' : '#047857'};font-size:0.72rem;font-weight:700;padding:0.35rem 0.7rem;border-radius:999px;cursor:pointer;">
+            💊 En Tratamiento (${counts.activos})
+          </button>
+          <button onclick="window.timeplusFilterDispensary('botiquin')" style="border:none;background:${currentFilter === 'botiquin' ? '#2563EB' : '#EFF6FF'};color:${currentFilter === 'botiquin' ? '#fff' : '#1D4ED8'};font-size:0.72rem;font-weight:700;padding:0.35rem 0.7rem;border-radius:999px;cursor:pointer;">
+            📦 Botiquín / Reserva (${counts.botiquin})
+          </button>
+          <button onclick="window.timeplusFilterDispensary('vencidos')" style="border:none;background:${currentFilter === 'vencidos' ? '#DC2626' : '#FEF2F2'};color:${currentFilter === 'vencidos' ? '#fff' : '#B91C1C'};font-size:0.72rem;font-weight:700;padding:0.35rem 0.7rem;border-radius:999px;cursor:pointer;">
+            ⚠️ Por Vencer / Vencidos (${counts.vencidos})
+          </button>
         </div>
       </div>
 
       <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 1rem;">
-        ${trackedMeds.length === 0 ? `
+        ${displayedMeds.length === 0 ? `
           <div style="grid-column:1/-1;text-align:center;padding:2.5rem 1.5rem;background:#F8FAFC;border:1.5px dashed #CBD5E1;border-radius:var(--radius-lg);color:#64748B;">
             <div style="font-size:2rem;margin-bottom:0.5rem;">📦</div>
-            <p style="font-weight:700;color:#1E293B;">Tu dispensario no tiene medicamentos en inventario.</p>
+            <p style="font-weight:700;color:#1E293B;">No hay medicamentos en esta categoría.</p>
             <p style="font-size:0.8rem;margin-top:0.25rem;">
-              Registra cuántas pastillas tienes (ej: caja de 30 unidades) y la IA calculará para cuántas semanas te alcanza.
+              Puedes registrar medicamentos que tomas a diario o productos que guardas en tu botiquín con fecha de caducidad.
             </p>
-            <button onclick="window.timeplusOpenAddMedicationModal()" class="btn-primary" style="margin-top:0.75rem;font-size:0.8rem;padding:0.5rem 1rem;">
-              + Agregar Medicamento al Dispensario
+            <button onclick="window.timeplusOpenAddMedicationModal()" class="btn-primary" style="margin-top:0.75rem;font-size:0.8rem;padding:0.5rem 1.25rem;">
+              + Registrar Medicamento / Botiquín
             </button>
           </div>
-        ` : trackedMeds.map(med => {
+        ` : displayedMeds.map(med => {
+          const isBotiquin = med.usageType === 'botiquin' || med.usageType === 'reserva';
+          const expInfo = getExpiryInfo(med.expiryDate);
           const stock = Number(med.currentStock) || 0;
           const initial = Number(med.initialStock) || 30;
           const takes = Number(med.takesPerDay) || 1;
@@ -807,53 +905,86 @@ document.addEventListener('DOMContentLoaded', () => {
           const dailyTotal = takes * dose;
           const daysLeft = dailyTotal > 0 ? Math.floor(stock / dailyTotal) : 0;
           const percent = Math.min(100, Math.round((stock / initial) * 100));
-          const isCrit = daysLeft <= 4 || stock <= 3;
-          const isWarning = daysLeft <= 7 && !isCrit;
+          const isCrit = (isBotiquin && stock <= 2) || (!isBotiquin && (daysLeft <= 4 || stock <= 3));
+          const isWarning = !isCrit && ((isBotiquin && stock <= 5) || (!isBotiquin && daysLeft <= 7));
           const barColor = isCrit ? '#EF4444' : (isWarning ? '#F59E0B' : '#10B981');
+          const isExpired = expInfo.status === 'expired';
 
           return `
-            <div style="background:#fff;border:1px solid ${isCrit ? '#FCA5A5' : '#E2E8F0'};border-radius:var(--radius-lg);padding:1.25rem;box-shadow:0 1px 3px rgba(0,0,0,0.05);position:relative;">
-              <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:0.75rem;">
-                <div>
-                  <span style="font-size:0.7rem;font-weight:700;color:${barColor};background:${isCrit ? '#FEF2F2' : '#F0FDF4'};padding:0.2rem 0.6rem;border-radius:999px;display:inline-block;margin-bottom:0.35rem;">
-                    ${isCrit ? '🚨 AGOTÁNDOSE PRONTO' : (isWarning ? '⚠️ STOCK MEDIO' : '✅ STOCK ÓPTIMO')}
-                  </span>
-                  <h4 style="margin:0;font-size:1.05rem;color:#0F172A;">${med.name}</h4>
-                  <div style="font-size:0.75rem;color:#64748B;margin-top:0.2rem;">
-                    ${med.instructions || '1 dosis al día'}
+            <div style="background:#fff;border:1.5px solid ${isExpired ? '#F87171' : (isCrit ? '#FCA5A5' : '#E2E8F0')};border-radius:var(--radius-lg);padding:1.25rem;box-shadow:${isExpired ? '0 4px 14px rgba(239,68,68,0.18)' : '0 1px 3px rgba(0,0,0,0.05)'};position:relative;display:flex;flex-direction:column;justify-content:space-between;">
+              <div>
+                <!-- Fila de Etiquetas: Modo de uso + Estado de Stock -->
+                <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:0.6rem;flex-wrap:wrap;gap:0.35rem;">
+                  <div style="display:flex;gap:0.35rem;flex-wrap:wrap;">
+                    <span style="font-size:0.68rem;font-weight:800;color:${isBotiquin ? '#1D4ED8' : '#047857'};background:${isBotiquin ? '#EFF6FF' : '#ECFDF5'};border:1px solid ${isBotiquin ? '#BFDBFE' : '#A7F3D0'};padding:0.18rem 0.5rem;border-radius:6px;">
+                      ${isBotiquin ? '📦 BOTIQUÍN / RESERVA' : '💊 TRATAMIENTO DIARIO'}
+                    </span>
+                    ${med.locationNotes ? `
+                      <span style="font-size:0.65rem;color:#475569;background:#F1F5F9;padding:0.18rem 0.45rem;border-radius:6px;">
+                        📍 ${med.locationNotes}
+                      </span>
+                    ` : ''}
+                  </div>
+                  <button onclick="window.timeplusDeleteMedication('${med.id}')" title="Eliminar del dispensario" style="background:transparent;border:none;cursor:pointer;color:#94A3B8;font-size:1rem;padding:0 0.25rem;">✕</button>
+                </div>
+
+                <!-- Nombre y Descripción -->
+                <h4 style="margin:0 0 0.25rem 0;font-size:1.1rem;color:#0F172A;display:flex;align-items:center;gap:0.35rem;">
+                  <span>${isBotiquin ? '🩹' : '💊'}</span> <span>${med.name}</span>
+                </h4>
+                <div style="font-size:0.75rem;color:#64748B;margin-bottom:0.75rem;">
+                  ${med.instructions || (isBotiquin ? 'Uso ocasional / botiquín de emergencia' : '1 dosis diaria con agua')}
+                </div>
+
+                <!-- BADGE DE FECHA DE VENCIMIENTO -->
+                <div style="margin-bottom:0.85rem;">
+                  <div style="background:${expInfo.bg};border:1px solid ${expInfo.border};color:${expInfo.color};padding:0.35rem 0.6rem;border-radius:8px;font-size:0.74rem;font-weight:700;display:flex;justify-content:space-between;align-items:center;">
+                    <span>${expInfo.label}</span>
+                    <button type="button" onclick="window.timeplusSetExpiryPrompt('${med.id}', '${med.name}', '${med.expiryDate || ''}')" style="background:none;border:none;color:${expInfo.color};text-decoration:underline;font-size:0.68rem;cursor:pointer;font-weight:700;">
+                      Cambiar
+                    </button>
                   </div>
                 </div>
-                <button onclick="window.timeplusDeleteMedication('${med.id}')" title="Eliminar" style="background:transparent;border:none;cursor:pointer;color:#94A3B8;font-size:1rem;">✕</button>
+
+                <!-- Medidor de Stock -->
+                <div style="background:#F8FAFC;border:1px solid #F1F5F9;border-radius:10px;padding:0.85rem;margin-bottom:1rem;">
+                  <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:0.4rem;">
+                    <span style="font-size:0.75rem;color:#475569;font-weight:600;">Disponibles en casa:</span>
+                    <span style="font-size:1.15rem;font-weight:800;color:${isCrit ? '#B91C1C' : '#0F172A'};">
+                      ${stock} <span style="font-size:0.75rem;font-weight:500;color:#64748B;">${med.unit || 'pastillas'}</span>
+                    </span>
+                  </div>
+
+                  <!-- Barra de progreso -->
+                  <div style="width:100%;height:8px;background:#E2E8F0;border-radius:999px;overflow:hidden;margin-bottom:0.5rem;">
+                    <div style="width:${percent}%;height:100%;background:${barColor};border-radius:999px;transition:width .3s;"></div>
+                  </div>
+
+                  <div style="display:flex;justify-content:space-between;font-size:0.75rem;color:#64748B;">
+                    ${isBotiquin ? `
+                      <span>Uso: <strong>Ocasional / Botiquín</strong></span>
+                      <span style="font-weight:700;color:${stock > 0 ? '#10B981' : '#EF4444'};">
+                        ${stock > 0 ? '✅ Stock disponible' : '⛔ Agotado'}
+                      </span>
+                    ` : `
+                      <span>Consumo: <strong>${dailyTotal} al día</strong></span>
+                      <span style="font-weight:700;color:${barColor};">
+                        ${daysLeft === 0 ? '⛔ ¡Agotado hoy!' : `⏳ Te alcanza para ${daysLeft} día(s)`}
+                      </span>
+                    `}
+                  </div>
+                </div>
               </div>
 
-              <!-- Medidor de días restantes -->
-              <div style="background:#F8FAFC;border:1px solid #F1F5F9;border-radius:10px;padding:0.85rem;margin-bottom:1rem;">
-                <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:0.4rem;">
-                  <span style="font-size:0.75rem;color:#475569;font-weight:600;">Disponibles:</span>
-                  <span style="font-size:1.15rem;font-weight:800;color:${isCrit ? '#B91C1C' : '#0F172A'};">
-                    ${stock} <span style="font-size:0.75rem;font-weight:500;color:#64748B;">${med.unit || 'pastillas'}</span>
-                  </span>
-                </div>
-
-                <!-- Barra de progreso -->
-                <div style="width:100%;height:8px;background:#E2E8F0;border-radius:999px;overflow:hidden;margin-bottom:0.5rem;">
-                  <div style="width:${percent}%;height:100%;background:${barColor};border-radius:999px;transition:width .3s;"></div>
-                </div>
-
-                <div style="display:flex;justify-content:space-between;font-size:0.75rem;color:#64748B;">
-                  <span>Consumo: <strong>${dailyTotal} al día</strong></span>
-                  <span style="font-weight:700;color:${barColor};">
-                    ${daysLeft === 0 ? '⛔ ¡Agotado hoy!' : `⏳ Te alcanza para ${daysLeft} día(s)`}
-                  </span>
-                </div>
-              </div>
-
-              <!-- Acciones de Dispensario: Recargar o Pedir Recordatorio -->
-              <div style="display:flex;gap:0.5rem;">
-                <button onclick="window.timeplusRestockPrompt('${med.id}', '${med.name}')" style="flex:1;background:#F1F5F9;border:1px solid #CBD5E1;color:#1E293B;padding:0.5rem;border-radius:8px;font-size:0.75rem;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:0.3rem;">
-                  🔄 + Recargar Caja
+              <!-- Acciones de Dispensario: Recargar, Vencimiento, Comprar -->
+              <div style="display:flex;gap:0.4rem;flex-wrap:wrap;margin-top:auto;">
+                <button onclick="window.timeplusRestockPrompt('${med.id}', '${med.name}')" style="flex:1;background:#F1F5F9;border:1px solid #CBD5E1;color:#1E293B;padding:0.45rem;border-radius:8px;font-size:0.74rem;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:0.25rem;">
+                  🔄 + Recargar
                 </button>
-                <button onclick="window.timeplusShowBuyReminder('${med.name}')" style="background:${isCrit ? '#DC2626' : '#6366F1'};color:#fff;border:none;padding:0.5rem 0.85rem;border-radius:8px;font-size:0.75rem;font-weight:600;cursor:pointer;">
+                <button onclick="window.timeplusSetExpiryPrompt('${med.id}', '${med.name}', '${med.expiryDate || ''}')" style="background:#F8FAFC;border:1px solid #CBD5E1;color:#475569;padding:0.45rem 0.65rem;border-radius:8px;font-size:0.74rem;font-weight:600;cursor:pointer;">
+                  📅 EXP
+                </button>
+                <button onclick="window.timeplusShowBuyReminder('${med.name}')" style="background:${isCrit || isExpired ? '#DC2626' : '#6366F1'};color:#fff;border:none;padding:0.45rem 0.85rem;border-radius:8px;font-size:0.74rem;font-weight:700;cursor:pointer;">
                   🛒 Comprar
                 </button>
               </div>
@@ -2511,6 +2642,33 @@ document.addEventListener('DOMContentLoaded', () => {
     window.timeplusShowToast(`🛒 ¡Recordatorio de compra creado con éxito para "${medName}"!`);
   };
 
+  window.timeplusFilterDispensary = (filter) => {
+    window.timeplusDispensaryFilter = filter;
+    renderHealth();
+  };
+
+  window.timeplusSetExpiryPrompt = (medId, medName = 'Medicamento', currentExpiry = '') => {
+    const newDate = prompt(`📅 Fecha de vencimiento para "${medName}" (Formato AAAA-MM-DD, ej: 2026-12-31):`, currentExpiry || '');
+    if (newDate !== null) {
+      const clean = newDate.trim();
+      store.updateMedication(medId, { expiryDate: clean });
+      window.timeplusShowToast(`📅 Fecha de vencimiento actualizada para ${medName}: ${clean || 'Sin fecha'}`);
+      renderHealth();
+    }
+  };
+
+  window.timeplusOnMedUsageChange = (val) => {
+    const schedBlock = document.getElementById('tp-med-schedule-fields');
+    const noticeBlock = document.getElementById('tp-med-botiquin-notice');
+    if (val === 'botiquin' || val === 'reserva') {
+      if (schedBlock) schedBlock.style.display = 'none';
+      if (noticeBlock) noticeBlock.style.display = 'block';
+    } else {
+      if (schedBlock) schedBlock.style.display = 'block';
+      if (noticeBlock) noticeBlock.style.display = 'none';
+    }
+  };
+
   window.timeplusOpenAddMedicationModal = () => {
     if (document.getElementById('tp-add-med-overlay')) return;
 
@@ -2526,7 +2684,7 @@ document.addEventListener('DOMContentLoaded', () => {
       <div style="
         background:linear-gradient(145deg,#151c2e,#0d111e);
         border:1px solid rgba(16,185,129,0.35);
-        border-radius:20px;width:100%;max-width:500px;
+        border-radius:20px;width:100%;max-width:520px;
         box-shadow:0 25px 60px rgba(0,0,0,0.6),0 0 0 1px rgba(16,185,129,0.1);
         overflow:hidden;animation:tpSlideUp .28s cubic-bezier(.34,1.56,.64,1);
       ">
@@ -2539,10 +2697,10 @@ document.addEventListener('DOMContentLoaded', () => {
             <div style="
               width:40px;height:40px;background:rgba(255,255,255,0.2);border-radius:12px;
               display:flex;align-items:center;justify-content:center;font-size:20px;
-            ">💊</div>
+            ">📦</div>
             <div>
-              <div style="color:#fff;font-size:17px;font-weight:700;">Dispensario & Receta Médica</div>
-              <div style="color:rgba(255,255,255,0.8);font-size:12px;">Control de stock y aviso antes de que se acaben</div>
+              <div style="color:#fff;font-size:17px;font-weight:700;">Dispensario & Botiquín Completo</div>
+              <div style="color:rgba(255,255,255,0.85);font-size:12px;">Registra lo que tomas o guardas en casa con fecha de vencimiento</div>
             </div>
           </div>
           <button onclick="window.timeplusCloseAddMedicationModal()" style="
@@ -2553,20 +2711,48 @@ document.addEventListener('DOMContentLoaded', () => {
         </div>
 
         <!-- Formulario -->
-        <div style="padding:22px;display:flex;flex-direction:column;gap:14px;max-height:68vh;overflow-y:auto;">
+        <div style="padding:22px;display:flex;flex-direction:column;gap:14px;max-height:70vh;overflow-y:auto;">
           
+          <!-- Tipo / Modo de Uso -->
           <div>
             <label style="color:#6ee7b7;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;display:block;margin-bottom:5px;">
-              💊 Nombre del Medicamento / Tratamiento *
+              🎯 Modo de Uso / Finalidad *
             </label>
-            <input id="tp-med-name" type="text" placeholder="Ej: Losartán 50mg, Levotiroxina, Omeprazol..." class="login-panel-input" style="width:100%;box-sizing:border-box;" />
+            <select id="tp-med-usage-type" class="login-panel-input" style="width:100%;box-sizing:border-box;font-weight:700;background:#1e293b;color:#fff;" onchange="window.timeplusOnMedUsageChange(this.value)">
+              <option value="activo">💊 En Tratamiento Activo / Diario (con horario de toma programado)</option>
+              <option value="botiquin">📦 Botiquín / Reserva ("Así no lo tome a diario")</option>
+            </select>
           </div>
 
-          <!-- Cuadrícula: Stock Inicial + Unidad -->
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+          <div>
+            <label style="color:#6ee7b7;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;display:block;margin-bottom:5px;">
+              💊 Nombre del Medicamento o Producto *
+            </label>
+            <input id="tp-med-name" type="text" placeholder="Ej: Losartán 50mg, Ibuprofeno, Alcohol, Betametasona, Curas..." class="login-panel-input" style="width:100%;box-sizing:border-box;" />
+          </div>
+
+          <!-- Cuadrícula: Fecha de Vencimiento + Ubicación -->
+          <div style="display:grid;grid-template-columns:1.2fr 1fr;gap:12px;">
+            <div>
+              <label style="color:#fcd34d;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.8px;display:block;margin-bottom:5px;">
+                📅 Fecha de Vencimiento / Caducidad (EXP)
+              </label>
+              <input id="tp-med-expiry" type="date" class="login-panel-input" style="width:100%;box-sizing:border-box;font-weight:700;color:#fcd34d;" />
+              <span style="font-size:10px;color:#94a3b8;margin-top:3px;display:block;">La IA te alertará antes de que caduque.</span>
+            </div>
             <div>
               <label style="color:#6ee7b7;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;display:block;margin-bottom:5px;">
-                📦 Pastillas en Caja / Frasco *
+                📍 Ubicación en Casa
+              </label>
+              <input id="tp-med-location" type="text" placeholder="Ej: Botiquín baño, Cocina" class="login-panel-input" style="width:100%;box-sizing:border-box;" />
+            </div>
+          </div>
+
+          <!-- Cuadrícula: Stock Inicial + Presentación -->
+          <div style="display:grid;grid-template-columns:1fr 1.2fr;gap:12px;">
+            <div>
+              <label style="color:#6ee7b7;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;display:block;margin-bottom:5px;">
+                📦 Cantidad / Unidades Disponibles *
               </label>
               <input id="tp-med-stock" type="number" value="30" min="1" class="login-panel-input" style="width:100%;box-sizing:border-box;" />
             </div>
@@ -2577,58 +2763,68 @@ document.addEventListener('DOMContentLoaded', () => {
               <select id="tp-med-unit" class="login-panel-input" style="width:100%;box-sizing:border-box;">
                 <option value="pastillas">Pastillas / Tabletas</option>
                 <option value="cápsulas">Cápsulas</option>
+                <option value="jarabe">Jarabe / Frasco</option>
+                <option value="pomada">Crema / Pomada</option>
                 <option value="gotas">Gotas</option>
                 <option value="sobres">Sobres</option>
                 <option value="inyecciones">Inyecciones</option>
+                <option value="primeros_auxilios">Primeros Auxilios (Gasa, etc.)</option>
+                <option value="suplemento">Vitamina / Suplemento</option>
               </select>
             </div>
           </div>
 
-          <!-- Cuadrícula: Frecuencia de Toma -->
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
-            <div>
-              <label style="color:#6ee7b7;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;display:block;margin-bottom:5px;">
-                ⏰ Dosis por cada toma
-              </label>
-              <input id="tp-med-dose-take" type="number" value="1" min="1" class="login-panel-input" style="width:100%;box-sizing:border-box;" />
-            </div>
-            <div>
-              <label style="color:#6ee7b7;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;display:block;margin-bottom:5px;">
-                🔁 Tomas al día
-              </label>
-              <select id="tp-med-takes-day" class="login-panel-input" style="width:100%;box-sizing:border-box;">
-                <option value="1">1 vez al día</option>
-                <option value="2">2 veces al día (cada 12h)</option>
-                <option value="3">3 veces al día (cada 8h)</option>
-                <option value="4">4 veces al día (cada 6h)</option>
-              </select>
-            </div>
+          <!-- Mensaje explicativo cuando es Botiquín / Reserva -->
+          <div id="tp-med-botiquin-notice" style="display:none;padding:12px;background:rgba(37,99,235,0.12);border:1px solid rgba(59,130,246,0.35);border-radius:10px;font-size:12px;color:#93c5fd;">
+            ℹ️ <strong>Modo Botiquín:</strong> Este producto se guardará en tu inventario con su <strong>fecha de vencimiento</strong> y stock. No generará alarmas diarias de toma obligatoria ("así no lo tomes").
           </div>
 
-          <!-- Hora principal de la toma -->
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
-            <div>
-              <label style="color:#6ee7b7;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;display:block;margin-bottom:5px;">
-                🕐 Hora de la toma principal
-              </label>
-              <input id="tp-med-time" type="time" value="08:00" class="login-panel-input" style="width:100%;box-sizing:border-box;" />
+          <!-- Bloque condicional: Horarios y Tomas diarias (solo si es tratamiento activo) -->
+          <div id="tp-med-schedule-fields" style="display:flex;flex-direction:column;gap:12px;">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+              <div>
+                <label style="color:#6ee7b7;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;display:block;margin-bottom:5px;">
+                  ⏰ Dosis por cada toma
+                </label>
+                <input id="tp-med-dose-take" type="number" value="1" min="1" class="login-panel-input" style="width:100%;box-sizing:border-box;" />
+              </div>
+              <div>
+                <label style="color:#6ee7b7;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;display:block;margin-bottom:5px;">
+                  🔁 Tomas al día
+                </label>
+                <select id="tp-med-takes-day" class="login-panel-input" style="width:100%;box-sizing:border-box;">
+                  <option value="1">1 vez al día</option>
+                  <option value="2">2 veces al día (cada 12h)</option>
+                  <option value="3">3 veces al día (cada 8h)</option>
+                  <option value="4">4 veces al día (cada 6h)</option>
+                </select>
+              </div>
             </div>
-            <div>
-              <label style="color:#6ee7b7;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;display:block;margin-bottom:5px;">
-                🚨 Alerta de Repuesto
-              </label>
-              <div style="padding:10px;background:rgba(245,158,11,0.1);border:1px solid rgba(245,158,11,0.3);border-radius:10px;font-size:11px;color:#fcd34d;">
-                Avisarme cuando queden <strong>4 días</strong> o menos.
+
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+              <div>
+                <label style="color:#6ee7b7;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;display:block;margin-bottom:5px;">
+                  🕐 Hora de la toma principal
+                </label>
+                <input id="tp-med-time" type="time" value="08:00" class="login-panel-input" style="width:100%;box-sizing:border-box;" />
+              </div>
+              <div>
+                <label style="color:#6ee7b7;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;display:block;margin-bottom:5px;">
+                  🚨 Alerta de Repuesto
+                </label>
+                <div style="padding:10px;background:rgba(245,158,11,0.1);border:1px solid rgba(245,158,11,0.3);border-radius:10px;font-size:11px;color:#fcd34d;">
+                  Avisarme cuando queden <strong>4 días</strong> o menos.
+                </div>
               </div>
             </div>
           </div>
 
-          <!-- Instrucciones del médico -->
+          <!-- Instrucciones o para qué sirve -->
           <div>
             <label style="color:#6ee7b7;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;display:block;margin-bottom:5px;">
-              📝 Indicaciones Médicas
+              📝 Indicaciones / Para qué sirve
             </label>
-            <input id="tp-med-instructions" type="text" placeholder="Ej: Tomar en ayunas con abundante agua" class="login-panel-input" style="width:100%;box-sizing:border-box;" />
+            <input id="tp-med-instructions" type="text" placeholder="Ej: Para dolor de cabeza ocasional, tomar en ayunas, desinfectante..." class="login-panel-input" style="width:100%;box-sizing:border-box;" />
           </div>
 
         </div>
@@ -2670,11 +2866,14 @@ document.addEventListener('DOMContentLoaded', () => {
   window.timeplusSaveNewMedication = () => {
     const name = (document.getElementById('tp-med-name')?.value || '').trim();
     if (!name) {
-      alert('Por favor indica el nombre del medicamento.');
+      alert('Por favor indica el nombre del medicamento o producto.');
       document.getElementById('tp-med-name')?.focus();
       return;
     }
 
+    const usageType = document.getElementById('tp-med-usage-type')?.value || 'activo';
+    const expiryDate = document.getElementById('tp-med-expiry')?.value || '';
+    const locationNotes = (document.getElementById('tp-med-location')?.value || '').trim();
     const stock = Number(document.getElementById('tp-med-stock')?.value) || 30;
     const unit = document.getElementById('tp-med-unit')?.value || 'pastillas';
     const dosePerTake = Number(document.getElementById('tp-med-dose-take')?.value) || 1;
@@ -2690,12 +2889,17 @@ document.addEventListener('DOMContentLoaded', () => {
       dosePerTake,
       takesPerDay,
       time,
-      instructions
+      instructions,
+      usageType,
+      expiryDate,
+      locationNotes
     };
 
     store.addMedication(newMed);
     window.timeplusCloseAddMedicationModal();
-    window.timeplusShowToast(`💊 "${name}" registrado en dispensario (${stock} unidades).`);
+    const expiryText = expiryDate ? ` (Vence: ${expiryDate})` : '';
+    const modeText = (usageType === 'botiquin') ? 'en Botiquín/Reserva' : 'en Dispensario Activo';
+    window.timeplusShowToast(`📦 "${name}" guardado ${modeText} con ${stock} unidades${expiryText}.`);
     renderHealth();
   };
 

@@ -23,6 +23,9 @@ CREATE TABLE IF NOT EXISTS public.medications (
   daily_dose       INTEGER DEFAULT 1,
   instructions     TEXT,
   refill_threshold INTEGER DEFAULT 5,
+  expiry_date      DATE,
+  usage_type       TEXT DEFAULT 'activo' CHECK (usage_type IN ('activo', 'botiquin', 'reserva')),
+  location_notes   TEXT,
   created_at       TIMESTAMPTZ DEFAULT NOW(),
   updated_at       TIMESTAMPTZ DEFAULT NOW()
 );

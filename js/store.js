@@ -271,8 +271,10 @@ class TimePlusStore {
     }
     this.state.medications.push(med);
 
-    // Si tiene hora programada y no se omitió, crear la actividad en agenda para hoy
-    if (med.time && !skipActivityCreation) {
+    const isBotiquin = med.usageType === 'botiquin' || med.usageType === 'reserva' || med.noSchedule === true;
+
+    // Si tiene hora programada, no se omitió y NO es de botiquín/reserva, crear la actividad en agenda para hoy
+    if (med.time && !skipActivityCreation && !isBotiquin) {
       this.addActivity({
         id: 'act-' + med.id,
         title: `Medicamento — ${med.name}`,

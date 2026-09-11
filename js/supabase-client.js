@@ -237,7 +237,10 @@ window.timeplusSupabase = {
         currentStock: Number(m.current_stock) || 0,
         dailyDose: Number(m.daily_dose) || 1,
         instructions: m.instructions || '',
-        refillThreshold: Number(m.refill_threshold) || 5
+        refillThreshold: Number(m.refill_threshold) || 5,
+        expiryDate: m.expiry_date || '',
+        usageType: m.usage_type || 'activo',
+        locationNotes: m.location_notes || ''
       }));
     } catch (e) {
       // Tabla puede no existir todavía si el usuario no ha corrido el SQL
@@ -262,6 +265,9 @@ window.timeplusSupabase = {
         daily_dose: Number(med.dailyDose) || 1,
         instructions: med.instructions || '',
         refill_threshold: Number(med.refillThreshold) || 5,
+        expiry_date: med.expiryDate || null,
+        usage_type: med.usageType || 'activo',
+        location_notes: med.locationNotes || '',
         updated_at: new Date().toISOString()
       };
       const { data, error } = await _client
