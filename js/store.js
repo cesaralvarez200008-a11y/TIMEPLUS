@@ -272,9 +272,21 @@ class TimePlusStore {
     this.state.medications.push(med);
 
     const isBotiquin = med.usageType === 'botiquin' || med.usageType === 'reserva' || med.noSchedule === true;
+    const isDueToday = window.timeplusIsMedDueToday ? window.timeplusIsMedDueToday(med) : true;
 
-    // Si tiene hora programada, no se omitió y NO es de botiquín/reserva, crear la actividad en agenda para hoy
-    if (med.time && !skipActivityCreation && !isBotiquin) {
+    const freqLabels = {
+      diario: 'Diario',
+      dia_por_medio: '1 día sí, 1 día no',
+      semanal: 'Semanal',
+      quincenal: 'Cada 15 días',
+      mensual: 'Cada 30 días',
+      cada_12h: 'Cada 12 horas',
+      cada_8h: 'Cada 8 horas'
+    };
+    const fLabel = freqLabels[med.frequency] || med.frequency || 'Diario';
+
+    // Si tiene hora programada, no es botiquín y toca tomar hoy según su pauta médica, crear la actividad en agenda para hoy
+    if (med.time && !skipActivityCreation && !isBotiquin && isDueToday) {
       this.addActivity({
         id: 'act-' + med.id,
         title: `Medicamento — ${med.name}`,
@@ -283,10 +295,10 @@ class TimePlusStore {
         date: 'today',
         duration: '15m',
         type: 'medicamento',
-        dosage: `${med.dosePerTake || 1} ${med.unit || 'pastilla(s)'}`,
+        dosage: `${med.dosePerTake || 1} ${med.unit || 'pastilla(s)'} (${fLabel})`,
         medicationId: med.id,
         confirmedTaken: false,
-        notes: med.instructions || 'Tomar según prescripción'
+        notes: med.instructions || `Pauta médica: ${fLabel}`
       });
     }
 

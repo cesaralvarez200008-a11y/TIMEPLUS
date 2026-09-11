@@ -874,6 +874,21 @@ document.addEventListener('DOMContentLoaded', () => {
           const barColor = isCrit ? '#EF4444' : (isWarning ? '#F59E0B' : '#10B981');
           const isExpired = expInfo.status === 'expired';
 
+          const freqDict = {
+            diario: 'Todos los días',
+            dia_por_medio: '1 día sí, 1 día no',
+            semanal: 'Semanal (1 vez/sem)',
+            quincenal: 'Cada 15 días',
+            mensual: 'Cada 30 días',
+            cada_12h: 'Cada 12 horas',
+            cada_8h: 'Cada 8 horas'
+          };
+          const f = med.frequency || 'diario';
+          const freqText = freqDict[f] || 'Diario';
+          const isScheduled = !isBotiquin;
+          const isDueToday = window.timeplusIsMedDueToday ? window.timeplusIsMedDueToday(med) : true;
+          const nextDueText = window.timeplusGetNextDueText ? window.timeplusGetNextDueText(med) : 'Hoy';
+
           return `
             <div style="background:#fff;border:1.5px solid ${isExpired ? '#F87171' : (isCrit ? '#FCA5A5' : '#E2E8F0')};border-radius:var(--radius-lg);padding:1.25rem;box-shadow:${isExpired ? '0 4px 14px rgba(239,68,68,0.18)' : '0 1px 3px rgba(0,0,0,0.05)'};position:relative;display:flex;flex-direction:column;justify-content:space-between;">
               <div>
@@ -881,7 +896,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:0.6rem;flex-wrap:wrap;gap:0.35rem;">
                   <div style="display:flex;gap:0.35rem;flex-wrap:wrap;">
                     <span style="font-size:0.68rem;font-weight:800;color:${isBotiquin ? '#1D4ED8' : '#047857'};background:${isBotiquin ? '#EFF6FF' : '#ECFDF5'};border:1px solid ${isBotiquin ? '#BFDBFE' : '#A7F3D0'};padding:0.18rem 0.5rem;border-radius:6px;">
-                      ${isBotiquin ? '📦 EN BOTIQUÍN / RESERVA' : `💊 TOMA DIARIA (${med.time || '08:00'})`}
+                      ${isBotiquin ? '📦 EN BOTIQUÍN / RESERVA' : `💊 ${freqText.toUpperCase()} (${med.time || '08:00'})`}
                     </span>
                     ${med.locationNotes ? `
                       <span style="font-size:0.65rem;color:#475569;background:#F1F5F9;padding:0.18rem 0.45rem;border-radius:6px;">
@@ -897,16 +912,22 @@ document.addEventListener('DOMContentLoaded', () => {
                   <span>${isBotiquin ? '🩹' : '💊'}</span> <span>${med.name}</span>
                 </h4>
                 <div style="font-size:0.75rem;color:#64748B;margin-bottom:0.75rem;">
-                  ${med.instructions || (isBotiquin ? 'Uso ocasional / botiquín del hogar' : 'Tratamiento diario con receta')}
+                  ${med.instructions || (isBotiquin ? 'Uso ocasional / botiquín del hogar' : 'Tratamiento con receta')}
                 </div>
 
-                <!-- SELECTOR DIRECTO: ¿LO TOMAS A DIARIO? -->
-                <div style="background:${isBotiquin ? '#F8FAFC' : '#ECFDF5'};border:1px dashed ${isBotiquin ? '#CBD5E1' : '#6EE7B7'};border-radius:8px;padding:0.5rem 0.75rem;margin-bottom:0.85rem;display:flex;align-items:center;justify-content:space-between;gap:0.5rem;">
-                  <div style="font-size:0.72rem;color:${isBotiquin ? '#475569' : '#047857'};font-weight:700;">
-                    ${isBotiquin ? '¿Tomas esto a diario?' : `✅ Programado a las ${med.time || '08:00'}`}
+                <!-- SELECTOR DIRECTO: PAUTA DE TOMA (DIARIO, 1 DÍA SÍ / 1 NO, SEMANAL, CADA 15 DÍAS) -->
+                <div style="background:${isScheduled ? (isDueToday ? '#ECFDF5' : '#F8FAFC') : '#F8FAFC'};border:1.5px dashed ${isScheduled ? (isDueToday ? '#6EE7B7' : '#CBD5E1') : '#CBD5E1'};border-radius:10px;padding:0.65rem 0.85rem;margin-bottom:0.85rem;display:flex;align-items:center;justify-content:space-between;gap:0.5rem;flex-wrap:wrap;">
+                  <div>
+                    <div style="font-size:0.76rem;font-weight:800;color:${isScheduled ? '#065F46' : '#334155'};display:flex;align-items:center;gap:0.35rem;">
+                      <span>${isScheduled ? '⏰' : '📦'}</span> 
+                      <span>${isScheduled ? `${freqText} a las ${med.time || '08:00'}` : '¿Tomas esto con pauta u horario?'}</span>
+                    </div>
+                    <div style="font-size:0.7rem;color:${isScheduled ? (isDueToday ? '#059669' : '#B45309') : '#64748B'};font-weight:${isScheduled ? '700' : '500'};margin-top:0.2rem;">
+                      ${isScheduled ? (isDueToday ? '🔔 ¡Toca tomar hoy!' : `⏳ Hoy no toca • Próxima toma: ${nextDueText}`) : 'Diario, 1 día sí / 1 no, semanal o cada 15 días'}
+                    </div>
                   </div>
-                  <button type="button" onclick="window.timeplusToggleDailySchedule('${med.id}')" style="border:none;background:${isBotiquin ? '#059669' : '#F1F5F9'};color:${isBotiquin ? '#fff' : '#475569'};font-size:0.72rem;font-weight:800;padding:0.35rem 0.65rem;border-radius:6px;cursor:pointer;display:flex;align-items:center;gap:0.25rem;box-shadow:${isBotiquin ? '0 2px 4px rgba(5,150,105,0.25)' : 'none'};">
-                    ${isBotiquin ? '⏰ Activar Toma Diaria' : '⚙️ Pausar / Modificar'}
+                  <button type="button" onclick="window.timeplusOpenScheduleModal('${med.id}')" style="border:none;background:${isScheduled ? '#F1F5F9' : '#059669'};color:${isScheduled ? '#334155' : '#fff'};font-size:0.74rem;font-weight:800;padding:0.45rem 0.8rem;border-radius:8px;cursor:pointer;display:flex;align-items:center;gap:0.25rem;box-shadow:${isScheduled ? 'none' : '0 2px 6px rgba(5,150,105,0.3)'};">
+                    ${isScheduled ? '⚙️ Cambiar Pauta' : '⏰ Programar Toma'}
                   </button>
                 </div>
 
@@ -2683,53 +2704,288 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   };
 
-  window.timeplusToggleDailySchedule = (medId) => {
+  window.timeplusIsMedDueToday = (med, targetDate = new Date()) => {
+    if (!med || med.usageType === 'botiquin' || med.usageType === 'reserva') return false;
+    const f = med.frequency || 'diario';
+    if (f === 'diario' || f === 'cada_12h' || f === 'cada_8h') return true;
+
+    const startStr = med.startDate || (med.createdAt ? med.createdAt.slice(0, 10) : new Date().toISOString().slice(0, 10));
+    const start = new Date(startStr + 'T00:00:00');
+    const now = new Date(targetDate);
+    now.setHours(0, 0, 0, 0);
+    const diffDays = Math.round((now - start) / (1000 * 60 * 60 * 24));
+
+    if (diffDays < 0) return false;
+
+    if (f === 'dia_por_medio') {
+      return diffDays % 2 === 0;
+    }
+    if (f === 'semanal') {
+      return diffDays % 7 === 0;
+    }
+    if (f === 'quincenal') {
+      return diffDays % 15 === 0;
+    }
+    if (f === 'mensual') {
+      return now.getDate() === start.getDate();
+    }
+    return true;
+  };
+
+  window.timeplusGetNextDueText = (med) => {
+    if (!med || med.usageType === 'botiquin' || med.usageType === 'reserva') return 'Sin horario';
+    const f = med.frequency || 'diario';
+    if (f === 'diario' || f === 'cada_12h' || f === 'cada_8h') return 'Hoy';
+
+    const startStr = med.startDate || new Date().toISOString().slice(0, 10);
+    const start = new Date(startStr + 'T00:00:00');
+    const now = new Date();
+    now.setHours(0, 0, 0, 0);
+    const diffDays = Math.round((now - start) / (1000 * 60 * 60 * 24));
+
+    if (f === 'dia_por_medio') {
+      return (diffDays % 2 === 0) ? 'Hoy' : 'Mañana';
+    }
+    if (f === 'semanal') {
+      const rem = 7 - (diffDays % 7);
+      return rem === 7 ? 'Hoy' : `en ${rem} día(s)`;
+    }
+    if (f === 'quincenal') {
+      const rem = 15 - (diffDays % 15);
+      return rem === 15 ? 'Hoy' : `en ${rem} día(s)`;
+    }
+    if (f === 'mensual') {
+      return 'Este mes';
+    }
+    return 'Próximamente';
+  };
+
+  window.timeplusOpenScheduleModal = (medId) => {
+    if (document.getElementById('tp-sched-modal-overlay')) return;
     const meds = store.getMedications ? store.getMedications() : [];
     const med = meds.find(m => m.id === medId);
     if (!med) return;
 
     const isCurrentlyActive = (med.usageType !== 'botiquin' && med.usageType !== 'reserva');
+    const currentFreq = med.frequency || 'diario';
+    const currentTime = med.time || '08:00';
+    const currentDose = med.dosePerTake || 1;
+    const currentStart = med.startDate || new Date().toISOString().slice(0, 10);
+    const currentNotes = med.instructions || '';
 
-    if (isCurrentlyActive) {
-      if (confirm(`¿Deseas pausar las tomas diarias de "${med.name}" y dejarlo guardado en tu Botiquín/Dispensario de reserva?`)) {
-        store.updateMedication(medId, { usageType: 'botiquin' });
-        // Remover actividades de toma diaria programada asociadas
-        if (store.state?.activities) {
-          store.state.activities = store.state.activities.filter(a => a.medicationId !== medId);
-          store.saveState();
-        }
-        window.timeplusShowToast(`📦 "${med.name}" ahora está como Botiquín de Reserva (sin tomas diarias).`);
-        renderHealth();
-      }
-    } else {
-      const hora = prompt(`⏰ ¿A qué hora tomas "${med.name}" a diario? (Formato 24h, ej: 08:00 o 20:00):`, med.time || '08:00');
-      if (hora && hora.trim()) {
-        const dosis = prompt(`💊 ¿Cuántas unidades tomas en cada horario? (Ej: 1 pastilla, 2 gotas):`, `${med.dosePerTake || 1} ${med.unit || 'pastilla(s)'}`);
-        const cleanHora = hora.trim();
-        const cleanDose = parseInt(dosis) || med.dosePerTake || 1;
-        store.updateMedication(medId, {
-          usageType: 'activo',
-          time: cleanHora,
-          dosePerTake: cleanDose
-        });
-        // Agregar actividad diaria de hoy
-        store.addActivity({
-          id: 'act-' + med.id,
-          title: `Medicamento — ${med.name}`,
-          category: 'salud',
-          time: cleanHora,
-          date: 'today',
-          duration: '15m',
-          type: 'medicamento',
-          dosage: dosis || `${cleanDose} ${med.unit || 'pastilla(s)'}`,
-          medicationId: med.id,
-          confirmedTaken: false,
-          notes: med.instructions || 'Tomar según prescripción médica'
-        });
-        window.timeplusShowToast(`⏰ ¡Toma diaria activada para "${med.name}" a las ${cleanHora}!`);
-        renderHealth();
-      }
+    const overlay = document.createElement('div');
+    overlay.id = 'tp-sched-modal-overlay';
+    overlay.style.cssText = `
+      position:fixed;inset:0;z-index:9999;
+      background:rgba(10,10,30,0.78);backdrop-filter:blur(6px);
+      display:flex;align-items:center;justify-content:center;padding:16px;
+    `;
+
+    overlay.innerHTML = `
+      <div style="
+        background:linear-gradient(145deg,#151c2e,#0d111e);
+        border:1px solid rgba(16,185,129,0.35);
+        border-radius:20px;width:100%;max-width:500px;
+        box-shadow:0 25px 60px rgba(0,0,0,0.6),0 0 0 1px rgba(16,185,129,0.1);
+        overflow:hidden;animation:tpSlideUp .28s cubic-bezier(.34,1.56,.64,1);
+      ">
+        <!-- Header -->
+        <div style="
+          background:linear-gradient(135deg,#059669,#10b981);
+          padding:18px 24px;display:flex;align-items:center;justify-content:space-between;
+        ">
+          <div style="display:flex;align-items:center;gap:12px;">
+            <div style="
+              width:42px;height:42px;background:rgba(255,255,255,0.2);border-radius:12px;
+              display:flex;align-items:center;justify-content:center;font-size:22px;
+            ">⏰</div>
+            <div>
+              <div style="color:#fff;font-size:17px;font-weight:700;">Programar Pauta de Toma</div>
+              <div style="color:rgba(255,255,255,0.85);font-size:12px;">${med.name}</div>
+            </div>
+          </div>
+          <button onclick="window.timeplusCloseScheduleModal()" style="
+            background:rgba(255,255,255,0.15);border:none;color:#fff;
+            width:34px;height:34px;border-radius:10px;cursor:pointer;font-size:18px;
+            display:flex;align-items:center;justify-content:center;
+          ">✕</button>
+        </div>
+
+        <!-- Body -->
+        <div style="padding:22px;display:flex;flex-direction:column;gap:14px;max-height:70vh;overflow-y:auto;">
+          
+          <!-- Frecuencia -->
+          <div>
+            <label style="color:#6ee7b7;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;display:block;margin-bottom:5px;">
+              🔁 Frecuencia de Toma (Pauta Médica) *
+            </label>
+            <select id="tp-sched-freq" class="login-panel-input" style="width:100%;box-sizing:border-box;font-weight:700;background:#1e293b;color:#fff;">
+              <option value="diario" ${currentFreq === 'diario' ? 'selected' : ''}>📅 Diario (Todos los días)</option>
+              <option value="dia_por_medio" ${currentFreq === 'dia_por_medio' ? 'selected' : ''}>🌓 1 día sí, 1 día no (Día de por medio)</option>
+              <option value="semanal" ${currentFreq === 'semanal' ? 'selected' : ''}>🗓️ Semanal (1 vez a la semana)</option>
+              <option value="quincenal" ${currentFreq === 'quincenal' ? 'selected' : ''}>📆 Quincenal (Cada 15 días)</option>
+              <option value="mensual" ${currentFreq === 'mensual' ? 'selected' : ''}>🗓️ Mensual (Cada 30 días)</option>
+              <option value="cada_12h" ${currentFreq === 'cada_12h' ? 'selected' : ''}>🔁 Cada 12 horas (2 veces al día)</option>
+              <option value="cada_8h" ${currentFreq === 'cada_8h' ? 'selected' : ''}>🔁 Cada 8 horas (3 veces al día)</option>
+            </select>
+          </div>
+
+          <!-- Hora + Dosis -->
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+            <div>
+              <label style="color:#6ee7b7;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;display:block;margin-bottom:5px;">
+                🕐 Hora de la toma
+              </label>
+              <input id="tp-sched-time" type="time" value="${currentTime}" class="login-panel-input" style="width:100%;box-sizing:border-box;" />
+            </div>
+            <div>
+              <label style="color:#6ee7b7;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;display:block;margin-bottom:5px;">
+                💊 Dosis por toma
+              </label>
+              <input id="tp-sched-dose" type="number" value="${currentDose}" min="1" class="login-panel-input" style="width:100%;box-sizing:border-box;" />
+            </div>
+          </div>
+
+          <!-- Fecha de inicio -->
+          <div>
+            <label style="color:#fcd34d;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.8px;display:block;margin-bottom:5px;">
+              🚀 Fecha de Primera Toma / Inicio del ciclo
+            </label>
+            <input id="tp-sched-start" type="date" value="${currentStart}" class="login-panel-input" style="width:100%;box-sizing:border-box;color:#fcd34d;font-weight:700;" />
+            <span style="font-size:10px;color:#94a3b8;margin-top:3px;display:block;">
+              Permite calcular con exactitud los días de toma en pautas como "1 día sí / 1 día no" o "cada 15 días".
+            </span>
+          </div>
+
+          <!-- Notas / Instrucciones -->
+          <div>
+            <label style="color:#6ee7b7;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;display:block;margin-bottom:5px;">
+              📝 Indicaciones Médicas / Recordatorio
+            </label>
+            <input id="tp-sched-notes" type="text" value="${currentNotes}" placeholder="Ej: Tomar con el desayuno, en ayunas, con agua..." class="login-panel-input" style="width:100%;box-sizing:border-box;" />
+          </div>
+
+        </div>
+
+        <!-- Footer -->
+        <div style="
+          padding:16px 24px;border-top:1px solid rgba(16,185,129,0.2);
+          display:flex;gap:10px;justify-content:space-between;align-items:center;
+          background:rgba(0,0,0,0.25);flex-wrap:wrap;
+        ">
+          <div>
+            ${isCurrentlyActive ? `
+              <button onclick="window.timeplusPauseSchedule('${med.id}')" style="
+                background:rgba(239,68,68,0.15);border:1px solid rgba(239,68,68,0.35);
+                color:#f87171;padding:9px 14px;border-radius:10px;cursor:pointer;font-size:12px;font-weight:700;
+              ">
+                ⏸️ Dejar solo en Botiquín
+              </button>
+            ` : ''}
+          </div>
+          <div style="display:flex;gap:10px;">
+            <button onclick="window.timeplusCloseScheduleModal()" style="
+              background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.15);
+              color:#94a3b8;padding:9px 16px;border-radius:10px;cursor:pointer;font-size:13px;
+            ">
+              ✕ Cancelar
+            </button>
+            <button onclick="window.timeplusSaveSchedule('${med.id}')" style="
+              background:linear-gradient(135deg,#059669,#10b981);
+              border:none;color:#fff;padding:9px 20px;border-radius:10px;cursor:pointer;
+              font-size:13px;font-weight:700;
+              box-shadow:0 4px 15px rgba(16,185,129,0.4);
+            ">
+              💾 Guardar Pauta
+            </button>
+          </div>
+        </div>
+      </div>
+    `;
+
+    document.body.appendChild(overlay);
+    overlay.addEventListener('click', (e) => { if (e.target === overlay) window.timeplusCloseScheduleModal(); });
+  };
+
+  window.timeplusSaveSchedule = (medId) => {
+    const meds = store.getMedications ? store.getMedications() : [];
+    const med = meds.find(m => m.id === medId);
+    if (!med) return;
+
+    const freq = document.getElementById('tp-sched-freq')?.value || 'diario';
+    const time = document.getElementById('tp-sched-time')?.value || '08:00';
+    const dose = Number(document.getElementById('tp-sched-dose')?.value) || 1;
+    const startDate = document.getElementById('tp-sched-start')?.value || new Date().toISOString().slice(0, 10);
+    const instructions = (document.getElementById('tp-sched-notes')?.value || '').trim();
+
+    const freqLabels = {
+      diario: 'Todos los días',
+      dia_por_medio: '1 día sí, 1 día no',
+      semanal: 'Semanal',
+      quincenal: 'Cada 15 días',
+      mensual: 'Cada 30 días',
+      cada_12h: 'Cada 12 horas',
+      cada_8h: 'Cada 8 horas'
+    };
+
+    const updatedMed = {
+      ...med,
+      usageType: 'activo',
+      frequency: freq,
+      time: time,
+      dosePerTake: dose,
+      startDate: startDate,
+      instructions: instructions || med.instructions || ''
+    };
+
+    store.updateMedication(medId, updatedMed);
+
+    // Sincronizar actividades de agenda para hoy
+    if (store.state?.activities) {
+      store.state.activities = store.state.activities.filter(a => a.medicationId !== medId);
     }
+
+    // Verificar si toca tomar hoy según la pauta
+    if (window.timeplusIsMedDueToday(updatedMed)) {
+      store.addActivity({
+        id: 'act-' + med.id,
+        title: `Medicamento — ${med.name}`,
+        category: 'salud',
+        time: time,
+        date: 'today',
+        duration: '15m',
+        type: 'medicamento',
+        dosage: `${dose} ${med.unit || 'pastillas'} (${freqLabels[freq] || freq})`,
+        medicationId: med.id,
+        confirmedTaken: false,
+        notes: instructions || `Pauta médica: ${freqLabels[freq] || freq}`
+      });
+    }
+
+    store.saveState();
+    window.timeplusCloseScheduleModal();
+    window.timeplusShowToast(`⏰ Pauta guardada para "${med.name}": ${freqLabels[freq]} a las ${time}.`);
+    renderHealth();
+  };
+
+  window.timeplusPauseSchedule = (medId) => {
+    const meds = store.getMedications ? store.getMedications() : [];
+    const med = meds.find(m => m.id === medId);
+    if (!med) return;
+
+    store.updateMedication(medId, { usageType: 'botiquin' });
+    if (store.state?.activities) {
+      store.state.activities = store.state.activities.filter(a => a.medicationId !== medId);
+      store.saveState();
+    }
+    window.timeplusCloseScheduleModal();
+    window.timeplusShowToast(`📦 "${med.name}" ahora está guardado en Botiquín/Reserva (sin tomas fijas).`);
+    renderHealth();
+  };
+
+  window.timeplusCloseScheduleModal = () => {
+    const el = document.getElementById('tp-sched-modal-overlay');
+    if (el) el.remove();
   };
 
   window.timeplusOnMedUsageChange = (val) => {
@@ -2854,42 +3110,43 @@ document.addEventListener('DOMContentLoaded', () => {
             ℹ️ <strong>Modo Botiquín:</strong> Este producto se guardará en tu inventario con su <strong>fecha de vencimiento</strong> y stock. No generará alarmas diarias de toma obligatoria ("así no lo tomes").
           </div>
 
-          <!-- Bloque condicional: Horarios y Tomas diarias (solo si es tratamiento activo) -->
+          <!-- Bloque condicional: Horarios y Frecuencia de toma -->
           <div id="tp-med-schedule-fields" style="display:flex;flex-direction:column;gap:12px;">
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+            <div style="display:grid;grid-template-columns:1.2fr 1fr;gap:12px;">
+              <div>
+                <label style="color:#6ee7b7;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;display:block;margin-bottom:5px;">
+                  🔁 Frecuencia de Toma
+                </label>
+                <select id="tp-med-frequency" class="login-panel-input" style="width:100%;box-sizing:border-box;background:#1e293b;color:#fff;">
+                  <option value="diario">📅 Diario (Todos los días)</option>
+                  <option value="dia_por_medio">🌓 1 día sí, 1 día no (Día de por medio)</option>
+                  <option value="semanal">🗓️ Semanal (1 vez a la semana)</option>
+                  <option value="quincenal">📆 Quincenal (Cada 15 días)</option>
+                  <option value="mensual">🗓️ Mensual (Cada 30 días)</option>
+                  <option value="cada_12h">🔁 Cada 12 horas (2 veces al día)</option>
+                  <option value="cada_8h">🔁 Cada 8 horas (3 veces al día)</option>
+                </select>
+              </div>
               <div>
                 <label style="color:#6ee7b7;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;display:block;margin-bottom:5px;">
                   ⏰ Dosis por cada toma
                 </label>
                 <input id="tp-med-dose-take" type="number" value="1" min="1" class="login-panel-input" style="width:100%;box-sizing:border-box;" />
               </div>
-              <div>
-                <label style="color:#6ee7b7;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;display:block;margin-bottom:5px;">
-                  🔁 Tomas al día
-                </label>
-                <select id="tp-med-takes-day" class="login-panel-input" style="width:100%;box-sizing:border-box;">
-                  <option value="1">1 vez al día</option>
-                  <option value="2">2 veces al día (cada 12h)</option>
-                  <option value="3">3 veces al día (cada 8h)</option>
-                  <option value="4">4 veces al día (cada 6h)</option>
-                </select>
-              </div>
             </div>
 
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
               <div>
                 <label style="color:#6ee7b7;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;display:block;margin-bottom:5px;">
-                  🕐 Hora de la toma principal
+                  🕐 Hora de la toma
                 </label>
                 <input id="tp-med-time" type="time" value="08:00" class="login-panel-input" style="width:100%;box-sizing:border-box;" />
               </div>
               <div>
-                <label style="color:#6ee7b7;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;display:block;margin-bottom:5px;">
-                  🚨 Alerta de Repuesto
+                <label style="color:#fcd34d;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.8px;display:block;margin-bottom:5px;">
+                  🚀 Inicio del ciclo
                 </label>
-                <div style="padding:10px;background:rgba(245,158,11,0.1);border:1px solid rgba(245,158,11,0.3);border-radius:10px;font-size:11px;color:#fcd34d;">
-                  Avisarme cuando queden <strong>4 días</strong> o menos.
-                </div>
+                <input id="tp-med-start-date" type="date" class="login-panel-input" style="width:100%;box-sizing:border-box;color:#fcd34d;" />
               </div>
             </div>
           </div>
@@ -2899,7 +3156,7 @@ document.addEventListener('DOMContentLoaded', () => {
             <label style="color:#6ee7b7;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;display:block;margin-bottom:5px;">
               📝 Indicaciones / Para qué sirve
             </label>
-            <input id="tp-med-instructions" type="text" placeholder="Ej: Para dolor de cabeza ocasional, tomar en ayunas, desinfectante..." class="login-panel-input" style="width:100%;box-sizing:border-box;" />
+            <input id="tp-med-instructions" type="text" placeholder="Ej: Tomar con el desayuno, en ayunas, desinfectante..." class="login-panel-input" style="width:100%;box-sizing:border-box;" />
           </div>
 
         </div>
@@ -2953,8 +3210,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const stock = Number(document.getElementById('tp-med-stock')?.value) || 30;
     const unit = document.getElementById('tp-med-unit')?.value || 'pastillas';
     const dosePerTake = Number(document.getElementById('tp-med-dose-take')?.value) || 1;
-    const takesPerDay = Number(document.getElementById('tp-med-takes-day')?.value) || 1;
+    const frequency = document.getElementById('tp-med-frequency')?.value || 'diario';
     const time = document.getElementById('tp-med-time')?.value || '08:00';
+    const startDate = document.getElementById('tp-med-start-date')?.value || new Date().toISOString().slice(0, 10);
     const instructions = document.getElementById('tp-med-instructions')?.value || '';
 
     const newMed = {
@@ -2963,8 +3221,9 @@ document.addEventListener('DOMContentLoaded', () => {
       currentStock: stock,
       unit,
       dosePerTake,
-      takesPerDay,
+      frequency,
       time,
+      startDate,
       instructions,
       usageType,
       expiryDate,
