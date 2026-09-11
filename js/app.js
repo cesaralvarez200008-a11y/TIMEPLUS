@@ -468,6 +468,48 @@ document.addEventListener('DOMContentLoaded', () => {
               ` : ''}
             </div>
           ` : ''}
+
+          <!-- 🏋️ Cubo de Rutina de Gimnasio con peso, reps y series en las actividades del día -->
+          ${(act.category === 'fitness' || act.type === 'fitness') && act.exercises && act.exercises.length ? `
+            <div style="margin-top:0.6rem;background:linear-gradient(145deg,#F8FAFC,#EFF6FF);border:1.5px solid #BFDBFE;border-radius:10px;padding:0.65rem 0.85rem;">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.45rem;">
+                <div style="font-size:0.75rem;font-weight:800;color:#1E40AF;display:flex;align-items:center;gap:0.35rem;">
+                  <span>🏋️</span> Cubo de Rutina • ${act.exercises.length} ejercicio(s)
+                </div>
+                <span style="font-size:0.68rem;background:#DBEAFE;color:#1D4ED8;padding:0.15rem 0.5rem;border-radius:999px;font-weight:700;">
+                  ${act.location || 'Gimnasio'} • ${act.duration || '1h'}
+                </span>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:0.35rem;">
+                ${act.exercises.map(e => {
+                  const isDone = (e.status === 'done');
+                  const isPartial = (e.status === 'partial');
+                  const isSkipped = (e.status === 'skipped');
+                  const badgeHtml = isDone 
+                    ? '<span style="background:#DCFCE7;color:#15803D;font-weight:800;padding:0.15rem 0.45rem;border-radius:6px;font-size:0.68rem;">✅ Completo</span>'
+                    : (isPartial
+                      ? `<span style="background:#FEF3C7;color:#B45309;font-weight:800;padding:0.15rem 0.45rem;border-radius:6px;font-size:0.68rem;">⚠️ Parcial (${e.actualReps || '?'} reps)</span>`
+                      : (isSkipped
+                        ? '<span style="background:#FEE2E2;color:#991B1B;font-weight:800;padding:0.15rem 0.45rem;border-radius:6px;font-size:0.68rem;text-decoration:line-through;">❌ Omitido</span>'
+                        : '<span style="background:#EFF6FF;color:#2563EB;font-weight:800;padding:0.15rem 0.45rem;border-radius:6px;font-size:0.68rem;">📋 Planificado</span>'));
+                  return `
+                    <div style="display:flex;align-items:center;justify-content:space-between;background:#fff;border:1px solid #E2E8F0;border-radius:8px;padding:0.35rem 0.6rem;font-size:0.75rem;flex-wrap:wrap;gap:0.3rem;">
+                      <div style="display:flex;align-items:center;gap:0.4rem;">
+                        ${e.muscle ? `<span style="font-size:0.62rem;background:#DC2626;color:#fff;font-weight:900;padding:0.1rem 0.35rem;border-radius:4px;">${e.muscle}</span>` : ''}
+                        <strong style="color:#0F172A;font-size:0.75rem;">${e.name}</strong>
+                      </div>
+                      <div style="display:flex;align-items:center;gap:0.5rem;">
+                        <span style="color:#64748B;font-size:0.7rem;font-weight:600;">
+                          ${e.weightKg ? `<span style="color:#0F172A;font-weight:700;">${e.weightKg} kg</span> · ` : (e.weight ? `${e.weight} · ` : '')}${e.sets ? `${e.sets} series` : ''}${e.repsPerSet ? ` × ${e.repsPerSet} reps` : (e.reps ? ` × ${e.reps}` : '')}
+                        </span>
+                        ${badgeHtml}
+                      </div>
+                    </div>
+                  `;
+                }).join('')}
+              </div>
+            </div>
+          ` : ''}
         </div>
 
         <!-- Botón de Eliminar Actividad -->
@@ -4954,247 +4996,131 @@ document.addEventListener('DOMContentLoaded', () => {
     window.timeplusRenderCompoundExercisesGrid(window.timeplusGymMuscleFilter);
   };
 
-  // Filtrar por grupo muscular
+  // ═══════════════════════════════════════════════════════════
+  // GESTOR DE RUTINA UNO POR UNO (PESO, REPS, SERIES & ESTADOS)
+  // ═══════════════════════════════════════════════════════════
+  window.timeplusGymSelectedExId = 'press_plano';
+
+  // Cambiar avatar entre Femenino y Masculino
+  window.timeplusSetGymGender = (gender) => {
+    window.timeplusGymActiveGender = gender;
+    window.timeplusRenderCompoundExercisesGrid();
+  };
+
+  // Filtrar por grupo muscular en el selector
   window.timeplusFilterGymMuscle = (filter) => {
     window.timeplusGymMuscleFilter = filter;
-    window.timeplusRenderCompoundExercisesGrid(filter);
+    if (filter !== 'todos') {
+      const match = TIMEPLUS_COMPOUND_EXERCISES.find(e => e.muscle.toLowerCase() === filter.toLowerCase());
+      if (match) window.timeplusGymSelectedExId = match.id;
+    }
+    window.timeplusRenderCompoundExercisesGrid();
   };
 
-  // Sistema de 3 estados: 'planned' → 'done' → 'partial' → 'skipped' → 'planned'
-  // timeplusGymTracked[exId] = { sets, status: 'planned'|'done'|'partial'|'skipped', actualReps: number }
+  window.timeplusOnBuilderSelect = (exId) => {
+    window.timeplusGymSelectedExId = exId;
+    window.timeplusRenderCompoundExercisesGrid();
+  };
 
-  window.timeplusSetExerciseStatus = (exId, status) => {
-    if (!window.timeplusGymTracked[exId]) {
-      const ex = TIMEPLUS_COMPOUND_EXERCISES.find(e => e.id === exId);
-      window.timeplusGymTracked[exId] = { ...ex, sets: ex?.targetSets || 3, status: 'planned', actualReps: null };
+  // ➕ Agregar ejercicio UNO POR UNO a la rutina de hoy
+  window.timeplusAddSelectedExerciseToRoutine = () => {
+    const exId = window.timeplusGymSelectedExId || 'press_plano';
+    const ex = TIMEPLUS_COMPOUND_EXERCISES.find(e => e.id === exId);
+    if (!ex) return;
+
+    const kg = parseFloat(document.getElementById('tp-builder-kg')?.value) || null;
+    const reps = parseInt(document.getElementById('tp-builder-reps')?.value) || 10;
+    const sets = parseInt(document.getElementById('tp-builder-sets')?.value) || ex.targetSets || 4;
+
+    window.timeplusGymTracked[exId] = {
+      ...ex,
+      weightKg: kg,
+      repsPerSet: reps,
+      sets: sets,
+      status: 'done', // Marcado como completado por defecto al agregar
+      actualReps: null
+    };
+
+    window.timeplusSpeakExercise && window.timeplusSpeakExercise(`Agregado ${ex.name}`);
+    if (window.timeplusShowToast) {
+      window.timeplusShowToast(`✅ Agregado a tu rutina: ${ex.name} (${kg ? kg + ' kg · ' : ''}${sets} series × ${reps} reps)`);
     }
-    const tracked = window.timeplusGymTracked[exId];
-    tracked.status = status;
 
+    window.timeplusRenderCompoundExercisesGrid();
+  };
+
+  // Quitar ejercicio de la rutina
+  window.timeplusRemoveFromRoutine = (exId) => {
+    const item = window.timeplusGymTracked[exId];
+    delete window.timeplusGymTracked[exId];
+    if (window.timeplusShowToast) {
+      window.timeplusShowToast(`🗑️ ${item ? item.name : 'Ejercicio'} quitado de tu rutina.`);
+    }
+    window.timeplusRenderCompoundExercisesGrid();
+  };
+
+  // Cambiar estado en la rutina: done | partial | skipped
+  window.timeplusSetRoutineItemStatus = (exId, status) => {
+    if (!window.timeplusGymTracked[exId]) return;
+    window.timeplusGymTracked[exId].status = status;
     if (status === 'done') {
-      tracked.sets = tracked.sets || TIMEPLUS_COMPOUND_EXERCISES.find(e => e.id === exId)?.targetSets || 3;
-      tracked.actualReps = null; // completo = todas las reps
-      window.timeplusSpeakExercise && window.timeplusSpeakExercise(`¡Completado! ${tracked.name}`);
-      window.timeplusShowToast && window.timeplusShowToast(`✅ ${tracked.name} — ¡Series completas!`);
+      window.timeplusGymTracked[exId].actualReps = null;
+      window.timeplusShowToast && window.timeplusShowToast(`✅ ${window.timeplusGymTracked[exId].name} marcado como Completo.`);
     } else if (status === 'skipped') {
-      window.timeplusShowToast && window.timeplusShowToast(`❌ ${tracked.name} — Omitido hoy.`);
+      window.timeplusShowToast && window.timeplusShowToast(`❌ ${window.timeplusGymTracked[exId].name} omitido hoy.`);
     }
-
-    window.timeplusUpdateExerciseCardUI(exId);
-    window.timeplusSyncExercisesSummary();
+    window.timeplusRenderCompoundExercisesGrid();
   };
 
-  window.timeplusSavePartialReps = (exId) => {
-    const input = document.getElementById(`tp-partial-${exId}`);
+  // Guardar reps parciales en un item de la rutina
+  window.timeplusSaveCardPartialReps = (exId) => {
+    const input = document.getElementById(`tp-card-repsact-${exId}`);
     const val = parseInt(input?.value) || 0;
     if (!window.timeplusGymTracked[exId]) return;
     window.timeplusGymTracked[exId].actualReps = val;
     window.timeplusGymTracked[exId].status = 'partial';
-    window.timeplusShowToast && window.timeplusShowToast(`⚠️ ${window.timeplusGymTracked[exId].name} — ${val} reps registradas.`);
-    window.timeplusUpdateExerciseCardUI(exId);
-    window.timeplusSyncExercisesSummary();
+    window.timeplusShowToast && window.timeplusShowToast(`⚠️ ${window.timeplusGymTracked[exId].name} — ${val} reps reales registradas.`);
+    window.timeplusRenderCompoundExercisesGrid();
   };
 
-  // Mantener compatibilidad con el clic en el avatar (ahora planifica/marca completo)
+  // Actualizar inline peso/reps/series de un ejercicio en la rutina
+  window.timeplusUpdateRoutineItemData = (exId) => {
+    if (!window.timeplusGymTracked[exId]) return;
+    const kg = parseFloat(document.getElementById(`tp-card-kg-${exId}`)?.value) || null;
+    const reps = parseInt(document.getElementById(`tp-card-reps-${exId}`)?.value) || 10;
+    const sets = parseInt(document.getElementById(`tp-card-sets-${exId}`)?.value) || 3;
+
+    window.timeplusGymTracked[exId].weightKg = kg;
+    window.timeplusGymTracked[exId].repsPerSet = reps;
+    window.timeplusGymTracked[exId].sets = sets;
+    window.timeplusShowToast && window.timeplusShowToast(`💾 Datos actualizados para ${window.timeplusGymTracked[exId].name}.`);
+    window.timeplusRenderCompoundExercisesGrid();
+  };
+
+  // Compatibilidad con clics antiguos
+  window.timeplusSetExerciseStatus = (exId, status) => window.timeplusSetRoutineItemStatus(exId, status);
   window.timeplusRecordExerciseSet = (exId) => {
-    const cur = window.timeplusGymTracked[exId]?.status;
-    if (!cur || cur === 'planned') {
-      window.timeplusSetExerciseStatus(exId, 'done');
-    } else if (cur === 'done') {
-      // segundo clic → nada, usar los botones de estado
+    if (!window.timeplusGymTracked[exId]) {
+      window.timeplusGymSelectedExId = exId;
+      window.timeplusAddSelectedExerciseToRoutine();
+    } else {
+      window.timeplusSetRoutineItemStatus(exId, 'done');
     }
   };
-
   window.timeplusDecrementExerciseSet = (exId, evt) => {
     if (evt) evt.stopPropagation();
-    // Resetear a sin planificar
-    delete window.timeplusGymTracked[exId];
-    window.timeplusUpdateExerciseCardUI(exId);
-    window.timeplusSyncExercisesSummary();
+    window.timeplusRemoveFromRoutine(exId);
   };
+  window.timeplusUpdateExerciseCardUI = () => window.timeplusRenderCompoundExercisesGrid();
 
-  // Actualizar tarjeta específica con los 3 estados + peso/reps/series
-  window.timeplusUpdateExerciseCardUI = (exId) => {
-    const ex = TIMEPLUS_COMPOUND_EXERCISES.find(e => e.id === exId);
-    const card = document.getElementById(`tp-card-${exId}`);
-    if (!card || !ex) return;
-
-    const tracked = window.timeplusGymTracked[exId];
-    const status     = tracked?.status     || 'unplanned';
-    const sets       = tracked?.sets       || ex.targetSets;
-    const actualReps = tracked?.actualReps || null;
-    const weightKg   = tracked?.weightKg   || '';
-    const repsPerSet = tracked?.repsPerSet || 10;
-
-    // Estilos por estado
-    const styles = {
-      unplanned: { border: ex.isKey ? '#FCA5A5' : '#E2E8F0', bg: '#FFFFFF',  shadow: '0 1px 3px rgba(0,0,0,0.04)' },
-      planned:   { border: '#93C5FD', bg: '#EFF6FF', shadow: '0 2px 8px rgba(37,99,235,0.12)' },
-      done:      { border: '#10B981', bg: '#F0FDF4', shadow: '0 4px 14px rgba(16,185,129,0.18)' },
-      partial:   { border: '#F59E0B', bg: '#FFFBEB', shadow: '0 3px 10px rgba(245,158,11,0.15)' },
-      skipped:   { border: '#EF4444', bg: '#FFF1F2', shadow: '0 2px 6px rgba(239,68,68,0.1)' }
-    };
-
-    const s = styles[status] || styles.unplanned;
-    card.style.borderColor = s.border;
-    card.style.background  = s.bg;
-    card.style.boxShadow   = s.shadow;
-
-    const actionWrap = card.querySelector('.tp-card-action');
-    if (!actionWrap) return;
-
-    // Helper: inputs de peso + reps + series
-    const weightInputs = (idPrefix, wVal, rVal, sVal) => `
-      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:0.2rem;margin-top:0.25rem;">
-        <div>
-          <div style="font-size:0.58rem;font-weight:800;color:#475569;text-align:center;margin-bottom:0.1rem;">💪 Peso (kg)</div>
-          <input id="${idPrefix}-kg" type="number" min="0" step="0.5" placeholder="Ej: 80"
-            value="${wVal}"
-            style="width:100%;border:1.5px solid #CBD5E1;border-radius:5px;padding:0.25rem 0.2rem;font-size:0.75rem;font-weight:700;text-align:center;background:#fff;color:#1E293B;outline:none;box-sizing:border-box;">
-        </div>
-        <div>
-          <div style="font-size:0.58rem;font-weight:800;color:#475569;text-align:center;margin-bottom:0.1rem;">🔁 Reps</div>
-          <input id="${idPrefix}-reps" type="number" min="1" max="100" placeholder="10"
-            value="${rVal}"
-            style="width:100%;border:1.5px solid #CBD5E1;border-radius:5px;padding:0.25rem 0.2rem;font-size:0.75rem;font-weight:700;text-align:center;background:#fff;color:#1E293B;outline:none;box-sizing:border-box;">
-        </div>
-        <div>
-          <div style="font-size:0.58rem;font-weight:800;color:#475569;text-align:center;margin-bottom:0.1rem;">📋 Series</div>
-          <input id="${idPrefix}-sets" type="number" min="1" max="20" placeholder="${ex.targetSets}"
-            value="${sVal}"
-            style="width:100%;border:1.5px solid #CBD5E1;border-radius:5px;padding:0.25rem 0.2rem;font-size:0.75rem;font-weight:700;text-align:center;background:#fff;color:#1E293B;outline:none;box-sizing:border-box;">
-        </div>
-      </div>`;
-
-    // Función de guardado inline (lee los inputs y actualiza status)
-    // llamada como: timeplusSaveExerciseData(exId, 'done')
-    if (!window.timeplusSaveExerciseData) {
-      window.timeplusSaveExerciseData = (id, newStatus) => {
-        const kg   = parseFloat(document.getElementById(`tp-ex-${id}-kg`)?.value)   || null;
-        const reps = parseInt(document.getElementById(`tp-ex-${id}-reps`)?.value)   || 10;
-        const sts  = parseInt(document.getElementById(`tp-ex-${id}-sets`)?.value)   || ex?.targetSets || 3;
-        if (!window.timeplusGymTracked[id]) {
-          const exRef = TIMEPLUS_COMPOUND_EXERCISES.find(e => e.id === id);
-          window.timeplusGymTracked[id] = { ...exRef, status: 'planned', actualReps: null, weightKg: null, repsPerSet: 10 };
-        }
-        window.timeplusGymTracked[id].weightKg   = kg;
-        window.timeplusGymTracked[id].repsPerSet = reps;
-        window.timeplusGymTracked[id].sets       = sts;
-        window.timeplusSetExerciseStatus(id, newStatus);
-      };
-    }
-
-    if (status === 'unplanned') {
-      // Sin planificar — botón + inputs de peso/reps/series
-      actionWrap.innerHTML = `
-        <div style="display:flex;flex-direction:column;gap:0.3rem;">
-          ${weightInputs(`tp-ex-${exId}`, '', repsPerSet, sets)}
-          <button type="button" onclick="window.timeplusSaveExerciseData('${exId}','planned')"
-            style="width:100%;background:${ex.isKey ? '#EF4444' : '#2563EB'};color:#fff;border:none;border-radius:6px;padding:0.4rem 0.5rem;font-size:0.72rem;font-weight:800;cursor:pointer;margin-top:0.15rem;">
-            ＋ ¡Hice esta serie!
-          </button>
-        </div>`;
-
-    } else if (status === 'planned') {
-      // Planificado — confirmar con peso/reps/series y marcar estado
-      actionWrap.innerHTML = `
-        <div style="display:flex;flex-direction:column;gap:0.3rem;">
-          <div style="font-size:0.66rem;font-weight:800;color:#1D4ED8;text-align:center;">💪 Edita y confirma — ¿Lo hiciste?</div>
-          ${weightInputs(`tp-ex-${exId}`, weightKg, repsPerSet, sets)}
-          <div style="display:flex;gap:0.2rem;margin-top:0.15rem;">
-            <button type="button" onclick="window.timeplusSaveExerciseData('${exId}','done')"
-              style="flex:1;background:#10B981;color:#fff;border:none;border-radius:5px;padding:0.35rem 0.2rem;font-size:0.65rem;font-weight:800;cursor:pointer;">
-              ✅ Completo
-            </button>
-            <button type="button" onclick="window.timeplusSaveExerciseData('${exId}','partial')"
-              style="flex:1;background:#F59E0B;color:#fff;border:none;border-radius:5px;padding:0.35rem 0.2rem;font-size:0.65rem;font-weight:800;cursor:pointer;">
-              ⚠️ Parcial
-            </button>
-            <button type="button" onclick="window.timeplusSetExerciseStatus('${exId}','skipped')"
-              style="flex:1;background:#EF4444;color:#fff;border:none;border-radius:5px;padding:0.35rem 0.2rem;font-size:0.65rem;font-weight:800;cursor:pointer;">
-              ❌ No hice
-            </button>
-          </div>
-          <button type="button" onclick="window.timeplusDecrementExerciseSet('${exId}', event)"
-            style="background:transparent;border:none;color:#94a3b8;font-size:0.6rem;cursor:pointer;text-decoration:underline;text-align:center;">
-            Quitar de la rutina
-          </button>
-        </div>`;
-
-    } else if (status === 'done') {
-      // Completado ✅ — mostrar badge con peso/reps/series
-      const kgText  = weightKg ? `${weightKg} kg` : 'Peso s/d';
-      const repsText = `${repsPerSet} reps`;
-      const setsText = `${sets} series`;
-      actionWrap.innerHTML = `
-        <div style="display:flex;flex-direction:column;gap:0.3rem;">
-          <div style="background:#10B981;color:#fff;border-radius:6px;padding:0.3rem 0.5rem;text-align:center;font-size:0.7rem;font-weight:900;">
-            ✅ ${kgText} × ${repsText} × ${setsText}
-          </div>
-          <div style="display:flex;gap:0.2rem;">
-            <button type="button" onclick="window.timeplusSetExerciseStatus('${exId}','planned')"
-              style="flex:1;background:#DBEAFE;color:#1E40AF;border:1px solid #93C5FD;border-radius:5px;padding:0.22rem;font-size:0.6rem;font-weight:700;cursor:pointer;">
-              ✏️ Editar datos
-            </button>
-            <button type="button" onclick="window.timeplusSetExerciseStatus('${exId}','partial')"
-              style="flex:1;background:#FEF3C7;color:#92400E;border:1px solid #FCD34D;border-radius:5px;padding:0.22rem;font-size:0.6rem;font-weight:700;cursor:pointer;">
-              ⚠️ Parcial
-            </button>
-            <button type="button" onclick="window.timeplusDecrementExerciseSet('${exId}', event)"
-              style="flex:1;background:#FFF1F2;color:#991B1B;border:1px solid #FECACA;border-radius:5px;padding:0.22rem;font-size:0.6rem;font-weight:700;cursor:pointer;">
-              ↩ Borrar
-            </button>
-          </div>
-        </div>`;
-
-    } else if (status === 'partial') {
-      // Parcial ⚠️ — editar datos + reps reales
-      const kgText = weightKg ? `${weightKg} kg` : '';
-      actionWrap.innerHTML = `
-        <div style="display:flex;flex-direction:column;gap:0.3rem;">
-          <div style="font-size:0.64rem;font-weight:800;color:#92400E;">⚠️ Parcial — ¿Cuánto hiciste realmente?</div>
-          ${weightInputs(`tp-ex-${exId}`, weightKg, actualReps || repsPerSet, sets)}
-          <button type="button" onclick="window.timeplusSaveExerciseData('${exId}','partial')"
-            style="background:#F59E0B;color:#fff;border:none;border-radius:5px;padding:0.32rem;font-size:0.68rem;font-weight:800;cursor:pointer;width:100%;">
-            💾 Guardar datos parciales
-          </button>
-          ${(weightKg || actualReps) ? `<div style="font-size:0.62rem;color:#78350F;font-weight:700;text-align:center;">📊 ${kgText}${kgText ? ' · ' : ''}${actualReps ? actualReps + ' reps · ' : ''}${sets} series guardadas</div>` : ''}
-          <button type="button" onclick="window.timeplusSaveExerciseData('${exId}','done')"
-            style="background:#F0FDF4;color:#166534;border:1px solid #86EFAC;border-radius:5px;padding:0.22rem;font-size:0.6rem;font-weight:700;cursor:pointer;">
-            ✅ Fue completo
-          </button>
-        </div>`;
-
-    } else if (status === 'skipped') {
-      // Omitido ❌
-      actionWrap.innerHTML = `
-        <div style="display:flex;flex-direction:column;gap:0.3rem;">
-          <div style="background:#FFF1F2;color:#991B1B;border:1px solid #FECACA;border-radius:6px;padding:0.3rem 0.5rem;text-align:center;font-size:0.7rem;font-weight:800;text-decoration:line-through;opacity:0.8;">
-            ❌ No realizado hoy
-          </div>
-          <button type="button" onclick="window.timeplusSetExerciseStatus('${exId}','planned')"
-            style="background:#F0FDF4;color:#166534;border:1px solid #86EFAC;border-radius:5px;padding:0.25rem;font-size:0.62rem;font-weight:700;cursor:pointer;">
-            ✅ Sí lo hice — ingresar datos
-          </button>
-          <button type="button" onclick="window.timeplusDecrementExerciseSet('${exId}', event)"
-            style="background:transparent;border:none;color:#94a3b8;font-size:0.6rem;cursor:pointer;text-decoration:underline;text-align:center;">
-            Quitar de la rutina
-          </button>
-        </div>`;
-    }
-  };
-
-  // Sincronizar resumen visual con los 3 estados
+  // Sincronizar resumen visual y notas automáticas
   window.timeplusSyncExercisesSummary = () => {
     const summaryBox = document.getElementById('tp-selected-exercises-summary');
     const summaryList = document.getElementById('tp-selected-exercises-list');
     const notesTextarea = document.getElementById('fit-gym-exercises');
 
-    const allTracked = Object.values(window.timeplusGymTracked);
-    // Mostrar si hay al menos uno con cualquier estado (planned, done, partial, skipped)
-    const hasAny = allTracked.some(item => item.status && item.status !== 'unplanned');
-
-    if (!hasAny) {
+    const allTracked = Object.values(window.timeplusGymTracked || {});
+    if (allTracked.length === 0) {
       if (summaryBox) summaryBox.style.display = 'none';
       return;
     }
@@ -5212,7 +5138,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const repsInfo = t.repsPerSet ? ` · ${t.repsPerSet}r` : '';
         const setsInfo = t.sets       ? ` · ${t.sets}s` : '';
         const partialInfo = (t.actualReps && t.status === 'partial') ? ` (${t.actualReps} reps reales)` : '';
-        return `<span style="background:${bg};border:1px solid ${border};padding:0.2rem 0.5rem;border-radius:999px;font-size:0.7rem;color:${color};font-weight:700;" title="${t.name}: ${t.weightKg || '?'}kg × ${t.repsPerSet || '?'} reps × ${t.sets || '?'} series">
+        return `<span style="background:${bg};border:1px solid ${border};padding:0.2rem 0.5rem;border-radius:999px;font-size:0.7rem;color:${color};font-weight:700;">
           ${label} ${t.name}${kgInfo}${repsInfo}${setsInfo}${partialInfo}
         </span>`;
       };
@@ -5230,8 +5156,8 @@ document.addEventListener('DOMContentLoaded', () => {
       `;
     }
 
-    // Actualizar notas con el reporte completo incluyendo peso/reps/series
-    if (notesTextarea && (!notesTextarea.value || notesTextarea.value.startsWith('• ') || notesTextarea.value.startsWith('✅') || notesTextarea.value.startsWith('⚠️'))) {
+    // Actualizar notas con el reporte detallado
+    if (notesTextarea) {
       const lines = [];
       const fmtEx = t => {
         const kg   = t.weightKg   ? `${t.weightKg}kg` : 'sin peso';
@@ -5242,23 +5168,28 @@ document.addEventListener('DOMContentLoaded', () => {
       if (done.length)    lines.push(...done.map(t    => `✅ ${t.name} [${t.muscle}]: ${fmtEx(t)} — completo`));
       if (partial.length) lines.push(...partial.map(t => `⚠️ ${t.name} [${t.muscle}]: ${fmtEx(t)}${t.actualReps ? ' · ' + t.actualReps + ' reps reales' : ''} — parcial`));
       if (skipped.length) lines.push(...skipped.map(t => `❌ ${t.name} [${t.muscle}]: omitido`));
-      if (planned.length) lines.push(...planned.map(t => `📋 ${t.name} [${t.muscle}]: ${fmtEx(t)} — pendiente de confirmar`));
+      if (planned.length) lines.push(...planned.map(t => `📋 ${t.name} [${t.muscle}]: ${fmtEx(t)} — pendiente`));
       notesTextarea.value = lines.join('\n');
     }
   };
 
-  // Renderizar la grilla completa con avatares de género
-  window.timeplusRenderCompoundExercisesGrid = (muscleFilter = 'todos') => {
+  // Renderizar la vista de ejercicios (uno por uno + rutina agregada)
+  window.timeplusRenderCompoundExercisesGrid = () => {
     const container = document.getElementById('tp-exercise-grid');
     if (!container) return;
 
-    const curGender = window.timeplusGymActiveGender;
+    const curGender = window.timeplusGymActiveGender || 'masculino';
     const isFem = (curGender === 'femenino');
+    const muscleFilter = window.timeplusGymMuscleFilter || 'todos';
 
-    // Filtrado de ejercicios
-    const filtered = (muscleFilter === 'todos') 
-      ? TIMEPLUS_COMPOUND_EXERCISES 
+    const filteredOptions = (muscleFilter === 'todos')
+      ? TIMEPLUS_COMPOUND_EXERCISES
       : TIMEPLUS_COMPOUND_EXERCISES.filter(e => e.muscle.toLowerCase() === muscleFilter.toLowerCase());
+
+    const selectedEx = TIMEPLUS_COMPOUND_EXERCISES.find(e => e.id === window.timeplusGymSelectedExId) || filteredOptions[0] || TIMEPLUS_COMPOUND_EXERCISES[0];
+    window.timeplusGymSelectedExId = selectedEx.id;
+
+    const routineList = Object.values(window.timeplusGymTracked || {});
 
     const muscleCounts = {
       todos: TIMEPLUS_COMPOUND_EXERCISES.length,
@@ -5269,7 +5200,7 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     container.innerHTML = `
-      <!-- BARRA DE GÉNERO — DETECCIÓN AUTOMÁTICA POR PERFIL -->
+      <!-- BARRA DE GÉNERO (DETECCIÓN AUTOMÁTICA) -->
       <div style="display:flex;justify-content:space-between;align-items:center;background:${isFem ? 'linear-gradient(135deg,#FFF1F2,#FFE4E6)' : 'linear-gradient(135deg,#EFF6FF,#DBEAFE)'};border:1.5px solid ${isFem ? '#FDA4AF' : '#93C5FD'};border-radius:0.75rem;padding:0.65rem 0.85rem;flex-wrap:wrap;gap:0.5rem;">
         <div style="display:flex;align-items:center;gap:0.5rem;">
           <div style="font-size:1.6rem;background:#fff;border-radius:50%;width:2.4rem;height:2.4rem;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 6px rgba(0,0,0,0.08);">
@@ -5285,7 +5216,6 @@ document.addEventListener('DOMContentLoaded', () => {
           </div>
         </div>
 
-        <!-- Badge automático — solo informativo, sin toggle manual -->
         <div style="display:flex;align-items:center;gap:0.4rem;background:#fff;padding:0.3rem 0.65rem;border-radius:0.5rem;box-shadow:0 1px 3px rgba(0,0,0,0.06);">
           <span style="font-size:0.68rem;font-weight:800;color:${isFem ? '#F43F5E' : '#2563EB'};">
             ${isFem ? '👩 Femenino' : '👨 Masculino'}
@@ -5294,86 +5224,230 @@ document.addEventListener('DOMContentLoaded', () => {
         </div>
       </div>
 
+      <!-- SECCIÓN 1: AGREGAR EJERCICIO UNO POR UNO -->
+      <div style="background:#FFFFFF;border:1.5px solid #E2E8F0;border-radius:0.85rem;padding:0.85rem;box-shadow:0 2px 8px rgba(0,0,0,0.04);display:flex;flex-direction:column;gap:0.65rem;">
+        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:0.3rem;">
+          <div>
+            <div style="font-size:0.82rem;font-weight:900;color:#0F172A;display:flex;align-items:center;gap:0.35rem;">
+              <span>🎯</span> Agregar Ejercicio (Uno por uno)
+            </div>
+            <div style="font-size:0.68rem;color:#64748B;">
+              Evita errores configurando individualmente cada ejercicio que vas a realizar hoy.
+            </div>
+          </div>
+          <span style="font-size:0.65rem;background:#EEF2FF;color:#4338CA;font-weight:800;padding:0.15rem 0.5rem;border-radius:999px;">
+            Paso a Paso
+          </span>
+        </div>
 
-      <!-- FILTROS POR GRUPO MUSCULAR (PECHO, HOMBROS, ESPALDA, PIERNAS) -->
-      <div style="display:flex;gap:0.35rem;overflow-x:auto;padding-bottom:0.25rem;">
-        <button type="button" onclick="window.timeplusFilterGymMuscle('todos')" style="border:none;background:${muscleFilter === 'todos' ? '#1E293B' : '#F1F5F9'};color:${muscleFilter === 'todos' ? '#fff' : '#475569'};font-size:0.7rem;font-weight:800;padding:0.35rem 0.65rem;border-radius:999px;cursor:pointer;white-space:nowrap;">
-          Todos (${muscleCounts.todos})
-        </button>
-        <button type="button" onclick="window.timeplusFilterGymMuscle('pecho')" style="border:none;background:${muscleFilter === 'pecho' ? '#DC2626' : '#FEE2E2'};color:${muscleFilter === 'pecho' ? '#fff' : '#991B1B'};font-size:0.7rem;font-weight:800;padding:0.35rem 0.65rem;border-radius:999px;cursor:pointer;white-space:nowrap;">
-          Pecho (${muscleCounts.pecho})
-        </button>
-        <button type="button" onclick="window.timeplusFilterGymMuscle('hombros')" style="border:none;background:${muscleFilter === 'hombros' ? '#DC2626' : '#FEE2E2'};color:${muscleFilter === 'hombros' ? '#fff' : '#991B1B'};font-size:0.7rem;font-weight:800;padding:0.35rem 0.65rem;border-radius:999px;cursor:pointer;white-space:nowrap;">
-          Hombros (${muscleCounts.hombros})
-        </button>
-        <button type="button" onclick="window.timeplusFilterGymMuscle('espalda')" style="border:none;background:${muscleFilter === 'espalda' ? '#DC2626' : '#FEE2E2'};color:${muscleFilter === 'espalda' ? '#fff' : '#991B1B'};font-size:0.7rem;font-weight:800;padding:0.35rem 0.65rem;border-radius:999px;cursor:pointer;white-space:nowrap;">
-          Espalda (${muscleCounts.espalda})
-        </button>
-        <button type="button" onclick="window.timeplusFilterGymMuscle('piernas')" style="border:none;background:${muscleFilter === 'piernas' ? '#DC2626' : '#FEE2E2'};color:${muscleFilter === 'piernas' ? '#fff' : '#991B1B'};font-size:0.7rem;font-weight:800;padding:0.35rem 0.65rem;border-radius:999px;cursor:pointer;white-space:nowrap;">
-          Piernas (${muscleCounts.piernas})
+        <!-- Filtro de Grupo Muscular -->
+        <div style="display:flex;gap:0.3rem;overflow-x:auto;padding-bottom:0.15rem;">
+          <button type="button" onclick="window.timeplusFilterGymMuscle('todos')" style="border:none;background:${muscleFilter === 'todos' ? '#1E293B' : '#F1F5F9'};color:${muscleFilter === 'todos' ? '#fff' : '#475569'};font-size:0.68rem;font-weight:800;padding:0.25rem 0.55rem;border-radius:999px;cursor:pointer;white-space:nowrap;">
+            Todos (${muscleCounts.todos})
+          </button>
+          <button type="button" onclick="window.timeplusFilterGymMuscle('pecho')" style="border:none;background:${muscleFilter === 'pecho' ? '#DC2626' : '#FEE2E2'};color:${muscleFilter === 'pecho' ? '#fff' : '#991B1B'};font-size:0.68rem;font-weight:800;padding:0.25rem 0.55rem;border-radius:999px;cursor:pointer;white-space:nowrap;">
+            Pecho (${muscleCounts.pecho})
+          </button>
+          <button type="button" onclick="window.timeplusFilterGymMuscle('hombros')" style="border:none;background:${muscleFilter === 'hombros' ? '#DC2626' : '#FEE2E2'};color:${muscleFilter === 'hombros' ? '#fff' : '#991B1B'};font-size:0.68rem;font-weight:800;padding:0.25rem 0.55rem;border-radius:999px;cursor:pointer;white-space:nowrap;">
+            Hombros (${muscleCounts.hombros})
+          </button>
+          <button type="button" onclick="window.timeplusFilterGymMuscle('espalda')" style="border:none;background:${muscleFilter === 'espalda' ? '#DC2626' : '#FEE2E2'};color:${muscleFilter === 'espalda' ? '#fff' : '#991B1B'};font-size:0.68rem;font-weight:800;padding:0.25rem 0.55rem;border-radius:999px;cursor:pointer;white-space:nowrap;">
+            Espalda (${muscleCounts.espalda})
+          </button>
+          <button type="button" onclick="window.timeplusFilterGymMuscle('piernas')" style="border:none;background:${muscleFilter === 'piernas' ? '#DC2626' : '#FEE2E2'};color:${muscleFilter === 'piernas' ? '#fff' : '#991B1B'};font-size:0.68rem;font-weight:800;padding:0.25rem 0.55rem;border-radius:999px;cursor:pointer;white-space:nowrap;">
+            Piernas (${muscleCounts.piernas})
+          </button>
+        </div>
+
+        <!-- Selector de Ejercicio -->
+        <div>
+          <label style="font-size:0.68rem;font-weight:800;color:#475569;display:block;margin-bottom:0.2rem;">
+            Selecciona el ejercicio:
+          </label>
+          <select id="tp-builder-select" onchange="window.timeplusOnBuilderSelect(this.value)" class="login-panel-input" style="width:100%;font-weight:700;background:#F8FAFC;box-sizing:border-box;">
+            ${filteredOptions.map(e => `
+              <option value="${e.id}" ${e.id === selectedEx.id ? 'selected' : ''}>
+                [${e.muscle}] ${e.name} ${e.isKey ? '⭐ 1ª Línea' : ''}
+              </option>
+            `).join('')}
+          </select>
+        </div>
+
+        <!-- Vista Previa del Ejercicio Seleccionado -->
+        <div style="background:#F8FAFC;border:1px solid #E2E8F0;border-radius:0.65rem;padding:0.6rem;display:flex;align-items:center;gap:0.75rem;">
+          <div style="width:75px;flex-shrink:0;">
+            ${window.timeplusGetExerciseAvatarSvg(selectedEx.id, curGender)}
+          </div>
+          <div style="flex:1;min-width:0;">
+            <div style="display:flex;align-items:center;gap:0.35rem;">
+              <span style="font-size:0.58rem;background:#DC2626;color:#fff;font-weight:900;padding:0.1rem 0.35rem;border-radius:4px;">
+                ${selectedEx.muscle}
+              </span>
+              <strong style="font-size:0.8rem;color:#0F172A;">${selectedEx.name}</strong>
+              ${selectedEx.isKey ? '<span style="font-size:0.62rem;color:#DC2626;font-weight:800;">⭐ Clave</span>' : ''}
+            </div>
+            <div style="font-size:0.68rem;color:#64748B;margin-top:0.2rem;line-height:1.2;">
+              ${selectedEx.desc}
+            </div>
+          </div>
+        </div>
+
+        <!-- Inputs de Peso, Reps y Series para este ejercicio -->
+        <div style="display:grid;grid-template-columns:1.2fr 1fr 1fr;gap:0.5rem;">
+          <div>
+            <label style="font-size:0.65rem;font-weight:800;color:#1E40AF;display:block;margin-bottom:0.15rem;">
+              💪 Peso a levantar (kg)
+            </label>
+            <input id="tp-builder-kg" type="number" min="0" step="0.5" placeholder="Ej: 60"
+              class="login-panel-input" style="font-size:0.8rem;font-weight:800;text-align:center;box-sizing:border-box;">
+          </div>
+          <div>
+            <label style="font-size:0.65rem;font-weight:800;color:#1E40AF;display:block;margin-bottom:0.15rem;">
+              🔁 Reps por serie
+            </label>
+            <input id="tp-builder-reps" type="number" min="1" max="100" value="10"
+              class="login-panel-input" style="font-size:0.8rem;font-weight:800;text-align:center;box-sizing:border-box;">
+          </div>
+          <div>
+            <label style="font-size:0.65rem;font-weight:800;color:#1E40AF;display:block;margin-bottom:0.15rem;">
+              📋 Series a realizar
+            </label>
+            <input id="tp-builder-sets" type="number" min="1" max="20" value="${selectedEx.targetSets || 4}"
+              class="login-panel-input" style="font-size:0.8rem;font-weight:800;text-align:center;box-sizing:border-box;">
+          </div>
+        </div>
+
+        <!-- Botón de Agregar Uno a Uno -->
+        <button type="button" onclick="window.timeplusAddSelectedExerciseToRoutine()"
+          style="background:linear-gradient(135deg,#2563EB,#1D4ED8);color:#fff;border:none;border-radius:0.5rem;padding:0.6rem;font-size:0.82rem;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:0.35rem;box-shadow:0 3px 10px rgba(37,99,235,0.25);">
+          <span>＋ Agregar este Ejercicio a mi Rutina</span>
         </button>
       </div>
 
-      <!-- NOTA CLAVE DE LA IMAGEN -->
-      <div style="background:#FFFBEB;border:1px solid #FCD34D;border-radius:0.5rem;padding:0.45rem 0.75rem;font-size:0.71rem;color:#92400E;display:flex;align-items:center;gap:0.4rem;">
-        <span>⭐</span>
-        <span><strong>Ejercicios claves:</strong> Especialmente los de la primera línea (Press plano, Militar, Peso muerto, Sentadilla trasera).</span>
-      </div>
+      <!-- SECCIÓN 2: TU RUTINA PARA HOY (SOLO LOS AGREGADOS UNO POR UNO) -->
+      <div style="display:flex;flex-direction:column;gap:0.5rem;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-top:0.25rem;">
+          <div style="font-size:0.82rem;font-weight:900;color:#0F172A;display:flex;align-items:center;gap:0.35rem;">
+            <span>📋</span> Tu Rutina de Hoy
+            <span style="font-size:0.7rem;background:#DCFCE7;color:#15803D;padding:0.1rem 0.45rem;border-radius:999px;font-weight:800;">
+              ${routineList.length} agregado(s)
+            </span>
+          </div>
+          ${routineList.length > 0 ? `
+            <span style="font-size:0.65rem;color:#64748B;">Marca cuál hiciste y cuál no</span>
+          ` : ''}
+        </div>
 
-      <!-- GRILLA DE TARJETAS DE EJERCICIOS (4 COLUMNAS O 2 EN MOVIL) -->
-      <div style="display:grid;grid-template-columns:repeat(auto-fill, minmax(130px, 1fr));gap:0.6rem;">
-        ${filtered.map(ex => {
-          const sets = window.timeplusGymTracked[ex.id]?.sets || 0;
-          const isDone = sets > 0;
-          return `
-            <div id="tp-card-${ex.id}" class="tp-exercise-card" style="background:${isDone ? '#F0FDF4' : '#FFFFFF'};border:1.5px solid ${isDone ? '#10B981' : (ex.isKey ? '#FCA5A5' : '#E2E8F0')};border-radius:0.75rem;padding:0.6rem;display:flex;flex-direction:column;gap:0.4rem;transition:all 0.2s ease;box-shadow:${isDone ? '0 4px 14px rgba(16,185,129,0.18)' : '0 1px 3px rgba(0,0,0,0.04)'};">
-              
-              <!-- Encabezado con Músculo y Tag Clave -->
-              <div style="display:flex;justify-content:space-between;align-items:center;">
-                <span style="background:#DC2626;color:#fff;font-size:0.6rem;font-weight:900;padding:0.15rem 0.4rem;border-radius:4px;letter-spacing:0.04em;">
-                  ${ex.muscle}
-                </span>
-                ${ex.isKey ? '<span style="font-size:0.62rem;color:#DC2626;font-weight:800;" title="Ejercicio Clave Primera Línea">⭐ 1ª Línea</span>' : ''}
-              </div>
+        ${routineList.length === 0 ? `
+          <div style="background:#F8FAFC;border:1.5px dashed #CBD5E1;border-radius:0.75rem;padding:1.25rem;text-align:center;color:#64748B;">
+            <div style="font-size:1.6rem;margin-bottom:0.2rem;">🏋️‍♂️</div>
+            <strong style="color:#1E293B;font-size:0.85rem;display:block;">No hay ejercicios agregados aún</strong>
+            <span style="font-size:0.72rem;margin-top:0.2rem;display:block;">
+              Selecciona un ejercicio arriba y pulsa <strong>"＋ Agregar este Ejercicio"</strong> para agregarlo individualmente sin errores.
+            </span>
+          </div>
+        ` : `
+          <div style="display:flex;flex-direction:column;gap:0.5rem;">
+            ${routineList.map(item => {
+              const isDone = (item.status === 'done');
+              const isPartial = (item.status === 'partial');
+              const isSkipped = (item.status === 'skipped');
+              const cardBg = isDone ? '#F0FDF4' : (isPartial ? '#FFFBEB' : (isSkipped ? '#FFF1F2' : '#FFFFFF'));
+              const cardBorder = isDone ? '#86EFAC' : (isPartial ? '#FCD34D' : (isSkipped ? '#FECACA' : '#93C5FD'));
 
-              <!-- Ilustración Avatar SVG Dinámica -->
-              <div onclick="window.timeplusRecordExerciseSet('${ex.id}')" style="cursor:pointer;" title="Toca para registrar serie">
-                ${window.timeplusGetExerciseAvatarSvg(ex.id, curGender)}
-              </div>
+              return `
+                <div id="tp-routine-card-${item.id}" style="background:${cardBg};border:1.5px solid ${cardBorder};border-radius:0.75rem;padding:0.65rem 0.85rem;display:flex;flex-direction:column;gap:0.45rem;box-shadow:0 2px 6px rgba(0,0,0,0.04);transition:all .2s;">
+                  
+                  <!-- Fila Superior: Avatar + Nombre + Botón Quitar -->
+                  <div style="display:flex;justify-content:space-between;align-items:center;">
+                    <div style="display:flex;align-items:center;gap:0.6rem;">
+                      <div style="width:50px;flex-shrink:0;">
+                        ${window.timeplusGetExerciseAvatarSvg(item.id, curGender)}
+                      </div>
+                      <div>
+                        <div style="display:flex;align-items:center;gap:0.35rem;">
+                          <span style="font-size:0.58rem;background:#DC2626;color:#fff;font-weight:900;padding:0.1rem 0.35rem;border-radius:4px;">
+                            ${item.muscle}
+                          </span>
+                          <strong style="font-size:0.82rem;color:#0F172A;text-decoration:${isSkipped ? 'line-through' : 'none'};">
+                            ${item.name}
+                          </strong>
+                          ${item.isKey ? '<span style="font-size:0.6rem;color:#DC2626;font-weight:800;">⭐ 1ª Línea</span>' : ''}
+                        </div>
+                        <div style="font-size:0.7rem;color:#475569;margin-top:0.15rem;font-weight:600;">
+                          ${item.weightKg ? `<strong style="color:#0F172A;">${item.weightKg} kg</strong> · ` : 'Sin peso · '}${item.sets} series × ${item.repsPerSet} reps
+                          ${isPartial && item.actualReps ? `<span style="color:#B45309;font-weight:800;">(${item.actualReps} reps reales)</span>` : ''}
+                        </div>
+                      </div>
+                    </div>
 
-              <!-- Título y detalles -->
-              <div onclick="window.timeplusRecordExerciseSet('${ex.id}')" style="cursor:pointer;">
-                <div style="font-size:0.76rem;font-weight:800;color:#1E293B;line-height:1.2;">
-                  ${ex.name}
-                </div>
-                <div style="font-size:0.65rem;color:#64748B;margin-top:0.15rem;line-height:1.15;">
-                  ${ex.desc}
-                </div>
-              </div>
-
-              <!-- Botón interactivo: ¡Hice esta serie! -->
-              <div class="tp-card-action" style="margin-top:auto;">
-                ${isDone ? `
-                  <div style="display:flex;align-items:center;justify-content:space-between;gap:0.35rem;width:100%;">
-                    <button type="button" onclick="window.timeplusRecordExerciseSet('${ex.id}')" style="flex:1;background:#10B981;color:#fff;border:none;border-radius:6px;padding:0.4rem 0.5rem;font-size:0.72rem;font-weight:800;display:flex;align-items:center;justify-content:center;gap:0.25rem;cursor:pointer;box-shadow:0 2px 6px rgba(16,185,129,0.3);">
-                      <span>✅ ¡Hice esta serie!</span>
-                      <span style="background:rgba(0,0,0,0.2);padding:0.1rem 0.35rem;border-radius:4px;font-size:0.68rem;">${sets}/${ex.targetSets}</span>
-                    </button>
-                    <button type="button" onclick="window.timeplusDecrementExerciseSet('${ex.id}', event)" title="Restar 1 serie" style="background:#F1F5F9;color:#64748B;border:1px solid #CBD5E1;border-radius:6px;width:1.75rem;height:1.75rem;font-size:0.85rem;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;">
-                      −
+                    <button type="button" onclick="window.timeplusRemoveFromRoutine('${item.id}')"
+                      style="background:#FEE2E2;border:none;color:#DC2626;border-radius:6px;width:28px;height:28px;cursor:pointer;font-size:0.8rem;display:flex;align-items:center;justify-content:center;" title="Quitar de rutina">
+                      🗑️
                     </button>
                   </div>
-                ` : `
-                  <button type="button" onclick="window.timeplusRecordExerciseSet('${ex.id}')" style="width:100%;background:${ex.isKey ? '#EF4444' : '#2563EB'};color:#fff;border:none;border-radius:6px;padding:0.4rem 0.5rem;font-size:0.72rem;font-weight:800;display:flex;align-items:center;justify-content:center;gap:0.3rem;cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,0.1);">
-                    <span>＋ ¡Hice esta serie!</span>
-                    <span style="opacity:0.75;font-size:0.65rem;">(0/${ex.targetSets})</span>
-                  </button>
-                `}
-              </div>
 
-            </div>
-          `;
-        }).join('')}
+                  <!-- Fila de Inputs Editables Inline -->
+                  <div style="display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:0.35rem;align-items:end;background:rgba(255,255,255,0.7);padding:0.35rem 0.5rem;border-radius:0.5rem;">
+                    <div>
+                      <div style="font-size:0.58rem;font-weight:700;color:#64748B;">💪 Peso (kg)</div>
+                      <input id="tp-card-kg-${item.id}" type="number" min="0" step="0.5" value="${item.weightKg || ''}" placeholder="Ej: 60"
+                        style="width:100%;border:1px solid #CBD5E1;border-radius:4px;padding:0.2rem;font-size:0.72rem;font-weight:800;text-align:center;box-sizing:border-box;">
+                    </div>
+                    <div>
+                      <div style="font-size:0.58rem;font-weight:700;color:#64748B;">🔁 Reps</div>
+                      <input id="tp-card-reps-${item.id}" type="number" min="1" max="100" value="${item.repsPerSet || 10}"
+                        style="width:100%;border:1px solid #CBD5E1;border-radius:4px;padding:0.2rem;font-size:0.72rem;font-weight:800;text-align:center;box-sizing:border-box;">
+                    </div>
+                    <div>
+                      <div style="font-size:0.58rem;font-weight:700;color:#64748B;">📋 Series</div>
+                      <input id="tp-card-sets-${item.id}" type="number" min="1" max="20" value="${item.sets || 3}"
+                        style="width:100%;border:1px solid #CBD5E1;border-radius:4px;padding:0.2rem;font-size:0.72rem;font-weight:800;text-align:center;box-sizing:border-box;">
+                    </div>
+                    <button type="button" onclick="window.timeplusUpdateRoutineItemData('${item.id}')"
+                      style="background:#F1F5F9;border:1px solid #CBD5E1;color:#475569;border-radius:4px;padding:0.25rem 0.5rem;font-size:0.65rem;font-weight:700;cursor:pointer;height:24px;">
+                      💾 Guardar
+                    </button>
+                  </div>
+
+                  <!-- Fila de Botones de Estado de Ejecución -->
+                  <div style="display:flex;gap:0.3rem;align-items:center;flex-wrap:wrap;">
+                    <span style="font-size:0.65rem;font-weight:800;color:#475569;">Estado:</span>
+                    
+                    <button type="button" onclick="window.timeplusSetRoutineItemStatus('${item.id}','done')"
+                      style="flex:1;background:${isDone ? '#10B981' : '#F1F5F9'};color:${isDone ? '#fff' : '#475569'};border:1px solid ${isDone ? '#059669' : '#CBD5E1'};border-radius:6px;padding:0.3rem 0.4rem;font-size:0.68rem;font-weight:800;cursor:pointer;">
+                      ✅ Completo
+                    </button>
+
+                    <button type="button" onclick="window.timeplusSetRoutineItemStatus('${item.id}','partial')"
+                      style="flex:1;background:${isPartial ? '#F59E0B' : '#F1F5F9'};color:${isPartial ? '#fff' : '#475569'};border:1px solid ${isPartial ? '#D97706' : '#CBD5E1'};border-radius:6px;padding:0.3rem 0.4rem;font-size:0.68rem;font-weight:800;cursor:pointer;">
+                      ⚠️ Parcial
+                    </button>
+
+                    <button type="button" onclick="window.timeplusSetRoutineItemStatus('${item.id}','skipped')"
+                      style="flex:1;background:${isSkipped ? '#EF4444' : '#F1F5F9'};color:${isSkipped ? '#fff' : '#475569'};border:1px solid ${isSkipped ? '#DC2626' : '#CBD5E1'};border-radius:6px;padding:0.3rem 0.4rem;font-size:0.68rem;font-weight:800;cursor:pointer;">
+                      ❌ No hice
+                    </button>
+                  </div>
+
+                  <!-- Campo de Reps Reales si es Parcial -->
+                  ${isPartial ? `
+                    <div style="background:#FEF3C7;border:1px solid #FCD34D;border-radius:6px;padding:0.35rem 0.5rem;display:flex;align-items:center;gap:0.4rem;">
+                      <span style="font-size:0.65rem;font-weight:800;color:#92400E;">¿Cuántas reps hiciste en total?</span>
+                      <input id="tp-card-repsact-${item.id}" type="number" min="1" max="200" value="${item.actualReps || ''}" placeholder="Ej: 18"
+                        style="width:60px;border:1px solid #F59E0B;border-radius:4px;padding:0.2rem;font-size:0.75rem;font-weight:800;text-align:center;background:#fff;">
+                      <button type="button" onclick="window.timeplusSaveCardPartialReps('${item.id}')"
+                        style="background:#F59E0B;color:#fff;border:none;border-radius:4px;padding:0.25rem 0.5rem;font-size:0.65rem;font-weight:800;cursor:pointer;">
+                        Guardar
+                      </button>
+                    </div>
+                  ` : ''}
+
+                </div>
+              `;
+            }).join('')}
+          </div>
+        `}
       </div>
     `;
 
@@ -5389,7 +5463,7 @@ document.addEventListener('DOMContentLoaded', () => {
     } else {
       window.timeplusGymActiveGender = 'masculino';
     }
-    window.timeplusRenderCompoundExercisesGrid('todos');
+    window.timeplusRenderCompoundExercisesGrid();
   };
 
   window.timeplusCalculateOutdoorCal = (kmVal) => {
@@ -5439,48 +5513,57 @@ document.addEventListener('DOMContentLoaded', () => {
     const calMap = { 'Moderada': 380, 'Alta': 480, 'Máxima': 600 };
     const cal = calMap[intensity] || 480;
 
-    let exercises = [];
-    const trackedKeys = Object.keys(window.timeplusGymTracked || {}).filter(k => window.timeplusGymTracked[k].sets > 0);
+    const trackedList = Object.values(window.timeplusGymTracked || {});
 
-    if (trackedKeys.length > 0) {
-      exercises = trackedKeys.map(k => {
-        const item = window.timeplusGymTracked[k];
-        return {
-          name: `${item.name} (${item.muscle})`,
-          sets: item.sets,
-          reps: '10-12 reps',
-          weight: item.isKey ? '⭐ 1ª Línea' : 'Compuesto'
-        };
-      });
+    let exercises = [];
+    if (trackedList.length > 0) {
+      exercises = trackedList.map(item => ({
+        id: item.id,
+        name: item.name,
+        muscle: item.muscle,
+        sets: item.sets || 3,
+        reps: item.repsPerSet ? `${item.repsPerSet} reps` : '10 reps',
+        repsPerSet: item.repsPerSet || 10,
+        weightKg: item.weightKg || null,
+        weight: item.weightKg ? `${item.weightKg} kg` : (item.isKey ? '⭐ 1ª Línea' : 'Compuesto'),
+        status: item.status || 'done',
+        actualReps: item.actualReps || null
+      }));
       if (rawExercises) {
         exercises.push({ name: `Notas: ${rawExercises}`, sets: null, reps: null, weight: null });
       }
     } else if (rawExercises) {
       exercises = rawExercises.split('\n').filter(Boolean).map(line => {
         const clean = line.replace(/^[•\-\*]\s*/, '').trim();
-        return { name: clean, sets: null, reps: null, weight: null };
+        return { name: clean, sets: null, reps: null, weight: null, status: 'done' };
       });
     } else {
-      exercises = [{ name: 'Entrenamiento de Gimnasio', sets: 4, reps: '10-12 reps', weight: 'Progresivo' }];
+      exercises = [{ name: 'Entrenamiento de Gimnasio', sets: 4, reps: '10-12 reps', weight: 'Progresivo', status: 'done' }];
     }
 
-    const muscleTitles = [...new Set(trackedKeys.map(k => window.timeplusGymTracked[k].muscle))].join(' & ') || 'Musculación';
+    const muscleTitles = [...new Set(exercises.map(e => e.muscle).filter(Boolean))].join(' & ') || 'Musculación';
 
     store.recordWorkout({
-      title: `🏋️ ${trackedKeys.length > 0 ? `${trackedKeys.length} Ejercicios Compuestos (${muscleTitles})` : 'Rutina de Gimnasio'}`,
+      title: `🏋️ ${exercises.length > 0 ? `${exercises.length} Ejercicio(s) — ${muscleTitles}` : 'Rutina de Gimnasio'}`,
       category: 'fitness',
       activityType: 'gym',
       muscleGroup: muscleTitles,
       duration: duration,
       durationHours: duration.includes('2') ? 2 : (duration.includes('30') ? 1.5 : 1),
       calories: cal,
-      location: gymLocation || 'Gimnasio',
+      location: gymLocation || 'SmartFit',
       exercises: exercises
     });
 
     window.timeplusCloseFitnessModal();
     if (window.timeplusShowToast) window.timeplusShowToast(`🏋️ Registrado: ${exercises.length} ejercicios en ${gymLocation || 'Gimnasio'} (~${cal} kcal).`);
+    // Limpiar rutina para la próxima vez
+    window.timeplusGymTracked = {};
     renderFitness();
+    // Si estamos en hoy, refrescar el timeline para ver el cubo del día
+    if (window.timeplusRouter?.currentRoute === 'hoy') {
+      renderToday();
+    }
   };
 
   window.timeplusSaveHomeWorkout = () => {
