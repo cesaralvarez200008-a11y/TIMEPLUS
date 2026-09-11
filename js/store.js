@@ -289,6 +289,12 @@ class TimePlusStore {
     }
 
     this.saveState();
+
+    // Sincronizar en Supabase Cloud si está conectado
+    if (window.timeplusSupabase?.upsertMedicationToCloud) {
+      window.timeplusSupabase.upsertMedicationToCloud(med).catch(() => {});
+    }
+
     return med;
   }
 
@@ -298,6 +304,11 @@ class TimePlusStore {
     if (idx !== -1) {
       this.state.medications[idx] = { ...this.state.medications[idx], ...updates };
       this.saveState();
+
+      if (window.timeplusSupabase?.upsertMedicationToCloud) {
+        window.timeplusSupabase.upsertMedicationToCloud(this.state.medications[idx]).catch(() => {});
+      }
+
       return this.state.medications[idx];
     }
     return null;
@@ -308,6 +319,10 @@ class TimePlusStore {
     this.state.medications = this.state.medications.filter(m => m.id !== id);
     this.state.activities = this.state.activities.filter(a => a.medicationId !== id);
     this.saveState();
+
+    if (window.timeplusSupabase?.deleteMedicationFromCloud) {
+      window.timeplusSupabase.deleteMedicationFromCloud(id).catch(() => {});
+    }
   }
 
   restockMedication(id, additionalUnits) {
@@ -316,6 +331,11 @@ class TimePlusStore {
     if (med) {
       med.currentStock = (Number(med.currentStock) || 0) + Number(additionalUnits);
       this.saveState();
+
+      if (window.timeplusSupabase?.upsertMedicationToCloud) {
+        window.timeplusSupabase.upsertMedicationToCloud(med).catch(() => {});
+      }
+
       return med;
     }
     return null;
@@ -332,6 +352,23 @@ class TimePlusStore {
           const dose = Number(med.dosePerTake) || 1;
           med.currentStock = Math.max(0, (Number(med.currentStock) || 0) - dose);
           medUpdated = med;
+
+          // Sincronizar actualización de stock y registrar log en Supabase Cloud
+          if (window.timeplusSupabase?.upsertMedicationToCloud) {
+            window.timeplusSupabase.upsertMedicationToCloud(med).catch(() => {});
+          }
+          if (window.timeplusSupabase?.logMedicationTakenToCloud) {
+            const user = this.getCurrentUser();
+            window.timeplusSupabase.logMedicationTakenToCloud({
+              medicationId: med.id,
+              userEmail: user?.email || med.userEmail,
+              medicationName: med.name,
+              doseTaken: dose,
+              stockAfter: med.currentStock,
+              status: 'Tomado',
+              takenAt: new Date().toISOString()
+            }).catch(() => {});
+          }
         }
       }
     }
@@ -373,9 +410,18 @@ class TimePlusStore {
       calories: cal,
       type: 'fitness',
       exercises: workout.exercises || [],
-      userEmail: user ? user.email.toLowerCase() : null
+      userEmail: user?.email || '',
+      userName: user?.name || ''
     };
-    return this.addActivity(act);
+
+    this.state.activities.push(act);
+    this.saveState();
+
+    // Guardar en Supabase Cloud si está conectado
+    if (window.timeplusSupabase?.saveFitnessWorkoutToCloud) {
+      window.timeplusSupabase.saveFitnessWorkoutToCloud(act, user).catch(() => {});
+    }
+    return act;
   }
 
   getFitnessSummary() {

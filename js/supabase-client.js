@@ -214,6 +214,121 @@ window.timeplusSupabase = {
     }
   },
 
+  /* ── MÓDULO SALUD & MEDICAMENTOS (SUPABASE CLOUD) ── */
+  async getMedicationsFromCloud(userEmail) {
+    if (!_client || !userEmail) return [];
+    try {
+      const cleanEmail = userEmail.trim().toLowerCase();
+      const { data, error } = await _client
+        .from('medications')
+        .select('*')
+        .eq('user_email', cleanEmail)
+        .order('created_at', { ascending: true });
+      if (error) throw error;
+      return (data || []).map(m => ({
+        id: m.id,
+        userEmail: m.user_email,
+        userName: m.user_name,
+        name: m.name,
+        dosePerTake: Number(m.dose_per_take) || 1,
+        unit: m.unit || 'pastillas',
+        frequency: m.frequency || 'Cada 24 horas',
+        time: m.time || '08:00',
+        currentStock: Number(m.current_stock) || 0,
+        dailyDose: Number(m.daily_dose) || 1,
+        instructions: m.instructions || '',
+        refillThreshold: Number(m.refill_threshold) || 5
+      }));
+    } catch (e) {
+      // Tabla puede no existir todavía si el usuario no ha corrido el SQL
+      console.warn('Nota: Sincronización en la nube de medicamentos pendiente o tabla no creada:', e.message);
+      return [];
+    }
+  },
+
+  async upsertMedicationToCloud(med) {
+    if (!_client || !med || !med.userEmail) return null;
+    try {
+      const payload = {
+        id: med.id,
+        user_email: (med.userEmail || '').trim().toLowerCase(),
+        user_name: med.userName || '',
+        name: med.name,
+        dose_per_take: Number(med.dosePerTake) || 1,
+        unit: med.unit || 'pastillas',
+        frequency: med.frequency || 'Cada 24 horas',
+        time: med.time || '08:00',
+        current_stock: Number(med.currentStock) || 0,
+        daily_dose: Number(med.dailyDose) || 1,
+        instructions: med.instructions || '',
+        refill_threshold: Number(med.refillThreshold) || 5,
+        updated_at: new Date().toISOString()
+      };
+      const { data, error } = await _client
+        .from('medications')
+        .upsert(payload)
+        .select();
+      if (error) throw error;
+      return data?.[0] || null;
+    } catch (e) {
+      console.warn('No se pudo guardar medicamento en Supabase (usando almacenamiento local):', e.message);
+      return null;
+    }
+  },
+
+  async deleteMedicationFromCloud(medId) {
+    if (!_client || !medId) return;
+    try {
+      await _client.from('medications').delete().eq('id', medId);
+    } catch (e) {
+      console.warn('Error eliminando medicamento de Supabase:', e.message);
+    }
+  },
+
+  async logMedicationTakenToCloud(log) {
+    if (!_client || !log || !log.userEmail) return;
+    try {
+      const payload = {
+        medication_id: log.medicationId || null,
+        user_email: (log.userEmail || '').trim().toLowerCase(),
+        medication_name: log.medicationName || 'Medicamento',
+        dose_taken: Number(log.doseTaken) || 1,
+        stock_after: log.stockAfter !== undefined ? Number(log.stockAfter) : null,
+        status: log.status || 'Tomado',
+        taken_at: log.takenAt || new Date().toISOString()
+      };
+      await _client.from('medication_logs').insert(payload);
+    } catch (e) {
+      console.warn('Nota log de toma en nube:', e.message);
+    }
+  },
+
+  /* ── MÓDULO FITNESS & WORKOUTS (SUPABASE CLOUD) ── */
+  async saveFitnessWorkoutToCloud(workout, user) {
+    if (!_client || !workout || !user?.email) return null;
+    try {
+      const payload = {
+        user_email: user.email.trim().toLowerCase(),
+        user_name: user.name || '',
+        title: workout.title || 'Entrenamiento',
+        activity_type: workout.activityType || 'gym',
+        muscle_group: workout.muscleGroup || '',
+        duration: workout.duration || '1 hora',
+        duration_hours: Number(workout.durationHours) || 1.0,
+        distance_km: Number(workout.distanceKm) || 0,
+        calories: Number(workout.calories) || 400,
+        location: workout.location || 'Gimnasio',
+        exercises: workout.exercises || []
+      };
+      const { data, error } = await _client.from('fitness_workouts').insert(payload).select();
+      if (error) throw error;
+      return data?.[0] || null;
+    } catch (e) {
+      console.warn('Nota workout en nube:', e.message);
+      return null;
+    }
+  },
+
   subscribeRealtime(callback) {
     if (!_client) return null;
     try {
