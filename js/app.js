@@ -5119,34 +5119,169 @@ document.addEventListener('DOMContentLoaded', () => {
     window.timeplusRenderCompoundExercisesGrid();
   };
 
-  // ➕ Agregar ejercicio individualmente a la rutina
-  window.timeplusAddExerciseToRoutineById = (exId) => {
+  // ➕ Modal emergente directo: seleccionar ejercicio y mandar a registrar serie, peso, reps
+  window.timeplusOpenExerciseConfigModal = (exId) => {
     const ex = TIMEPLUS_COMPOUND_EXERCISES.find(e => e.id === exId);
     if (!ex) return;
 
-    const kgInput = document.getElementById(`tp-card-in-kg-${exId}`);
-    const repsInput = document.getElementById(`tp-card-in-reps-${exId}`);
-    const setsInput = document.getElementById(`tp-card-in-sets-${exId}`);
+    const curGender = window.timeplusGymActiveGender || 'masculino';
+    const isFem = (curGender === 'femenino');
+    const existing = window.timeplusGymTracked[exId];
 
-    const kg = parseFloat(kgInput?.value) || null;
-    const reps = parseInt(repsInput?.value) || ex.targetReps || 10;
-    const sets = parseInt(setsInput?.value) || ex.targetSets || 3;
+    const currentKg = existing?.weightKg !== undefined && existing?.weightKg !== null ? existing.weightKg : (ex.category === 'cardio' || ex.id === 'sentadillas' || ex.id === 'flexiones_abiertas' || ex.id === 'dominadas' ? '' : '20');
+    const currentReps = existing?.repsPerSet || ex.targetReps || 10;
+    const currentSets = existing?.sets || ex.targetSets || 3;
+
+    // Eliminar modal previo si existiera
+    const prev = document.getElementById('tp-ex-config-modal-overlay');
+    if (prev) prev.remove();
+
+    const overlay = document.createElement('div');
+    overlay.id = 'tp-ex-config-modal-overlay';
+    overlay.style.cssText = `
+      position:fixed;inset:0;z-index:10005;
+      background:rgba(15,23,42,0.75);backdrop-filter:blur(6px);
+      display:flex;align-items:center;justify-content:center;padding:16px;
+    `;
+
+    overlay.innerHTML = `
+      <div style="
+        background:#ffffff;border-radius:18px;max-width:420px;width:100%;
+        box-shadow:0 25px 50px -12px rgba(0,0,0,0.35);overflow:hidden;
+        animation:tpSlideUp .22s cubic-bezier(.34,1.56,.64,1);border:1px solid #E2E8F0;
+      ">
+        <!-- Header del Modal -->
+        <div style="background:linear-gradient(135deg,${isFem ? '#BE123C,#E11D48' : '#1D4ED8,#2563EB'});padding:1rem 1.25rem;color:#ffffff;display:flex;align-items:center;justify-content:space-between;">
+          <div style="display:flex;align-items:center;gap:0.6rem;">
+            <div style="background:rgba(255,255,255,0.2);padding:0.35rem 0.6rem;border-radius:8px;font-size:0.75rem;font-weight:900;letter-spacing:0.5px;">
+              ${ex.muscle}
+            </div>
+            <div>
+              <div style="font-size:0.95rem;font-weight:900;line-height:1.2;">${ex.name}</div>
+              <div style="font-size:0.7rem;opacity:0.9;">Registra series, peso y repeticiones</div>
+            </div>
+          </div>
+          <button type="button" onclick="window.timeplusCloseExerciseConfigModal()" style="background:rgba(255,255,255,0.2);border:none;color:#fff;width:28px;height:28px;border-radius:50%;cursor:pointer;font-weight:900;display:flex;align-items:center;justify-content:center;font-size:0.85rem;">✕</button>
+        </div>
+
+        <div style="padding:1.15rem;display:flex;flex-direction:column;gap:1rem;">
+          
+          <!-- Ilustración SVG del Ejercicio -->
+          <div style="background:${isFem ? '#FFF1F2' : '#EFF6FF'};border-radius:12px;padding:0.5rem;border:1px solid ${isFem ? '#FECDD3' : '#BFDBFE'};">
+            ${window.timeplusGetExerciseAvatarSvg(ex.id, curGender)}
+          </div>
+
+          <!-- Campos Serie, Peso (kg) y Repeticiones -->
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:0.65rem;">
+            
+            <!-- Series -->
+            <div style="background:#F8FAFC;border:1.5px solid #E2E8F0;border-radius:10px;padding:0.6rem 0.5rem;text-align:center;">
+              <label style="font-size:0.68rem;font-weight:800;color:#475569;display:block;margin-bottom:0.3rem;">
+                📋 SERIES
+              </label>
+              <input id="tp-modal-in-sets" type="number" min="1" max="25" value="${currentSets}"
+                style="width:100%;border:1.5px solid #CBD5E1;border-radius:6px;padding:0.4rem;font-size:1.05rem;font-weight:900;color:#1E293B;text-align:center;box-sizing:border-box;">
+              <span style="font-size:0.6rem;color:#64748B;font-weight:600;display:block;margin-top:0.25rem;">ej: 3 ó 4</span>
+            </div>
+
+            <!-- Peso kg -->
+            <div style="background:#F8FAFC;border:1.5px solid #E2E8F0;border-radius:10px;padding:0.6rem 0.5rem;text-align:center;">
+              <label style="font-size:0.68rem;font-weight:800;color:#475569;display:block;margin-bottom:0.3rem;">
+                💪 PESO (KG)
+              </label>
+              <input id="tp-modal-in-kg" type="number" min="0" step="0.5" value="${currentKg}" placeholder="0"
+                style="width:100%;border:1.5px solid #CBD5E1;border-radius:6px;padding:0.4rem;font-size:1.05rem;font-weight:900;color:#2563EB;text-align:center;box-sizing:border-box;">
+              <span style="font-size:0.6rem;color:#64748B;font-weight:600;display:block;margin-top:0.25rem;">(vacío = s/peso)</span>
+            </div>
+
+            <!-- Repeticiones -->
+            <div style="background:#F8FAFC;border:1.5px solid #E2E8F0;border-radius:10px;padding:0.6rem 0.5rem;text-align:center;">
+              <label style="font-size:0.68rem;font-weight:800;color:#475569;display:block;margin-bottom:0.3rem;">
+                🔁 REPETICIONES
+              </label>
+              <input id="tp-modal-in-reps" type="number" min="1" max="150" value="${currentReps}"
+                style="width:100%;border:1.5px solid #CBD5E1;border-radius:6px;padding:0.4rem;font-size:1.05rem;font-weight:900;color:#1E293B;text-align:center;box-sizing:border-box;">
+              <span style="font-size:0.6rem;color:#64748B;font-weight:600;display:block;margin-top:0.25rem;">por cada serie</span>
+            </div>
+
+          </div>
+
+          <!-- Selector rápido de estado inicial -->
+          <div style="background:#F1F5F9;border-radius:10px;padding:0.5rem 0.75rem;display:flex;align-items:center;justify-content:space-between;">
+            <span style="font-size:0.72rem;font-weight:800;color:#334155;">Estado de Realización:</span>
+            <div style="display:flex;gap:0.3rem;">
+              <label style="font-size:0.7rem;font-weight:700;color:#15803D;display:flex;align-items:center;gap:0.2rem;cursor:pointer;">
+                <input type="radio" name="tp-modal-status" value="done" checked> ✅ Hecho
+              </label>
+              <label style="font-size:0.7rem;font-weight:700;color:#B45309;display:flex;align-items:center;gap:0.2rem;cursor:pointer;margin-left:0.4rem;">
+                <input type="radio" name="tp-modal-status" value="partial"> ⚠️ Parcial
+              </label>
+            </div>
+          </div>
+
+          <!-- Botones de Acción -->
+          <div style="display:flex;gap:0.5rem;margin-top:0.25rem;">
+            <button type="button" onclick="window.timeplusCloseExerciseConfigModal()"
+              style="flex:1;background:#F1F5F9;color:#475569;border:1px solid #CBD5E1;border-radius:8px;padding:0.6rem;font-size:0.78rem;font-weight:800;cursor:pointer;">
+              Cancelar
+            </button>
+            <button type="button" onclick="window.timeplusSubmitExerciseFromModal('${ex.id}')"
+              style="flex:2;background:linear-gradient(135deg,${isFem ? '#BE123C,#E11D48' : '#2563EB,#1D4ED8'});color:#ffffff;border:none;border-radius:8px;padding:0.6rem;font-size:0.82rem;font-weight:900;cursor:pointer;box-shadow:0 4px 12px rgba(37,99,235,0.3);display:flex;align-items:center;justify-content:center;gap:0.4rem;">
+              <span>✅ Guardar en Rutina</span>
+            </button>
+          </div>
+
+        </div>
+      </div>
+    `;
+
+    document.body.appendChild(overlay);
+    overlay.addEventListener('click', (e) => {
+      if (e.target === overlay) window.timeplusCloseExerciseConfigModal();
+    });
+  };
+
+  window.timeplusCloseExerciseConfigModal = () => {
+    const el = document.getElementById('tp-ex-config-modal-overlay');
+    if (el) el.remove();
+  };
+
+  // Guardar desde el modal a la rutina
+  window.timeplusSubmitExerciseFromModal = (exId) => {
+    const ex = TIMEPLUS_COMPOUND_EXERCISES.find(e => e.id === exId);
+    if (!ex) return;
+
+    const kgVal = document.getElementById('tp-modal-in-kg')?.value;
+    const repsVal = document.getElementById('tp-modal-in-reps')?.value;
+    const setsVal = document.getElementById('tp-modal-in-sets')?.value;
+    const statusRadio = document.querySelector('input[name="tp-modal-status"]:checked');
+
+    const kg = kgVal !== '' && !isNaN(parseFloat(kgVal)) ? parseFloat(kgVal) : null;
+    const reps = parseInt(repsVal) || ex.targetReps || 10;
+    const sets = parseInt(setsVal) || ex.targetSets || 3;
+    const status = statusRadio ? statusRadio.value : 'done';
 
     window.timeplusGymTracked[exId] = {
       ...ex,
       weightKg: kg,
       repsPerSet: reps,
       sets: sets,
-      status: 'done', // Por defecto marcado listo
-      actualReps: null
+      status: status,
+      actualReps: status === 'partial' ? Math.max(1, Math.round(reps * 0.7)) : null
     };
 
-    window.timeplusSpeakExercise && window.timeplusSpeakExercise(`Agregado ${ex.name}`);
+    window.timeplusCloseExerciseConfigModal();
+    window.timeplusSpeakExercise && window.timeplusSpeakExercise(`Registrado ${ex.name}`);
     if (window.timeplusShowToast) {
-      window.timeplusShowToast(`✅ Agregado: ${ex.name} (${kg ? kg + ' kg · ' : ''}${sets} series × ${reps} reps)`);
+      window.timeplusShowToast(`✅ ${ex.name} registrado: ${sets} series × ${reps} reps ${kg ? 'con ' + kg + ' kg' : '(sin peso)'}`);
     }
 
     window.timeplusRenderCompoundExercisesGrid();
+  };
+
+  // ➕ Agregar ejercicio individualmente a la rutina (abre el registro directo de serie, peso, reps)
+  window.timeplusAddExerciseToRoutineById = (exId) => {
+    window.timeplusOpenExerciseConfigModal(exId);
   };
 
   // Quitar ejercicio de la rutina
@@ -5185,7 +5320,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Compatibilidad
   window.timeplusSetExerciseStatus = (exId, status) => window.timeplusSetRoutineItemStatus(exId, status);
-  window.timeplusRecordExerciseSet = (exId) => window.timeplusAddExerciseToRoutineById(exId);
+  window.timeplusRecordExerciseSet = (exId) => window.timeplusOpenExerciseConfigModal(exId);
   window.timeplusDecrementExerciseSet = (exId, evt) => {
     if (evt) evt.stopPropagation();
     window.timeplusRemoveFromRoutine(exId);
@@ -5364,13 +5499,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 ${ex.isKey ? '<span style="font-size:0.6rem;color:#DC2626;font-weight:800;">⭐ Clave</span>' : ''}
               </div>
 
-              <!-- ILUSTRACIÓN SVG VISIBLE -->
-              <div style="cursor:pointer;" onclick="${inRoutine ? `window.timeplusSetRoutineItemStatus('${ex.id}','done')` : `window.timeplusAddExerciseToRoutineById('${ex.id}')`}">
+              <!-- ILUSTRACIÓN SVG VISIBLE: Clic para seleccionar y registrar -->
+              <div style="cursor:pointer;position:relative;" onclick="window.timeplusOpenExerciseConfigModal('${ex.id}')" title="Toca para seleccionar y registrar serie, peso, reps">
                 ${window.timeplusGetExerciseAvatarSvg(ex.id, curGender)}
+                <div style="position:absolute;bottom:4px;right:4px;background:rgba(15,23,42,0.7);color:#fff;border-radius:4px;padding:0.1rem 0.35rem;font-size:0.55rem;font-weight:700;">
+                  ${inRoutine ? '✏️ Modificar' : '👆 Seleccionar'}
+                </div>
               </div>
 
               <!-- Nombre y descripción -->
-              <div>
+              <div style="cursor:pointer;" onclick="window.timeplusOpenExerciseConfigModal('${ex.id}')">
                 <strong style="font-size:0.75rem;color:#0F172A;line-height:1.2;display:block;">
                   ${ex.name}
                 </strong>
@@ -5380,29 +5518,10 @@ document.addEventListener('DOMContentLoaded', () => {
               </div>
 
               ${!inRoutine ? `
-                <!-- Inputs de Carga Antes de Agregar -->
-                <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:0.2rem;margin-top:auto;padding-top:0.25rem;">
-                  <div>
-                    <div style="font-size:0.52rem;font-weight:800;color:#64748B;text-align:center;">💪 kg</div>
-                    <input id="tp-card-in-kg-${ex.id}" type="number" min="0" step="0.5" placeholder="kg"
-                      style="width:100%;border:1px solid #CBD5E1;border-radius:4px;padding:0.15rem;font-size:0.68rem;font-weight:800;text-align:center;box-sizing:border-box;">
-                  </div>
-                  <div>
-                    <div style="font-size:0.52rem;font-weight:800;color:#64748B;text-align:center;">🔁 reps</div>
-                    <input id="tp-card-in-reps-${ex.id}" type="number" min="1" max="100" value="${ex.targetReps || 10}"
-                      style="width:100%;border:1px solid #CBD5E1;border-radius:4px;padding:0.15rem;font-size:0.68rem;font-weight:800;text-align:center;box-sizing:border-box;">
-                  </div>
-                  <div>
-                    <div style="font-size:0.52rem;font-weight:800;color:#64748B;text-align:center;">📋 series</div>
-                    <input id="tp-card-in-sets-${ex.id}" type="number" min="1" max="20" value="${ex.targetSets || 3}"
-                      style="width:100%;border:1px solid #CBD5E1;border-radius:4px;padding:0.15rem;font-size:0.68rem;font-weight:800;text-align:center;box-sizing:border-box;">
-                  </div>
-                </div>
-
-                <!-- Botón Agregar a mi Rutina -->
-                <button type="button" onclick="window.timeplusAddExerciseToRoutineById('${ex.id}')"
-                  style="width:100%;background:linear-gradient(135deg,#2563EB,#1D4ED8);color:#fff;border:none;border-radius:5px;padding:0.35rem 0.4rem;font-size:0.68rem;font-weight:800;cursor:pointer;margin-top:0.2rem;display:flex;align-items:center;justify-content:center;gap:0.2rem;">
-                  <span>＋ Agregar</span>
+                <!-- Botón Seleccionar y Mandar a Registrar Serie, Peso, Reps -->
+                <button type="button" onclick="window.timeplusOpenExerciseConfigModal('${ex.id}')"
+                  style="width:100%;margin-top:auto;background:linear-gradient(135deg,#2563EB,#1D4ED8);color:#fff;border:none;border-radius:6px;padding:0.45rem 0.4rem;font-size:0.72rem;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:0.3rem;box-shadow:0 2px 4px rgba(37,99,235,0.2);">
+                  <span>📋 Registrar Serie &amp; Peso →</span>
                 </button>
               ` : `
                 <!-- Ya Agregado: Estados y Quitar -->

@@ -2,7 +2,7 @@
  * TIMEPLUS OS — Service Worker (PWA & APK Offline Support)
  */
 
-const CACHE_NAME = 'timeplus-os-cache-v20260911-visual-gallery';
+const CACHE_NAME = 'timeplus-os-cache-v20260911-modal-flow';
 const ASSETS_TO_CACHE = [
   '/',
   '/index.html',
