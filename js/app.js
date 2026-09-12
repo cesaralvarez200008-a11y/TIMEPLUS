@@ -4938,6 +4938,7 @@ document.addEventListener('DOMContentLoaded', () => {
         <line x1="75" y1="50" x2="75" y2="58" stroke="#475569" stroke-width="3"/>
         <rect x="25" y="38" width="45" height="7" rx="3" fill="${secondaryCloth}"/>
         <circle cx="28" cy="40" r="5" fill="${skin}"/>
+        <g class="tp-anim-bench-press">
         ${exId === 'press_mancuernas' ? `
           <rect x="36" y="16" width="6" height="12" rx="1" fill="#DC2626"/>
           <rect x="58" y="16" width="6" height="12" rx="1" fill="#DC2626"/>
@@ -4948,6 +4949,7 @@ document.addEventListener('DOMContentLoaded', () => {
           <rect x="68" y="16" width="4" height="12" rx="1" fill="#DC2626"/>
           <path d="M40 38 L42 23 M56 38 L54 23" stroke="${skin}" stroke-width="3" stroke-linecap="round"/>
         `}
+        </g>
         <rect x="36" y="36" width="22" height="6" rx="2" fill="${primaryCloth}"/>
       `;
     } else if (exId === 'press_inclinado' || exId === 'aperturas_pecho') {
@@ -4957,39 +4959,47 @@ document.addEventListener('DOMContentLoaded', () => {
         <line x1="20" y1="54" x2="20" y2="60" stroke="#475569" stroke-width="3"/>
         <circle cx="32" cy="30" r="5" fill="${skin}"/>
         <rect x="34" y="32" width="20" height="7" rx="2" transform="rotate(-30 34 32)" fill="${primaryCloth}"/>
-        <rect x="22" y="14" width="6" height="10" rx="1" fill="#DC2626"/>
-        <rect x="68" y="18" width="6" height="10" rx="1" fill="#DC2626"/>
-        <path d="M38 32 L26 22 M50 26 L68 24" stroke="${skin}" stroke-width="3" stroke-linecap="round"/>
+        <g class="tp-anim-bench-press">
+          <rect x="22" y="14" width="6" height="10" rx="1" fill="#DC2626"/>
+          <rect x="68" y="18" width="6" height="10" rx="1" fill="#DC2626"/>
+          <path d="M38 32 L26 22 M50 26 L68 24" stroke="${skin}" stroke-width="3" stroke-linecap="round"/>
+        </g>
       `;
     } else if (exId === 'fondos_pecho' || exId === 'fondos_paralelas') {
       // Fondos en barras paralelas
       motionContent = `
         <line x1="22" y1="20" x2="22" y2="60" stroke="#64748B" stroke-width="4"/>
         <line x1="78" y1="20" x2="78" y2="60" stroke="#64748B" stroke-width="4"/>
-        <circle cx="50" cy="18" r="6" fill="${skin}"/>
-        ${isFem ? '<path d="M45 17 Q40 12 36 19 Q41 23 45 20" fill="' + hair + '"/>' : ''}
-        <rect x="42" y="24" width="16" height="15" rx="3" fill="${primaryCloth}"/>
-        <path d="M44 39 L47 52 M56 39 L53 52" stroke="${secondaryCloth}" stroke-width="4" stroke-linecap="round"/>
-        <path d="M42 26 L24 30 M58 26 L76 30" stroke="${skin}" stroke-width="3.5" stroke-linecap="round"/>
+        <g class="tp-anim-dips">
+          <circle cx="50" cy="18" r="6" fill="${skin}"/>
+          ${isFem ? '<path d="M45 17 Q40 12 36 19 Q41 23 45 20" fill="' + hair + '"/>' : ''}
+          <rect x="42" y="24" width="16" height="15" rx="3" fill="${primaryCloth}"/>
+          <path d="M44 39 L47 52 M56 39 L53 52" stroke="${secondaryCloth}" stroke-width="4" stroke-linecap="round"/>
+          <path d="M42 26 L24 30 M58 26 L76 30" stroke="${skin}" stroke-width="3.5" stroke-linecap="round"/>
+        </g>
       `;
     } else if (exId === 'fondos_banco') {
       // Fondos al banco / silla
       motionContent = `
         <rect x="65" y="36" width="25" height="6" rx="2" fill="#64748B"/>
         <line x1="85" y1="42" x2="85" y2="60" stroke="#475569" stroke-width="3"/>
-        <circle cx="52" cy="24" r="5" fill="${skin}"/>
-        <rect x="46" y="30" width="12" height="14" rx="2" fill="${primaryCloth}"/>
-        <path d="M46 44 L30 52 L30 60" stroke="${secondaryCloth}" stroke-width="4" stroke-linecap="round"/>
-        <path d="M56 32 L66 38" stroke="${skin}" stroke-width="3.5" stroke-linecap="round"/>
+        <g class="tp-anim-dips">
+          <circle cx="52" cy="24" r="5" fill="${skin}"/>
+          <rect x="46" y="30" width="12" height="14" rx="2" fill="${primaryCloth}"/>
+          <path d="M46 44 L30 52 L30 60" stroke="${secondaryCloth}" stroke-width="4" stroke-linecap="round"/>
+          <path d="M56 32 L66 38" stroke="${skin}" stroke-width="3.5" stroke-linecap="round"/>
+        </g>
       `;
     } else if (exId === 'flexiones_abiertas') {
       // Flexiones / lagartijas en suelo
       motionContent = `
         <line x1="12" y1="52" x2="88" y2="52" stroke="#CBD5E1" stroke-width="2"/>
-        <circle cx="70" cy="34" r="5" fill="${skin}"/>
-        <path d="M68 36 L40 44 L25 48" stroke="${secondaryCloth}" stroke-width="5" stroke-linecap="round"/>
-        <rect x="52" y="36" width="16" height="8" rx="3" transform="rotate(-15 52 36)" fill="${primaryCloth}"/>
-        <path d="M58 40 L65 52 M54 41 L46 52" stroke="${skin}" stroke-width="3" stroke-linecap="round"/>
+        <g class="tp-anim-pushup">
+          <circle cx="70" cy="34" r="5" fill="${skin}"/>
+          <path d="M68 36 L40 44 L25 48" stroke="${secondaryCloth}" stroke-width="5" stroke-linecap="round"/>
+          <rect x="52" y="36" width="16" height="8" rx="3" transform="rotate(-15 52 36)" fill="${primaryCloth}"/>
+          <path d="M58 40 L65 52 M54 41 L46 52" stroke="${skin}" stroke-width="3" stroke-linecap="round"/>
+        </g>
       `;
     } else if (exId === 'press_militar' || exId === 'press_hombros_manc' || exId === 'press_arnold') {
       // Press de hombros overhead
@@ -4999,6 +5009,7 @@ document.addEventListener('DOMContentLoaded', () => {
         <rect x="42" y="30" width="16" height="16" rx="3" fill="${primaryCloth}"/>
         <line x1="45" y1="46" x2="43" y2="58" stroke="${secondaryCloth}" stroke-width="4"/>
         <line x1="55" y1="46" x2="57" y2="58" stroke="${secondaryCloth}" stroke-width="4"/>
+        <g class="tp-anim-press-overhead">
         ${exId === 'press_militar' ? `
           <line x1="22" y1="12" x2="78" y2="12" stroke="#94A3B8" stroke-width="3.5"/>
           <rect x="18" y="7" width="4" height="10" rx="1" fill="#DC2626"/>
@@ -5009,6 +5020,7 @@ document.addEventListener('DOMContentLoaded', () => {
           <rect x="68" y="10" width="6" height="12" rx="1" fill="#DC2626"/>
           <path d="M42 32 L30 16 M58 32 L70 16" stroke="${skin}" stroke-width="3.5" stroke-linecap="round"/>
         `}
+        </g>
       `;
     } else if (exId === 'elevaciones_laterales') {
       // Elevaciones laterales en T
@@ -5017,10 +5029,12 @@ document.addEventListener('DOMContentLoaded', () => {
         <rect x="44" y="25" width="12" height="17" rx="2" fill="${primaryCloth}"/>
         <line x1="46" y1="42" x2="45" y2="58" stroke="${secondaryCloth}" stroke-width="3.5"/>
         <line x1="54" y1="42" x2="55" y2="58" stroke="${secondaryCloth}" stroke-width="3.5"/>
-        <!-- Brazos en cruz horizontal con mancuernas -->
-        <path d="M44 28 L20 28 M56 28 L80 28" stroke="${skin}" stroke-width="3" stroke-linecap="round"/>
-        <rect x="15" y="24" width="5" height="9" fill="#DC2626"/>
-        <rect x="80" y="24" width="5" height="9" fill="#DC2626"/>
+        <g class="tp-anim-lateral-raise">
+          <!-- Brazos en cruz horizontal con mancuernas -->
+          <path d="M44 28 L20 28 M56 28 L80 28" stroke="${skin}" stroke-width="3" stroke-linecap="round"/>
+          <rect x="15" y="24" width="5" height="9" fill="#DC2626"/>
+          <rect x="80" y="24" width="5" height="9" fill="#DC2626"/>
+        </g>
       `;
     } else if (exId === 'remo_menton') {
       // Remo al mentón (codos arriba)
@@ -5029,21 +5043,25 @@ document.addEventListener('DOMContentLoaded', () => {
         <rect x="43" y="26" width="14" height="16" rx="3" fill="${primaryCloth}"/>
         <line x1="46" y1="42" x2="45" y2="58" stroke="${secondaryCloth}" stroke-width="4"/>
         <line x1="54" y1="42" x2="55" y2="58" stroke="${secondaryCloth}" stroke-width="4"/>
-        <line x1="36" y1="28" x2="64" y2="28" stroke="#94A3B8" stroke-width="3"/>
-        <rect x="33" y="24" width="3" height="8" fill="#DC2626"/>
-        <rect x="64" y="24" width="3" height="8" fill="#DC2626"/>
-        <path d="M43 28 L34 23 L44 28 M57 28 L66 23 L56 28" stroke="${skin}" stroke-width="3" stroke-linecap="round"/>
+        <g class="tp-anim-rowing">
+          <line x1="36" y1="28" x2="64" y2="28" stroke="#94A3B8" stroke-width="3"/>
+          <rect x="33" y="24" width="3" height="8" fill="#DC2626"/>
+          <rect x="64" y="24" width="3" height="8" fill="#DC2626"/>
+          <path d="M43 28 L34 23 L44 28 M57 28 L66 23 L56 28" stroke="${skin}" stroke-width="3" stroke-linecap="round"/>
+        </g>
       `;
     } else if (exId === 'peso_muerto') {
       // Peso muerto
       motionContent = `
-        <line x1="15" y1="56" x2="85" y2="56" stroke="#94A3B8" stroke-width="3.5"/>
-        <rect x="12" y="47" width="5" height="18" rx="2" fill="#DC2626"/>
-        <rect x="83" y="47" width="5" height="18" rx="2" fill="#DC2626"/>
-        <circle cx="50" cy="24" r="6" fill="${skin}"/>
-        <path d="M50 28 L46 40 L44 54" stroke="${secondaryCloth}" stroke-width="4.5" stroke-linecap="round"/>
-        <rect x="43" y="28" width="14" height="13" rx="3" fill="${primaryCloth}"/>
-        <path d="M44 32 L36 54 M56 32 L64 54" stroke="${skin}" stroke-width="3" stroke-linecap="round"/>
+        <g class="tp-anim-deadlift">
+          <line x1="15" y1="56" x2="85" y2="56" stroke="#94A3B8" stroke-width="3.5"/>
+          <rect x="12" y="47" width="5" height="18" rx="2" fill="#DC2626"/>
+          <rect x="83" y="47" width="5" height="18" rx="2" fill="#DC2626"/>
+          <circle cx="50" cy="24" r="6" fill="${skin}"/>
+          <path d="M50 28 L46 40 L44 54" stroke="${secondaryCloth}" stroke-width="4.5" stroke-linecap="round"/>
+          <rect x="43" y="28" width="14" height="13" rx="3" fill="${primaryCloth}"/>
+          <path d="M44 32 L36 54 M56 32 L64 54" stroke="${skin}" stroke-width="3" stroke-linecap="round"/>
+        </g>
       `;
     } else if (exId === 'remo_barra' || exId === 'remo_mancuernas') {
       // Remo inclinado
@@ -5051,61 +5069,73 @@ document.addEventListener('DOMContentLoaded', () => {
         <circle cx="38" cy="24" r="6" fill="${skin}"/>
         <path d="M38 29 L50 38 L60 56" stroke="${secondaryCloth}" stroke-width="4.5" stroke-linecap="round"/>
         <rect x="36" y="29" width="16" height="12" rx="3" transform="rotate(35 36 29)" fill="${primaryCloth}"/>
-        <line x1="28" y1="44" x2="68" y2="44" stroke="#94A3B8" stroke-width="3.5"/>
-        <rect x="25" y="38" width="4" height="12" fill="#DC2626"/>
-        <rect x="68" y="38" width="4" height="12" fill="#DC2626"/>
-        <path d="M44 34 L48 44" stroke="${skin}" stroke-width="3" stroke-linecap="round"/>
+        <g class="tp-anim-rowing">
+          <line x1="28" y1="44" x2="68" y2="44" stroke="#94A3B8" stroke-width="3.5"/>
+          <rect x="25" y="38" width="4" height="12" fill="#DC2626"/>
+          <rect x="68" y="38" width="4" height="12" fill="#DC2626"/>
+          <path d="M44 34 L48 44" stroke="${skin}" stroke-width="3" stroke-linecap="round"/>
+        </g>
       `;
     } else if (exId === 'dominadas') {
       // Dominadas
       motionContent = `
         <line x1="15" y1="12" x2="85" y2="12" stroke="#475569" stroke-width="4"/>
-        <circle cx="50" cy="23" r="6" fill="${skin}"/>
-        <rect x="42" y="29" width="16" height="15" rx="3" fill="${primaryCloth}"/>
-        <path d="M46 44 L44 56 M54 44 L56 56" stroke="${secondaryCloth}" stroke-width="4" stroke-linecap="round"/>
-        <path d="M43 31 L32 14 M57 31 L68 14" stroke="${skin}" stroke-width="3.5" stroke-linecap="round"/>
+        <g class="tp-anim-pullup">
+          <circle cx="50" cy="23" r="6" fill="${skin}"/>
+          <rect x="42" y="29" width="16" height="15" rx="3" fill="${primaryCloth}"/>
+          <path d="M46 44 L44 56 M54 44 L56 56" stroke="${secondaryCloth}" stroke-width="4" stroke-linecap="round"/>
+          <path d="M43 31 L32 14 M57 31 L68 14" stroke="${skin}" stroke-width="3.5" stroke-linecap="round"/>
+        </g>
       `;
     } else if (exId === 'sentadilla_trasera' || exId === 'sentadillas' || exId === 'sentadilla_frontal') {
       // Sentadillas
       motionContent = `
-        ${exId !== 'sentadillas' ? `
-          <line x1="20" y1="${exId === 'sentadilla_frontal' ? '28' : '23'}" x2="80" y2="${exId === 'sentadilla_frontal' ? '28' : '23'}" stroke="#94A3B8" stroke-width="3.5"/>
-          <rect x="16" y="${exId === 'sentadilla_frontal' ? '22' : '17'}" width="5" height="13" rx="1" fill="#DC2626"/>
-          <rect x="79" y="${exId === 'sentadilla_frontal' ? '22' : '17'}" width="5" height="13" rx="1" fill="#DC2626"/>
-        ` : ''}
-        <circle cx="50" cy="22" r="6" fill="${skin}"/>
-        <rect x="42" y="27" width="16" height="14" rx="3" fill="${primaryCloth}"/>
-        <path d="M44 40 L34 46 L38 58 M56 40 L66 46 L62 58" stroke="${secondaryCloth}" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"/>
-        <path d="M42 29 L32 25 M58 29 L68 25" stroke="${skin}" stroke-width="3" stroke-linecap="round"/>
+        <g class="tp-anim-squat">
+          ${exId !== 'sentadillas' ? `
+            <line x1="20" y1="${exId === 'sentadilla_frontal' ? '28' : '23'}" x2="80" y2="${exId === 'sentadilla_frontal' ? '28' : '23'}" stroke="#94A3B8" stroke-width="3.5"/>
+            <rect x="16" y="${exId === 'sentadilla_frontal' ? '22' : '17'}" width="5" height="13" rx="1" fill="#DC2626"/>
+            <rect x="79" y="${exId === 'sentadilla_frontal' ? '22' : '17'}" width="5" height="13" rx="1" fill="#DC2626"/>
+          ` : ''}
+          <circle cx="50" cy="22" r="6" fill="${skin}"/>
+          <rect x="42" y="27" width="16" height="14" rx="3" fill="${primaryCloth}"/>
+          <path d="M44 40 L34 46 L38 58 M56 40 L66 46 L62 58" stroke="${secondaryCloth}" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M42 29 L32 25 M58 29 L68 25" stroke="${skin}" stroke-width="3" stroke-linecap="round"/>
+        </g>
       `;
     } else if (exId === 'estocadas') {
       // Estocadas / Zancadas
       motionContent = `
-        <circle cx="45" cy="20" r="5" fill="${skin}"/>
-        <rect x="40" y="25" width="12" height="14" rx="2" fill="${primaryCloth}"/>
-        <path d="M42 39 L58 46 L58 58 M46 39 L32 46 L24 58" stroke="${secondaryCloth}" stroke-width="4" stroke-linecap="round"/>
-        <path d="M42 28 L40 40 M48 28 L50 40" stroke="${skin}" stroke-width="3" stroke-linecap="round"/>
-        <rect x="38" y="39" width="4" height="6" fill="#DC2626"/>
-        <rect x="48" y="39" width="4" height="6" fill="#DC2626"/>
+        <g class="tp-anim-squat">
+          <circle cx="45" cy="20" r="5" fill="${skin}"/>
+          <rect x="40" y="25" width="12" height="14" rx="2" fill="${primaryCloth}"/>
+          <path d="M42 39 L58 46 L58 58 M46 39 L32 46 L24 58" stroke="${secondaryCloth}" stroke-width="4" stroke-linecap="round"/>
+          <path d="M42 28 L40 40 M48 28 L50 40" stroke="${skin}" stroke-width="3" stroke-linecap="round"/>
+          <rect x="38" y="39" width="4" height="6" fill="#DC2626"/>
+          <rect x="48" y="39" width="4" height="6" fill="#DC2626"/>
+        </g>
       `;
     } else if (exId === 'subidas_podio') {
       // Subidas al podio / cajón
       motionContent = `
         <rect x="55" y="44" width="30" height="16" rx="2" fill="#64748B"/>
-        <circle cx="45" cy="18" r="5" fill="${skin}"/>
-        <rect x="40" y="23" width="12" height="15" rx="2" fill="${primaryCloth}"/>
-        <path d="M46 38 L62 44 L62 44 M42 38 L38 56" stroke="${secondaryCloth}" stroke-width="4" stroke-linecap="round"/>
-        <path d="M42 26 L48 38" stroke="${skin}" stroke-width="3" stroke-linecap="round"/>
+        <g class="tp-anim-bounce">
+          <circle cx="45" cy="18" r="5" fill="${skin}"/>
+          <rect x="40" y="23" width="12" height="15" rx="2" fill="${primaryCloth}"/>
+          <path d="M46 38 L62 44 L62 44 M42 38 L38 56" stroke="${secondaryCloth}" stroke-width="4" stroke-linecap="round"/>
+          <path d="M42 26 L48 38" stroke="${skin}" stroke-width="3" stroke-linecap="round"/>
+        </g>
       `;
     } else if (exId === 'prensa_inclinada') {
       // Prensa inclinada 45°
       motionContent = `
         <line x1="20" y1="56" x2="75" y2="20" stroke="#64748B" stroke-width="3"/>
-        <rect x="60" y="14" width="18" height="12" rx="2" transform="rotate(-35 60 14)" fill="#DC2626"/>
         <rect x="22" y="44" width="20" height="6" rx="2" fill="#475569"/>
         <circle cx="28" cy="40" r="5" fill="${skin}"/>
         <rect x="30" y="42" width="14" height="7" rx="2" fill="${primaryCloth}"/>
-        <path d="M38 45 L52 36 L66 26" stroke="${secondaryCloth}" stroke-width="4.5" stroke-linecap="round"/>
+        <g class="tp-anim-legpress">
+          <rect x="60" y="14" width="18" height="12" rx="2" transform="rotate(-35 60 14)" fill="#DC2626"/>
+          <path d="M38 45 L52 36 L66 26" stroke="${secondaryCloth}" stroke-width="4.5" stroke-linecap="round"/>
+        </g>
       `;
     } else if (exId === 'rompe_craneo' || exId === 'extensiones_triceps') {
       // Rompe cráneo / Tríceps
@@ -5113,27 +5143,33 @@ document.addEventListener('DOMContentLoaded', () => {
         <rect x="18" y="46" width="60" height="6" rx="2" fill="#64748B"/>
         <circle cx="28" cy="42" r="5" fill="${skin}"/>
         <rect x="30" y="40" width="30" height="7" rx="2" fill="${secondaryCloth}"/>
-        <path d="M36 40 L34 26 L22 32" stroke="${skin}" stroke-width="3" stroke-linecap="round"/>
-        <rect x="18" y="30" width="6" height="8" rx="1" fill="#DC2626"/>
         <rect x="34" y="39" width="16" height="6" rx="2" fill="${primaryCloth}"/>
+        <g class="tp-anim-dips">
+          <path d="M36 40 L34 26 L22 32" stroke="${skin}" stroke-width="3" stroke-linecap="round"/>
+          <rect x="18" y="30" width="6" height="8" rx="1" fill="#DC2626"/>
+        </g>
       `;
     } else if (exId === 'abdominales_oblicuos') {
       // Abdominales oblicuos (suelo cruzado)
       motionContent = `
         <line x1="12" y1="56" x2="88" y2="56" stroke="#CBD5E1" stroke-width="2"/>
-        <circle cx="34" cy="40" r="5" fill="${skin}"/>
-        <rect x="38" y="42" width="20" height="8" rx="3" fill="${primaryCloth}"/>
         <path d="M56 46 L70 36 L64 56" stroke="${secondaryCloth}" stroke-width="4.5" stroke-linecap="round"/>
-        <path d="M36 40 L48 34" stroke="${skin}" stroke-width="3" stroke-linecap="round"/>
+        <g class="tp-anim-crunch">
+          <circle cx="34" cy="40" r="5" fill="${skin}"/>
+          <rect x="38" y="42" width="20" height="8" rx="3" fill="${primaryCloth}"/>
+          <path d="M36 40 L48 34" stroke="${skin}" stroke-width="3" stroke-linecap="round"/>
+        </g>
       `;
     } else if (exId === 'plancha') {
       // Plancha isométrica horizontal
       motionContent = `
         <line x1="10" y1="54" x2="90" y2="54" stroke="#CBD5E1" stroke-width="2"/>
-        <circle cx="76" cy="38" r="5" fill="${skin}"/>
-        <path d="M72 40 L30 44 L20 52" stroke="${secondaryCloth}" stroke-width="4.5" stroke-linecap="round"/>
-        <rect x="50" y="39" width="22" height="7" rx="2" fill="${primaryCloth}"/>
-        <path d="M68 42 L68 54" stroke="${skin}" stroke-width="3" stroke-linecap="round"/>
+        <g class="tp-anim-plank">
+          <circle cx="76" cy="38" r="5" fill="${skin}"/>
+          <path d="M72 40 L30 44 L20 52" stroke="${secondaryCloth}" stroke-width="4.5" stroke-linecap="round"/>
+          <rect x="50" y="39" width="22" height="7" rx="2" fill="${primaryCloth}"/>
+          <path d="M68 42 L68 54" stroke="${skin}" stroke-width="3" stroke-linecap="round"/>
+        </g>
       `;
     } else if (exId === 'escaladas') {
       // Escaladas / mountain climbers
@@ -5141,9 +5177,11 @@ document.addEventListener('DOMContentLoaded', () => {
         <line x1="10" y1="54" x2="90" y2="54" stroke="#CBD5E1" stroke-width="2"/>
         <circle cx="72" cy="32" r="5" fill="${skin}"/>
         <path d="M68 34 L45 42 L22 52" stroke="${secondaryCloth}" stroke-width="4" stroke-linecap="round"/>
-        <path d="M46 42 L52 48 L44 54" stroke="#DC2626" stroke-width="4" stroke-linecap="round"/>
         <rect x="52" y="34" width="16" height="8" rx="2" transform="rotate(-15 52 34)" fill="${primaryCloth}"/>
         <path d="M64 36 L66 54" stroke="${skin}" stroke-width="3" stroke-linecap="round"/>
+        <g class="tp-anim-climber">
+          <path d="M46 42 L52 48 L44 54" stroke="#DC2626" stroke-width="4" stroke-linecap="round"/>
+        </g>
       `;
     } else if (exId === 'paracaidas') {
       // Paracaídas / Saltos en tijera (Jumping Jacks en estrella ⭐)
@@ -5152,32 +5190,40 @@ document.addEventListener('DOMContentLoaded', () => {
         ${isFem ? '<path d="M45 17 Q40 12 36 19 Q41 23 45 20" fill="' + hair + '"/>' : ''}
         <rect x="43" y="24" width="14" height="15" rx="3" fill="${primaryCloth}"/>
         <!-- Piernas abiertas en salto tijera -->
-        <path d="M44 39 L26 56 M56 39 L74 56" stroke="${secondaryCloth}" stroke-width="4" stroke-linecap="round"/>
+        <g class="tp-anim-jj-legs">
+          <path d="M44 39 L26 56 M56 39 L74 56" stroke="${secondaryCloth}" stroke-width="4" stroke-linecap="round"/>
+        </g>
         <!-- Brazos abiertos en V hacia arriba -->
-        <path d="M43 26 L22 14 M57 26 L78 14" stroke="${skin}" stroke-width="3.5" stroke-linecap="round"/>
-        <circle cx="20" cy="13" r="2.5" fill="${skin}"/>
-        <circle cx="80" cy="13" r="2.5" fill="${skin}"/>
+        <g class="tp-anim-jj-arms">
+          <path d="M43 26 L22 14 M57 26 L78 14" stroke="${skin}" stroke-width="3.5" stroke-linecap="round"/>
+          <circle cx="20" cy="13" r="2.5" fill="${skin}"/>
+          <circle cx="80" cy="13" r="2.5" fill="${skin}"/>
+        </g>
       `;
     } else if (exId === 'rodillas_arriba' || exId === 'talones_cola') {
       // Skipping rodillas arriba o talones cola
       motionContent = `
-        <circle cx="50" cy="18" r="6" fill="${skin}"/>
-        <rect x="44" y="24" width="12" height="16" rx="2" fill="${primaryCloth}"/>
-        ${exId === 'rodillas_arriba' ? `
-          <path d="M44 40 L34 44 L34 58 M54 40 L66 38 L66 48" stroke="${secondaryCloth}" stroke-width="4" stroke-linecap="round"/>
-        ` : `
-          <path d="M44 40 L42 58 M54 40 L58 48 L46 50" stroke="${secondaryCloth}" stroke-width="4" stroke-linecap="round"/>
-        `}
-        <path d="M44 26 L34 34 M56 26 L66 22" stroke="${skin}" stroke-width="3" stroke-linecap="round"/>
+        <g class="tp-anim-skipping">
+          <circle cx="50" cy="18" r="6" fill="${skin}"/>
+          <rect x="44" y="24" width="12" height="16" rx="2" fill="${primaryCloth}"/>
+          ${exId === 'rodillas_arriba' ? `
+            <path d="M44 40 L34 44 L34 58 M54 40 L66 38 L66 48" stroke="${secondaryCloth}" stroke-width="4" stroke-linecap="round"/>
+          ` : `
+            <path d="M44 40 L42 58 M54 40 L58 48 L46 50" stroke="${secondaryCloth}" stroke-width="4" stroke-linecap="round"/>
+          `}
+          <path d="M44 26 L34 34 M56 26 L66 22" stroke="${skin}" stroke-width="3" stroke-linecap="round"/>
+        </g>
       `;
     } else {
       // Silueta atlética genérica
       motionContent = `
-        <circle cx="50" cy="20" r="6" fill="${skin}"/>
-        <rect x="42" y="26" width="16" height="16" rx="3" fill="${primaryCloth}"/>
-        <line x1="45" y1="42" x2="43" y2="58" stroke="${secondaryCloth}" stroke-width="4"/>
-        <line x1="55" y1="42" x2="57" y2="58" stroke="${secondaryCloth}" stroke-width="4"/>
-        <path d="M42 28 L30 38 M58 28 L70 38" stroke="${skin}" stroke-width="3" stroke-linecap="round"/>
+        <g class="tp-anim-bounce">
+          <circle cx="50" cy="20" r="6" fill="${skin}"/>
+          <rect x="42" y="26" width="16" height="16" rx="3" fill="${primaryCloth}"/>
+          <line x1="45" y1="42" x2="43" y2="58" stroke="${secondaryCloth}" stroke-width="4"/>
+          <line x1="55" y1="42" x2="57" y2="58" stroke="${secondaryCloth}" stroke-width="4"/>
+          <path d="M42 28 L30 38 M58 28 L70 38" stroke="${skin}" stroke-width="3" stroke-linecap="round"/>
+        </g>
       `;
     }
 

@@ -1547,3 +1547,112 @@ button, input, select, textarea {
   }
 }
 
+/* ══════════════════════════════════════════════════════════════════
+   ANIMACIONES TIPO GIF PARA ILUSTRACIONES DE EJERCICIOS (FITNESS)
+   Movimiento continuo fluido en CSS puro (cero peso, 60fps)
+   ══════════════════════════════════════════════════════════════════ */
+@keyframes tpExBounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-3px); }
+}
+
+@keyframes tpExPressOverhead {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+
+@keyframes tpExBenchPress {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(7px); }
+}
+
+@keyframes tpExSquat {
+  0%, 100% { transform: translateY(0) scaleY(1); transform-origin: bottom center; }
+  50% { transform: translateY(8px) scaleY(0.85); transform-origin: bottom center; }
+}
+
+@keyframes tpExJumpingJackArms {
+  0%, 100% { transform: rotate(0deg); transform-origin: 50px 26px; }
+  50% { transform: rotate(-30deg); transform-origin: 50px 26px; }
+}
+
+@keyframes tpExJumpingJackLegs {
+  0%, 100% { transform: scaleX(1); transform-origin: 50px 40px; }
+  50% { transform: scaleX(0.6); transform-origin: 50px 40px; }
+}
+
+@keyframes tpExLateralRaise {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(10px); }
+}
+
+@keyframes tpExRowing {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+
+@keyframes tpExDeadlift {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-9px); }
+}
+
+@keyframes tpExPullUp {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+
+@keyframes tpExDips {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(7px); }
+}
+
+@keyframes tpExPushUp {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(6px); }
+}
+
+@keyframes tpExCrunch {
+  0%, 100% { transform: rotate(0deg); transform-origin: 50px 45px; }
+  50% { transform: rotate(-12deg); transform-origin: 50px 45px; }
+}
+
+@keyframes tpExPlankBreath {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-2px); }
+}
+
+@keyframes tpExClimber {
+  0%, 100% { transform: translateX(0); }
+  50% { transform: translateX(7px); }
+}
+
+@keyframes tpExSkipping {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-4px); }
+}
+
+@keyframes tpExLegPress {
+  0%, 100% { transform: translate(0, 0); }
+  50% { transform: translate(5px, -5px); }
+}
+
+/* Clases animadas aplicadas a elementos de SVG */
+.tp-anim-press-overhead { animation: tpExPressOverhead 1.4s ease-in-out infinite; }
+.tp-anim-bench-press    { animation: tpExBenchPress 1.5s ease-in-out infinite; }
+.tp-anim-squat          { animation: tpExSquat 1.6s ease-in-out infinite; }
+.tp-anim-lateral-raise  { animation: tpExLateralRaise 1.5s ease-in-out infinite; }
+.tp-anim-rowing         { animation: tpExRowing 1.4s ease-in-out infinite; }
+.tp-anim-deadlift       { animation: tpExDeadlift 1.7s ease-in-out infinite; }
+.tp-anim-pullup         { animation: tpExPullUp 1.5s ease-in-out infinite; }
+.tp-anim-dips           { animation: tpExDips 1.4s ease-in-out infinite; }
+.tp-anim-pushup         { animation: tpExPushUp 1.4s ease-in-out infinite; }
+.tp-anim-crunch         { animation: tpExCrunch 1.3s ease-in-out infinite; }
+.tp-anim-plank          { animation: tpExPlankBreath 2s ease-in-out infinite; }
+.tp-anim-climber        { animation: tpExClimber 0.7s ease-in-out infinite; }
+.tp-anim-skipping       { animation: tpExSkipping 0.65s ease-in-out infinite; }
+.tp-anim-legpress       { animation: tpExLegPress 1.5s ease-in-out infinite; }
+.tp-anim-jj-arms        { animation: tpExJumpingJackArms 0.8s ease-in-out infinite; }
+.tp-anim-jj-legs        { animation: tpExJumpingJackLegs 0.8s ease-in-out infinite; }
+.tp-anim-bounce         { animation: tpExBounce 1.4s ease-in-out infinite; }
+
+
