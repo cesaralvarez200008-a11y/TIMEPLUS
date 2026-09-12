@@ -4871,49 +4871,49 @@ document.addEventListener('DOMContentLoaded', () => {
   /* ── 9.1 EJERCICIOS VISUALES & AVATARES DE GÉNERO (CATÁLOGO COMPLETO) ── */
   const TIMEPLUS_COMPOUND_EXERCISES = [
     // 🔴 PECHO
-    { id: 'press_plano', name: 'Press plano con barra', muscle: 'PECHO', category: 'pecho', isKey: true, targetSets: 4, targetReps: 10, desc: 'Pectoral mayor, tríceps y deltoides ant.' },
-    { id: 'press_mancuernas', name: 'Press plano con mancuernas', muscle: 'PECHO', category: 'pecho', isKey: false, targetSets: 4, targetReps: 12, desc: 'Pectoral con mayor rango de apertura' },
-    { id: 'press_inclinado', name: 'Press inclinado con mancuernas', muscle: 'PECHO', category: 'pecho', isKey: true, targetSets: 3, targetReps: 10, desc: 'Pectoral superior y clavicular' },
-    { id: 'aperturas_pecho', name: 'Aperturas de pecho (mancuernas/máquina)', muscle: 'PECHO', category: 'pecho', isKey: false, targetSets: 3, targetReps: 12, desc: 'Aislamiento y estiramiento de pectoral' },
-    { id: 'fondos_pecho', name: 'Fondos de pecho', muscle: 'PECHO', category: 'pecho', isKey: false, targetSets: 3, targetReps: 10, desc: 'Pectoral inferior y tríceps' },
-    { id: 'flexiones_abiertas', name: 'Flexiones de brazos (lagartijas)', muscle: 'PECHO', category: 'pecho', isKey: false, targetSets: 3, targetReps: 15, desc: 'Pectoral, serrato y core en suelo' },
+    { id: 'press_plano', name: 'Press plano con barra', muscle: 'PECHO', category: 'pecho', isKey: true, targetSets: 4, targetReps: 10, image: 'assets/exercises/press_plano.jpg', desc: 'Pectoral mayor, tríceps y deltoides ant.' },
+    { id: 'press_mancuernas', name: 'Press plano con mancuernas', muscle: 'PECHO', category: 'pecho', isKey: false, targetSets: 4, targetReps: 12, image: 'assets/exercises/press_mancuernas.jpg', desc: 'Pectoral con mayor rango de apertura' },
+    { id: 'press_inclinado', name: 'Press inclinado con mancuernas', muscle: 'PECHO', category: 'pecho', isKey: true, targetSets: 3, targetReps: 10, image: 'assets/exercises/press_inclinado.jpg', desc: 'Pectoral superior y clavicular' },
+    { id: 'aperturas_pecho', name: 'Aperturas de pecho (mancuernas/máquina)', muscle: 'PECHO', category: 'pecho', isKey: false, targetSets: 3, targetReps: 12, image: 'assets/exercises/aperturas_pecho.jpg', desc: 'Aislamiento y estiramiento de pectoral' },
+    { id: 'fondos_pecho', name: 'Fondos de pecho', muscle: 'PECHO', category: 'pecho', isKey: false, targetSets: 3, targetReps: 10, image: 'assets/exercises/fondos_paralelas.jpg', desc: 'Pectoral inferior y tríceps' },
+    { id: 'flexiones_abiertas', name: 'Flexiones de brazos (lagartijas)', muscle: 'PECHO', category: 'pecho', isKey: false, targetSets: 3, targetReps: 15, image: 'assets/exercises/flexiones.jpg', desc: 'Pectoral, serrato y core en suelo' },
 
     // 🔴 HOMBROS
-    { id: 'press_militar', name: 'Press militar con barra', muscle: 'HOMBROS', category: 'hombros', isKey: true, targetSets: 4, targetReps: 10, desc: 'Deltoides anterior/lateral y tríceps' },
-    { id: 'press_hombros_manc', name: 'Press de hombros con mancuernas', muscle: 'HOMBROS', category: 'hombros', isKey: false, targetSets: 3, targetReps: 10, desc: 'Fuerza e hipertrofia deltoides sentado' },
-    { id: 'press_arnold', name: 'Press arnold', muscle: 'HOMBROS', category: 'hombros', isKey: false, targetSets: 3, targetReps: 12, desc: 'Deltoides completo con rotación' },
-    { id: 'elevaciones_laterales', name: 'Elevaciones laterales con mancuernas', muscle: 'HOMBROS', category: 'hombros', isKey: false, targetSets: 4, targetReps: 12, desc: 'Amplitud del deltoides lateral' },
-    { id: 'remo_menton', name: 'Remo al mentón', muscle: 'HOMBROS', category: 'hombros', isKey: false, targetSets: 3, targetReps: 12, desc: 'Trapecio y deltoides lateral' },
+    { id: 'press_militar', name: 'Press militar con barra', muscle: 'HOMBROS', category: 'hombros', isKey: true, targetSets: 4, targetReps: 10, image: 'assets/exercises/press_militar.jpg', desc: 'Deltoides anterior/lateral y tríceps' },
+    { id: 'press_hombros_manc', name: 'Press de hombros con mancuernas', muscle: 'HOMBROS', category: 'hombros', isKey: false, targetSets: 3, targetReps: 10, image: 'assets/exercises/press_militar.jpg', desc: 'Fuerza e hipertrofia deltoides sentado' },
+    { id: 'press_arnold', name: 'Press arnold', muscle: 'HOMBROS', category: 'hombros', isKey: false, targetSets: 3, targetReps: 12, image: 'assets/exercises/press_militar.jpg', desc: 'Deltoides completo con rotación' },
+    { id: 'elevaciones_laterales', name: 'Elevaciones laterales con mancuernas', muscle: 'HOMBROS', category: 'hombros', isKey: false, targetSets: 4, targetReps: 12, image: 'assets/exercises/elevaciones_laterales.jpg', desc: 'Amplitud del deltoides lateral' },
+    { id: 'remo_menton', name: 'Remo al mentón', muscle: 'HOMBROS', category: 'hombros', isKey: false, targetSets: 3, targetReps: 12, image: 'assets/exercises/remo_menton.jpg', desc: 'Trapecio y deltoides lateral' },
 
     // 🔴 ESPALDA
-    { id: 'peso_muerto', name: 'Peso muerto', muscle: 'ESPALDA', category: 'espalda', isKey: true, targetSets: 4, targetReps: 8, desc: 'Cadena posterior, lumbares y glúteos' },
-    { id: 'remo_barra', name: 'Remo con barra', muscle: 'ESPALDA', category: 'espalda', isKey: true, targetSets: 4, targetReps: 10, desc: 'Dorsal ancho, romboides y bíceps' },
-    { id: 'remo_mancuernas', name: 'Remo con mancuernas', muscle: 'ESPALDA', category: 'espalda', isKey: false, targetSets: 3, targetReps: 12, desc: 'Dorsal unilateral apoyado en banco' },
-    { id: 'dominadas', name: 'Dominadas en barra', muscle: 'ESPALDA', category: 'espalda', isKey: true, targetSets: 3, targetReps: 8, desc: 'Dorsal en tracción vertical y bíceps' },
+    { id: 'peso_muerto', name: 'Peso muerto', muscle: 'ESPALDA', category: 'espalda', isKey: true, targetSets: 4, targetReps: 8, image: 'assets/exercises/peso_muerto.jpg', desc: 'Cadena posterior, lumbares y glúteos' },
+    { id: 'remo_barra', name: 'Remo con barra', muscle: 'ESPALDA', category: 'espalda', isKey: true, targetSets: 4, targetReps: 10, image: 'assets/exercises/remo_barra.jpg', desc: 'Dorsal ancho, romboides y bíceps' },
+    { id: 'remo_mancuernas', name: 'Remo con mancuernas', muscle: 'ESPALDA', category: 'espalda', isKey: false, targetSets: 3, targetReps: 12, image: 'assets/exercises/remo_mancuerna.jpg', desc: 'Dorsal unilateral apoyado en banco' },
+    { id: 'dominadas', name: 'Dominadas en barra', muscle: 'ESPALDA', category: 'espalda', isKey: true, targetSets: 3, targetReps: 8, image: 'assets/exercises/dominadas.jpg', desc: 'Dorsal en tracción vertical y bíceps' },
 
     // 🔴 PIERNAS (Sentadillas, estocadas, etc.)
-    { id: 'sentadillas', name: 'Sentadillas libres', muscle: 'PIERNAS', category: 'piernas', isKey: true, targetSets: 4, targetReps: 15, desc: 'Cuádriceps, glúteos y resistencia de piernas' },
-    { id: 'sentadilla_trasera', name: 'Sentadilla trasera con barra', muscle: 'PIERNAS', category: 'piernas', isKey: true, targetSets: 4, targetReps: 10, desc: 'Máxima fuerza en piernas y glúteos' },
-    { id: 'sentadilla_frontal', name: 'Sentadilla frontal', muscle: 'PIERNAS', category: 'piernas', isKey: false, targetSets: 3, targetReps: 10, desc: 'Énfasis cuádriceps y postura vertical' },
-    { id: 'estocadas', name: 'Estocadas / Zancadas', muscle: 'PIERNAS', category: 'piernas', isKey: false, targetSets: 3, targetReps: 12, desc: 'Glúteos, femorales y estabilidad unilateral' },
-    { id: 'subidas_podio', name: 'Subidas al podio / cajón', muscle: 'PIERNAS', category: 'piernas', isKey: false, targetSets: 3, targetReps: 12, desc: 'Glúteos y potencia explosiva' },
-    { id: 'prensa_inclinada', name: 'Prensa inclinada 45°', muscle: 'PIERNAS', category: 'piernas', isKey: false, targetSets: 4, targetReps: 12, desc: 'Empuje con soporte lumbar en 45°' },
+    { id: 'sentadillas', name: 'Sentadillas libres', muscle: 'PIERNAS', category: 'piernas', isKey: true, targetSets: 4, targetReps: 15, image: 'assets/exercises/sentadilla.jpg', desc: 'Cuádriceps, glúteos y resistencia de piernas' },
+    { id: 'sentadilla_trasera', name: 'Sentadilla trasera con barra', muscle: 'PIERNAS', category: 'piernas', isKey: true, targetSets: 4, targetReps: 10, image: 'assets/exercises/sentadilla.jpg', desc: 'Máxima fuerza en piernas y glúteos' },
+    { id: 'sentadilla_frontal', name: 'Sentadilla frontal', muscle: 'PIERNAS', category: 'piernas', isKey: false, targetSets: 3, targetReps: 10, image: 'assets/exercises/sentadilla.jpg', desc: 'Énfasis cuádriceps y postura vertical' },
+    { id: 'estocadas', name: 'Estocadas / Zancadas', muscle: 'PIERNAS', category: 'piernas', isKey: false, targetSets: 3, targetReps: 12, image: 'assets/exercises/estocadas.jpg', desc: 'Glúteos, femorales y estabilidad unilateral' },
+    { id: 'subidas_podio', name: 'Subidas al podio / cajón', muscle: 'PIERNAS', category: 'piernas', isKey: false, targetSets: 3, targetReps: 12, image: 'assets/exercises/subidas_podio.jpg', desc: 'Glúteos y potencia explosiva' },
+    { id: 'prensa_inclinada', name: 'Prensa inclinada 45°', muscle: 'PIERNAS', category: 'piernas', isKey: false, targetSets: 4, targetReps: 12, image: 'assets/exercises/prensa_inclinada.jpg', desc: 'Empuje con soporte lumbar en 45°' },
 
     // 🔴 PARALELAS & TRÍCEPS
-    { id: 'fondos_paralelas', name: 'Fondos en paralelas', muscle: 'PARALELAS', category: 'paralelas', isKey: true, targetSets: 3, targetReps: 10, desc: 'Tríceps, pecho inferior y deltoides ant.' },
-    { id: 'fondos_banco', name: 'Fondos al banco / silla', muscle: 'PARALELAS', category: 'paralelas', isKey: false, targetSets: 3, targetReps: 12, desc: 'Tríceps con soporte en banco' },
-    { id: 'rompe_craneo', name: 'Rompe cráneo (press francés)', muscle: 'TRÍCEPS', category: 'paralelas', isKey: false, targetSets: 3, targetReps: 10, desc: 'Cabeza larga del tríceps acostado' },
-    { id: 'extensiones_triceps', name: 'Extensiones de tríceps en polea', muscle: 'TRÍCEPS', category: 'paralelas', isKey: false, targetSets: 3, targetReps: 12, desc: 'Aislamiento continuo de tríceps' },
+    { id: 'fondos_paralelas', name: 'Fondos en paralelas', muscle: 'PARALELAS', category: 'paralelas', isKey: true, targetSets: 3, targetReps: 10, image: 'assets/exercises/fondos_paralelas.jpg', desc: 'Tríceps, pecho inferior y deltoides ant.' },
+    { id: 'fondos_banco', name: 'Fondos al banco / silla', muscle: 'PARALELAS', category: 'paralelas', isKey: false, targetSets: 3, targetReps: 12, image: 'assets/exercises/fondos_banco.jpg', desc: 'Tríceps con soporte en banco' },
+    { id: 'rompe_craneo', name: 'Rompe cráneo (press francés)', muscle: 'TRÍCEPS', category: 'paralelas', isKey: false, targetSets: 3, targetReps: 10, image: 'assets/exercises/rompe_craneo.jpg', desc: 'Cabeza larga del tríceps acostado' },
+    { id: 'extensiones_triceps', name: 'Extensiones de tríceps en polea', muscle: 'TRÍCEPS', category: 'paralelas', isKey: false, targetSets: 3, targetReps: 12, image: 'assets/exercises/extension_triceps.jpg', desc: 'Aislamiento continuo de tríceps' },
 
     // 🔴 ABDOMINALES & CORE
-    { id: 'abdominales_oblicuos', name: 'Abdominales oblicuos (crunch)', muscle: 'ABDOMINALES', category: 'abdominales', isKey: true, targetSets: 3, targetReps: 20, desc: 'Pared abdominal lateral y cintura' },
-    { id: 'plancha', name: 'Plancha isométrica', muscle: 'ABDOMINALES', category: 'abdominales', isKey: false, targetSets: 3, targetReps: 45, desc: 'Core profundo, estabilidad y transverso' },
-    { id: 'escaladas', name: 'Escaladas (mountain climbers)', muscle: 'ABDOMINALES', category: 'abdominales', isKey: false, targetSets: 3, targetReps: 20, desc: 'Cardio y abdomen en posición de plancha' },
+    { id: 'abdominales_oblicuos', name: 'Abdominales oblicuos (crunch)', muscle: 'ABDOMINALES', category: 'abdominales', isKey: true, targetSets: 3, targetReps: 20, image: 'assets/exercises/abdominales.jpg', desc: 'Pared abdominal lateral y cintura' },
+    { id: 'plancha', name: 'Plancha isométrica', muscle: 'ABDOMINALES', category: 'abdominales', isKey: false, targetSets: 3, targetReps: 45, image: 'assets/exercises/plancha.jpg', desc: 'Core profundo, estabilidad y transverso' },
+    { id: 'escaladas', name: 'Escaladas (mountain climbers)', muscle: 'ABDOMINALES', category: 'abdominales', isKey: false, targetSets: 3, targetReps: 20, image: 'assets/exercises/escaladas.jpg', desc: 'Cardio y abdomen en posición de plancha' },
 
     // 🔴 CARDIO & PARACAÍDAS
-    { id: 'paracaidas', name: 'Paracaídas / Saltos tijera (Jumping Jacks)', muscle: 'CARDIO', category: 'cardio', isKey: true, targetSets: 3, targetReps: 30, desc: 'Activación cardiovascular y quema calórica' },
-    { id: 'rodillas_arriba', name: 'Rodillas arriba (skipping)', muscle: 'CARDIO', category: 'cardio', isKey: false, targetSets: 3, targetReps: 30, desc: 'Cardio de alta intensidad y flexores' },
-    { id: 'talones_cola', name: 'Talones a los glúteos', muscle: 'CARDIO', category: 'cardio', isKey: false, targetSets: 3, targetReps: 30, desc: 'Cardio continuo y estiramiento de cuádriceps' }
+    { id: 'paracaidas', name: 'Paracaídas / Saltos tijera (Jumping Jacks)', muscle: 'CARDIO', category: 'cardio', isKey: true, targetSets: 3, targetReps: 30, image: 'assets/exercises/paracaidas.jpg', desc: 'Activación cardiovascular y quema calórica' },
+    { id: 'rodillas_arriba', name: 'Rodillas arriba (skipping)', muscle: 'CARDIO', category: 'cardio', isKey: false, targetSets: 3, targetReps: 30, image: 'assets/exercises/skipping.jpg', desc: 'Cardio de alta intensidad y flexores' },
+    { id: 'talones_cola', name: 'Talones a los glúteos', muscle: 'CARDIO', category: 'cardio', isKey: false, targetSets: 3, targetReps: 30, image: 'assets/exercises/talones_cola.jpg', desc: 'Cardio continuo y estiramiento de cuádriceps' }
   ];
 
   window.timeplusGymTracked = {};
@@ -5315,11 +5315,26 @@ document.addEventListener('DOMContentLoaded', () => {
       `;
     }
 
-    return `
+    const svgFallback = `
       <svg viewBox="0 0 100 76" width="100%" height="76" style="display:block;background:#FAFAFA;border-radius:0.5rem;overflow:hidden;" xmlns="http://www.w3.org/2000/svg">
         ${mc}
       </svg>
     `;
+
+    const exObj = (typeof TIMEPLUS_COMPOUND_EXERCISES !== 'undefined') ? TIMEPLUS_COMPOUND_EXERCISES.find(e => e.id === exId) : null;
+    if (exObj && exObj.image) {
+      return `
+        <div style="width:100%;height:110px;background:#ffffff;border-radius:0.5rem;overflow:hidden;display:flex;align-items:center;justify-content:center;position:relative;">
+          <img src="${exObj.image}" alt="${exObj.name}" style="max-width:100%;max-height:100%;object-fit:contain;display:block;"
+            onerror="this.style.display='none';if(this.nextElementSibling)this.nextElementSibling.style.display='block';">
+          <div style="display:none;width:100%;height:100%;">
+            ${svgFallback}
+          </div>
+        </div>
+      `;
+    }
+
+    return svgFallback;
   };
 
   // Feedback por voz y beeps
@@ -5751,21 +5766,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>
               </div>
 
-              <!-- Series x Reps estilo Pro Gym Guide (como 3x12, 3x10 en la referencia) -->
-              <div style="text-align:center;padding:2px 0 0 0;cursor:pointer;" onclick="window.timeplusOpenExerciseConfigModal('${ex.id}')">
-                <span style="font-size:0.95rem;font-weight:900;color:#0F172A;letter-spacing:0.5px;font-family:system-ui,-apple-system,sans-serif;">
-                  ${ex.targetSets}×${ex.targetReps}
-                </span>
-                <span style="font-size:0.58rem;color:#64748B;font-weight:700;margin-left:3px;text-transform:uppercase;">
-                  reps
-                </span>
-              </div>
-
-              <!-- Nombre y descripción -->
-              <div style="cursor:pointer;" onclick="window.timeplusOpenExerciseConfigModal('${ex.id}')">
-                <strong style="font-size:0.75rem;color:#0F172A;line-height:1.2;display:block;">
+              <!-- Datos estilo Pro Gym Guide (Nombre en mayúscula y 3 x 12 rep.) -->
+              <div style="cursor:pointer;text-align:center;padding:0.2rem 0;" onclick="window.timeplusOpenExerciseConfigModal('${ex.id}')">
+                <strong style="font-size:0.78rem;font-weight:900;color:#0F172A;text-transform:uppercase;line-height:1.2;display:block;letter-spacing:0.3px;">
                   ${ex.name}
                 </strong>
+                <div style="font-size:0.9rem;font-weight:900;color:#0F172A;margin-top:0.25rem;letter-spacing:0.5px;font-family:system-ui,-apple-system,sans-serif;">
+                  ${ex.targetSets} × ${ex.targetReps} <span style="font-size:0.65rem;color:#64748B;font-weight:700;">rep.</span>
+                </div>
                 <span style="font-size:0.62rem;color:#64748B;line-height:1.15;display:block;margin-top:0.15rem;">
                   ${ex.desc}
                 </span>

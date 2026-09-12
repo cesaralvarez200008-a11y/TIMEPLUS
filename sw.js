@@ -2,7 +2,7 @@
  * TIMEPLUS OS — Service Worker (PWA & APK Offline Support)
  */
 
-const CACHE_NAME = 'timeplus-os-cache-v20260911-pro-anatomical-exercises';
+const CACHE_NAME = 'timeplus-os-cache-v20260912-3d-anatomical-cards';
 const ASSETS_TO_CACHE = [
   '/',
   '/index.html',
