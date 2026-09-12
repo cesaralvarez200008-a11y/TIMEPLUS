@@ -485,13 +485,14 @@ document.addEventListener('DOMContentLoaded', () => {
                   const isDone = (e.status === 'done');
                   const isPartial = (e.status === 'partial');
                   const isSkipped = (e.status === 'skipped');
+                  const isScheduled = (e.status === 'scheduled' || act.isScheduled);
                   const badgeHtml = isDone 
                     ? '<span style="background:#DCFCE7;color:#15803D;font-weight:800;padding:0.15rem 0.45rem;border-radius:6px;font-size:0.68rem;">✅ Completo</span>'
                     : (isPartial
                       ? `<span style="background:#FEF3C7;color:#B45309;font-weight:800;padding:0.15rem 0.45rem;border-radius:6px;font-size:0.68rem;">⚠️ Parcial (${e.actualReps || '?'} reps)</span>`
                       : (isSkipped
                         ? '<span style="background:#FEE2E2;color:#991B1B;font-weight:800;padding:0.15rem 0.45rem;border-radius:6px;font-size:0.68rem;text-decoration:line-through;">❌ Omitido</span>'
-                        : '<span style="background:#EFF6FF;color:#2563EB;font-weight:800;padding:0.15rem 0.45rem;border-radius:6px;font-size:0.68rem;">📋 Planificado</span>'));
+                        : '<span style="background:#EEF2FF;color:#4F46E5;font-weight:800;padding:0.15rem 0.45rem;border-radius:6px;font-size:0.68rem;">📅 Programado</span>'));
                   return `
                     <div style="display:flex;align-items:center;justify-content:space-between;background:#fff;border:1px solid #E2E8F0;border-radius:8px;padding:0.35rem 0.6rem;font-size:0.75rem;flex-wrap:wrap;gap:0.3rem;">
                       <div style="display:flex;align-items:center;gap:0.4rem;">
@@ -1157,8 +1158,11 @@ document.addEventListener('DOMContentLoaded', () => {
           <p style="font-size: 0.8125rem; color: #64748B;">${subtitleText}</p>
         </div>
         <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
-          <button class="btn-primary" onclick="window.timeplusOpenFitnessModal('${defaultTab}')" style="display: flex; align-items: center; gap: 0.4rem; padding: 0.55rem 1.25rem; font-size: 0.8125rem; background: ${primaryBtnColor}; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
+          <button class="btn-primary" onclick="window.timeplusOpenFitnessModal('${defaultTab}', 'registrar')" style="display: flex; align-items: center; gap: 0.4rem; padding: 0.55rem 1.25rem; font-size: 0.8125rem; background: ${primaryBtnColor}; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
             <span>＋</span> <span>${primaryBtnLabel}</span>
+          </button>
+          <button class="btn-primary" onclick="window.timeplusOpenFitnessModal('${defaultTab}', 'programar')" style="display: flex; align-items: center; gap: 0.4rem; padding: 0.55rem 1.15rem; font-size: 0.8125rem; background: linear-gradient(135deg, #4F46E5, #4338CA); box-shadow: 0 4px 12px rgba(79,70,229,0.25);">
+            <span>📅</span> <span>Programar Rutina</span>
           </button>
           <button class="btn-secondary" onclick="window.timeplusAI.processCommand('${voicePrompt}')" style="display: flex; align-items: center; gap: 0.4rem; padding: 0.55rem 1rem; font-size: 0.8125rem;">
             <span>🎙️</span> <span>${voiceLabel}</span>
@@ -4544,8 +4548,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   };
 
-  // --- MODAL DE REGISTRO DE FITNESS & ACTIVIDAD FÍSICA (Aire Libre con Km vs. Gimnasio) ---
-  window.timeplusOpenFitnessModal = (initialTab = '') => {
+  // --- MODAL DE REGISTRO & PROGRAMACIÓN DE FITNESS (Aire Libre vs Gimnasio vs En Casa) ---
+  window.timeplusOpenFitnessModal = (initialTab = '', initialMode = 'registrar') => {
     let modal = document.getElementById('fitness-modal');
     if (!modal) {
       modal = document.createElement('div');
@@ -4571,21 +4575,40 @@ document.addEventListener('DOMContentLoaded', () => {
     const targetTab = initialTab || (isGymUser ? 'gym' : (isOutdoorUser ? 'outdoor' : (isHomeUser ? 'home' : (isOtherSport ? 'outdoor' : (isNoExercise ? 'outdoor' : 'gym')))));
 
     const defaultGym = user?.addrGym && !user.addrGym.toLowerCase().includes('no asiste') ? user.addrGym : 'SmartFit';
+    const todayIso = new Date().toISOString().slice(0, 10);
+    window.timeplusFitnessModalMode = initialMode || 'registrar';
 
     modal.innerHTML = `
       <div style="background:#fff;border-radius:1.25rem;width:100%;max-width:32rem;max-height:90vh;overflow-y:auto;box-shadow:0 25px 50px -12px rgba(0,0,0,0.25);position:relative;padding:1.75rem;">
         <button onclick="window.timeplusCloseFitnessModal()" style="position:absolute;top:1rem;right:1rem;border:none;background:none;font-size:1.25rem;cursor:pointer;color:#94A3B8;">✕</button>
 
-        <div style="margin-bottom:1.25rem;">
-          <div style="font-size:0.75rem;font-weight:800;color:#16A34A;display:flex;align-items:center;gap:0.35rem;">
-            <span>🏃</span> <span>REGISTRO DE ACTIVIDAD FÍSICA</span>
+        <!-- Selector de Modo: Registrar Entrenamiento vs Programar Rutina -->
+        <div style="display:flex;background:#F1F5F9;padding:0.25rem;border-radius:0.75rem;margin-bottom:1rem;gap:0.3rem;">
+          <button type="button" id="fit-mode-btn-registrar" onclick="window.timeplusSetFitnessModalMode('registrar')"
+            style="flex:1;border:none;background:${window.timeplusFitnessModalMode === 'registrar' ? '#fff' : 'transparent'};color:${window.timeplusFitnessModalMode === 'registrar' ? '#2563EB' : '#64748B'};font-weight:800;padding:0.45rem;border-radius:0.55rem;font-size:0.78rem;cursor:pointer;box-shadow:${window.timeplusFitnessModalMode === 'registrar' ? '0 2px 4px rgba(0,0,0,0.06)' : 'none'};display:flex;align-items:center;justify-content:center;gap:0.35rem;">
+            <span>🏋️</span> <span>Registrar (Hoy)</span>
+          </button>
+          <button type="button" id="fit-mode-btn-programar" onclick="window.timeplusSetFitnessModalMode('programar')"
+            style="flex:1;border:none;background:${window.timeplusFitnessModalMode === 'programar' ? '#fff' : 'transparent'};color:${window.timeplusFitnessModalMode === 'programar' ? '#4F46E5' : '#64748B'};font-weight:800;padding:0.45rem;border-radius:0.55rem;font-size:0.78rem;cursor:pointer;box-shadow:${window.timeplusFitnessModalMode === 'programar' ? '0 2px 4px rgba(0,0,0,0.06)' : 'none'};display:flex;align-items:center;justify-content:center;gap:0.35rem;">
+            <span>📅</span> <span>Programar Rutina</span>
+          </button>
+        </div>
+
+        <div style="margin-bottom:1.15rem;">
+          <div style="font-size:0.75rem;font-weight:800;color:${window.timeplusFitnessModalMode === 'programar' ? '#4F46E5' : '#16A34A'};display:flex;align-items:center;gap:0.35rem;">
+            <span>${window.timeplusFitnessModalMode === 'programar' ? '📅' : '🏃'}</span> 
+            <span id="fit-modal-badge">${window.timeplusFitnessModalMode === 'programar' ? 'PROGRAMACIÓN DE RUTINA &amp; EJERCICIOS' : 'REGISTRO DE ACTIVIDAD FÍSICA'}</span>
           </div>
-          <h2 style="font-size:1.35rem;font-weight:900;margin-top:0.2rem;">¿Qué actividad realizaste hoy?</h2>
-          <p style="font-size:0.75rem;color:#64748B;">Elige si hiciste ejercicio al aire libre (kilómetros) o entrenaste en gimnasio / casa.</p>
+          <h2 id="fit-modal-title" style="font-size:1.3rem;font-weight:900;margin-top:0.2rem;">
+            ${window.timeplusFitnessModalMode === 'programar' ? '¿Qué actividades vas a programar?' : '¿Qué actividad realizaste hoy?'}
+          </h2>
+          <p id="fit-modal-desc" style="font-size:0.75rem;color:#64748B;">
+            ${window.timeplusFitnessModalMode === 'programar' ? 'Programa las series, peso y repeticiones que harás hoy o en una fecha específica.' : 'Elige si hiciste ejercicio al aire libre (kilómetros) o entrenaste en gimnasio / casa.'}
+          </p>
         </div>
 
         <!-- Pestañas Selectoras -->
-        <div style="display:flex;gap:0.4rem;background:#F1F5F9;padding:0.3rem;border-radius:0.75rem;margin-bottom:1.25rem;">
+        <div style="display:flex;gap:0.4rem;background:#F1F5F9;padding:0.3rem;border-radius:0.75rem;margin-bottom:1.15rem;">
           <button type="button" id="tab-btn-outdoor" onclick="window.timeplusSwitchFitnessTab('outdoor')" style="flex:1;border:none;background:#fff;padding:0.5rem 0.6rem;border-radius:0.5rem;font-size:0.75rem;font-weight:800;color:#166534;box-shadow:0 2px 4px rgba(0,0,0,0.06);cursor:pointer;">
             🌳 Al Aire Libre (Km)
           </button>
@@ -4644,11 +4667,33 @@ document.addEventListener('DOMContentLoaded', () => {
           </div>
         </div>
 
-        <!-- PANEL 2: GIMNASIO (MUSCULACIÓN & SERIES) - VISUAL CON AVATARES -->
+        <!-- PANEL 2: GIMNASIO (MUSCULACIÓN & SERIES) - VISUAL CON AVATARES & PROGRAMACIÓN -->
         <div id="fitness-panel-gym" style="display:none;flex-direction:column;gap:0.85rem;">
-          <div style="background:#EFF6FF;border:1px solid #BFDBFE;border-radius:0.75rem;padding:0.85rem;">
-            <div style="font-weight:800;color:#1E40AF;font-size:0.78rem;margin-bottom:0.25rem;">🏋️ Ejercicios Compuestos — Toca para registrar</div>
-            <p style="font-size:0.72rem;color:#1D4ED8;margin:0;">Haz clic en cada ejercicio que realizaste hoy. Se marcará automáticamente como ✅ hecho.</p>
+          
+          <!-- Banner dinámico según modo -->
+          <div id="fit-gym-banner" style="background:${window.timeplusFitnessModalMode === 'programar' ? '#EEF2FF' : '#EFF6FF'};border:1px solid ${window.timeplusFitnessModalMode === 'programar' ? '#C7D2FE' : '#BFDBFE'};border-radius:0.75rem;padding:0.85rem;">
+            <div id="fit-gym-banner-title" style="font-weight:800;color:${window.timeplusFitnessModalMode === 'programar' ? '#3730A3' : '#1E40AF'};font-size:0.78rem;margin-bottom:0.25rem;">
+              ${window.timeplusFitnessModalMode === 'programar' ? '📅 Programar Rutina de Gym — Elige qué vas a hacer' : '🏋️ Registrar Rutina de Gym — Ejercicios Realizados'}
+            </div>
+            <p id="fit-gym-banner-desc" style="font-size:0.72rem;color:${window.timeplusFitnessModalMode === 'programar' ? '#4338CA' : '#1D4ED8'};margin:0;">
+              ${window.timeplusFitnessModalMode === 'programar' ? 'Toca los ejercicios, define el peso, series y repeticiones previstas. Se agendará en tu Cubo del Día.' : 'Haz clic en cada ejercicio que realizaste hoy. Puedes marcar si estuvo completo, parcial o no realizado.'}
+            </p>
+          </div>
+
+          <!-- Selector de Fecha & Hora para Programar o Registrar -->
+          <div style="display:grid;grid-template-columns:1.2fr 1fr;gap:0.5rem;background:#F8FAFC;border:1px solid #E2E8F0;border-radius:0.75rem;padding:0.65rem;">
+            <div>
+              <label style="font-size:0.68rem;font-weight:800;color:#475569;display:block;margin-bottom:0.2rem;">
+                📆 FECHA DE ENTRENAMIENTO
+              </label>
+              <input type="date" id="fit-gym-date" value="${todayIso}" class="login-panel-input" style="font-size:0.78rem;font-weight:700;padding:0.35rem 0.5rem;">
+            </div>
+            <div>
+              <label style="font-size:0.68rem;font-weight:800;color:#475569;display:block;margin-bottom:0.2rem;">
+                🕐 HORA PREVISTA
+              </label>
+              <input type="time" id="fit-gym-time" value="07:00" class="login-panel-input" style="font-size:0.78rem;font-weight:700;padding:0.35rem 0.5rem;">
+            </div>
           </div>
 
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.5rem;">
@@ -4682,19 +4727,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
           <!-- Ejercicios seleccionados resumen -->
           <div id="tp-selected-exercises-summary" style="background:#F0FDF4;border:1px dashed #86EFAC;border-radius:0.65rem;padding:0.65rem 0.85rem;display:none;">
-            <div style="font-size:0.72rem;font-weight:800;color:#166534;margin-bottom:0.25rem;">✅ Ejercicios Marcados Hoy</div>
+            <div id="tp-selected-exercises-title" style="font-size:0.72rem;font-weight:800;color:#166534;margin-bottom:0.25rem;">✅ Ejercicios en la Rutina</div>
             <div id="tp-selected-exercises-list" style="font-size:0.72rem;color:#15803D;"></div>
           </div>
 
           <div>
             <label style="font-size:0.71rem;font-weight:700;display:block;margin-bottom:0.25rem;">Notas adicionales (opcional)</label>
-            <textarea id="fit-gym-exercises" rows="2" class="login-panel-input" style="resize:vertical;font-size:0.72rem;" placeholder="Ej: Hoy me enfoqué en peso pesado, subí 5kg en press..."></textarea>
+            <textarea id="fit-gym-exercises" rows="2" class="login-panel-input" style="resize:vertical;font-size:0.72rem;" placeholder="Ej: Hoy me enfoco en peso pesado, o programo para mañana..."></textarea>
           </div>
 
-          <div style="display:flex;justify-content:flex-end;gap:0.5rem;margin-top:0.5rem;">
+          <div style="display:flex;justify-content:flex-end;gap:0.5rem;margin-top:0.5rem;flex-wrap:wrap;">
             <button type="button" class="btn-secondary" onclick="window.timeplusCloseFitnessModal()">Cancelar</button>
-            <button type="button" class="btn-primary" onclick="window.timeplusSaveGymWorkout()" style="background:linear-gradient(135deg,#2563EB,#1D4ED8);padding:0.6rem 1.4rem;">
-              Guardar Rutina Gym →
+            <button type="button" id="fit-save-gym-btn" class="btn-primary" onclick="window.timeplusSaveGymWorkout()"
+              style="background:${window.timeplusFitnessModalMode === 'programar' ? 'linear-gradient(135deg,#4F46E5,#4338CA)' : 'linear-gradient(135deg,#2563EB,#1D4ED8)'};padding:0.6rem 1.4rem;font-weight:900;">
+              ${window.timeplusFitnessModalMode === 'programar' ? '📅 Programar Rutina en Agenda →' : 'Guardar Rutina Realizada →'}
             </button>
           </div>
         </div>
@@ -4735,6 +4781,61 @@ document.addEventListener('DOMContentLoaded', () => {
     modal.style.display = 'flex';
     window.timeplusSwitchFitnessTab(targetTab);
     window.timeplusInitGymExerciseGrid();
+  };
+
+  // Alternar entre modo Registrar (lo que hice hoy) y modo Programar (lo que voy a hacer)
+  window.timeplusSetFitnessModalMode = (mode) => {
+    window.timeplusFitnessModalMode = mode;
+    const isProg = (mode === 'programar');
+
+    const btnReg = document.getElementById('fit-mode-btn-registrar');
+    const btnProg = document.getElementById('fit-mode-btn-programar');
+    if (btnReg && btnProg) {
+      if (isProg) {
+        btnProg.style.background = '#fff';
+        btnProg.style.color = '#4F46E5';
+        btnProg.style.boxShadow = '0 2px 4px rgba(0,0,0,0.06)';
+        btnReg.style.background = 'transparent';
+        btnReg.style.color = '#64748B';
+        btnReg.style.boxShadow = 'none';
+      } else {
+        btnReg.style.background = '#fff';
+        btnReg.style.color = '#2563EB';
+        btnReg.style.boxShadow = '0 2px 4px rgba(0,0,0,0.06)';
+        btnProg.style.background = 'transparent';
+        btnProg.style.color = '#64748B';
+        btnProg.style.boxShadow = 'none';
+      }
+    }
+
+    const badge = document.getElementById('fit-modal-badge');
+    if (badge) badge.innerText = isProg ? 'PROGRAMACIÓN DE RUTINA & EJERCICIOS' : 'REGISTRO DE ACTIVIDAD FÍSICA';
+
+    const title = document.getElementById('fit-modal-title');
+    if (title) title.innerText = isProg ? '¿Qué actividades vas a programar?' : '¿Qué actividad realizaste hoy?';
+
+    const desc = document.getElementById('fit-modal-desc');
+    if (desc) desc.innerText = isProg ? 'Programa las series, peso y repeticiones que harás hoy o en una fecha específica.' : 'Elige si hiciste ejercicio al aire libre (kilómetros) o entrenaste en gimnasio / casa.';
+
+    const banner = document.getElementById('fit-gym-banner');
+    const bannerTitle = document.getElementById('fit-gym-banner-title');
+    const bannerDesc = document.getElementById('fit-gym-banner-desc');
+    if (banner && bannerTitle && bannerDesc) {
+      banner.style.background = isProg ? '#EEF2FF' : '#EFF6FF';
+      banner.style.borderColor = isProg ? '#C7D2FE' : '#BFDBFE';
+      bannerTitle.style.color = isProg ? '#3730A3' : '#1E40AF';
+      bannerTitle.innerText = isProg ? '📅 Programar Rutina de Gym — Elige qué vas a hacer' : '🏋️ Registrar Rutina de Gym — Ejercicios Realizados';
+      bannerDesc.style.color = isProg ? '#4338CA' : '#1D4ED8';
+      bannerDesc.innerText = isProg ? 'Toca los ejercicios, define el peso, series y repeticiones previstas. Se agendará en tu Cubo del Día.' : 'Haz clic en cada ejercicio que realizaste hoy. Puedes marcar si estuvo completo, parcial o no realizado.';
+    }
+
+    const saveBtn = document.getElementById('fit-save-gym-btn');
+    if (saveBtn) {
+      saveBtn.style.background = isProg ? 'linear-gradient(135deg,#4F46E5,#4338CA)' : 'linear-gradient(135deg,#2563EB,#1D4ED8)';
+      saveBtn.innerHTML = isProg ? '📅 Programar Rutina en Agenda →' : 'Guardar Rutina Realizada →';
+    }
+
+    window.timeplusRenderCompoundExercisesGrid();
   };
 
   window.timeplusCloseFitnessModal = () => {
@@ -5207,15 +5308,21 @@ document.addEventListener('DOMContentLoaded', () => {
           </div>
 
           <!-- Selector rápido de estado inicial -->
-          <div style="background:#F1F5F9;border-radius:10px;padding:0.5rem 0.75rem;display:flex;align-items:center;justify-content:space-between;">
-            <span style="font-size:0.72rem;font-weight:800;color:#334155;">Estado de Realización:</span>
-            <div style="display:flex;gap:0.3rem;">
-              <label style="font-size:0.7rem;font-weight:700;color:#15803D;display:flex;align-items:center;gap:0.2rem;cursor:pointer;">
-                <input type="radio" name="tp-modal-status" value="done" checked> ✅ Hecho
-              </label>
-              <label style="font-size:0.7rem;font-weight:700;color:#B45309;display:flex;align-items:center;gap:0.2rem;cursor:pointer;margin-left:0.4rem;">
-                <input type="radio" name="tp-modal-status" value="partial"> ⚠️ Parcial
-              </label>
+          <div style="background:#F1F5F9;border-radius:10px;padding:0.5rem 0.75rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:0.3rem;">
+            <span style="font-size:0.72rem;font-weight:800;color:#334155;">Estado:</span>
+            <div style="display:flex;gap:0.3rem;flex-wrap:wrap;">
+              ${window.timeplusFitnessModalMode === 'programar' ? `
+                <label style="font-size:0.7rem;font-weight:800;color:#4F46E5;display:flex;align-items:center;gap:0.2rem;cursor:pointer;">
+                  <input type="radio" name="tp-modal-status" value="scheduled" checked> 📅 Programado
+                </label>
+              ` : `
+                <label style="font-size:0.7rem;font-weight:700;color:#15803D;display:flex;align-items:center;gap:0.2rem;cursor:pointer;">
+                  <input type="radio" name="tp-modal-status" value="done" checked> ✅ Hecho
+                </label>
+                <label style="font-size:0.7rem;font-weight:700;color:#B45309;display:flex;align-items:center;gap:0.2rem;cursor:pointer;margin-left:0.4rem;">
+                  <input type="radio" name="tp-modal-status" value="partial"> ⚠️ Parcial
+                </label>
+              `}
             </div>
           </div>
 
@@ -5643,6 +5750,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const duration = document.getElementById('fit-gym-duration')?.value || '1 hora';
     const intensity = document.getElementById('fit-gym-intensity')?.value || 'Alta';
     const rawExercises = (document.getElementById('fit-gym-exercises')?.value || '').trim();
+    const chosenDate = document.getElementById('fit-gym-date')?.value || new Date().toISOString().slice(0, 10);
+    const chosenTime = document.getElementById('fit-gym-time')?.value || '07:00';
+    const isProgramar = (window.timeplusFitnessModalMode === 'programar');
 
     const calMap = { 'Moderada': 380, 'Alta': 480, 'Máxima': 600 };
     const cal = calMap[intensity] || 480;
@@ -5660,7 +5770,7 @@ document.addEventListener('DOMContentLoaded', () => {
         repsPerSet: item.repsPerSet || 10,
         weightKg: item.weightKg || null,
         weight: item.weightKg ? `${item.weightKg} kg` : (item.isKey ? '⭐ 1ª Línea' : 'Compuesto'),
-        status: item.status || 'done',
+        status: item.status || (isProgramar ? 'scheduled' : 'done'),
         actualReps: item.actualReps || null
       }));
       if (rawExercises) {
@@ -5669,16 +5779,20 @@ document.addEventListener('DOMContentLoaded', () => {
     } else if (rawExercises) {
       exercises = rawExercises.split('\n').filter(Boolean).map(line => {
         const clean = line.replace(/^[•\-\*]\s*/, '').trim();
-        return { name: clean, sets: null, reps: null, weight: null, status: 'done' };
+        return { name: clean, sets: null, reps: null, weight: null, status: isProgramar ? 'scheduled' : 'done' };
       });
     } else {
-      exercises = [{ name: 'Entrenamiento de Gimnasio', sets: 4, reps: '10-12 reps', weight: 'Progresivo', status: 'done' }];
+      exercises = [{ name: 'Entrenamiento de Gimnasio', sets: 4, reps: '10-12 reps', weight: 'Progresivo', status: isProgramar ? 'scheduled' : 'done' }];
     }
 
     const muscleTitles = [...new Set(exercises.map(e => e.muscle).filter(Boolean))].join(' & ') || 'Musculación';
 
+    // Determinar etiqueta de fecha: 'today' o la fecha seleccionada YYYY-MM-DD
+    const todayStr = new Date().toISOString().slice(0, 10);
+    const dateToSave = (chosenDate === todayStr) ? 'today' : chosenDate;
+
     store.recordWorkout({
-      title: `🏋️ ${exercises.length > 0 ? `${exercises.length} Ejercicio(s) — ${muscleTitles}` : 'Rutina de Gimnasio'}`,
+      title: `${isProgramar ? '📅 Rutina Programada' : '🏋️ Rutina de Gym'} — ${exercises.length} Ejercicio(s) [${muscleTitles}]`,
       category: 'fitness',
       activityType: 'gym',
       muscleGroup: muscleTitles,
@@ -5686,12 +5800,19 @@ document.addEventListener('DOMContentLoaded', () => {
       durationHours: duration.includes('2') ? 2 : (duration.includes('30') ? 1.5 : 1),
       calories: cal,
       location: gymLocation || 'SmartFit',
+      date: dateToSave,
+      time: chosenTime,
+      isScheduled: isProgramar,
       exercises: exercises
     });
 
     window.timeplusCloseFitnessModal();
-    if (window.timeplusShowToast) window.timeplusShowToast(`🏋️ Registrado: ${exercises.length} ejercicios en ${gymLocation || 'Gimnasio'} (~${cal} kcal).`);
-    // Limpiar rutina para la próxima vez
+    const toastMsg = isProgramar
+      ? `📅 Rutina programada con éxito para el ${chosenDate} a las ${chosenTime} (${exercises.length} ejercicios).`
+      : `🏋️ Registrado: ${exercises.length} ejercicios en ${gymLocation || 'Gimnasio'} (~${cal} kcal).`;
+    if (window.timeplusShowToast) window.timeplusShowToast(toastMsg);
+
+    // Limpiar rutina temporal para la próxima vez
     window.timeplusGymTracked = {};
     renderFitness();
     // Si estamos en hoy, refrescar el timeline para ver el cubo del día
