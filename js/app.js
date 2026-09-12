@@ -4920,316 +4920,404 @@ document.addEventListener('DOMContentLoaded', () => {
   window.timeplusGymActiveGender = 'masculino';
   window.timeplusGymMuscleFilter = 'todos';
 
-  // Generador de Avatares SVG Deportivos Dinámicos (Femenino vs Masculino)
+  // Generador de Ilustraciones Anatómicas PRO (Estilo Guía Muscular Profesional)
   window.timeplusGetExerciseAvatarSvg = (exId, gender = 'masculino') => {
     const isFem = (gender === 'femenino');
-    const skin = isFem ? '#FBCFE8' : '#FED7AA';
-    const primaryCloth = isFem ? '#EC4899' : '#2563EB';
-    const secondaryCloth = isFem ? '#4F46E5' : '#1E293B';
-    const hair = isFem ? '#78350F' : '#0F172A';
+    // 🔬 Paleta Anatómica PRO — Silueta muscular gris + músculo objetivo en NARANJA
+    const body = isFem ? '#78909C' : '#546E7A';
+    const bodyDk = isFem ? '#607D8B' : '#455A64';
+    const hi = '#FF6B35';       // Músculo objetivo naranja brillante
+    const hiDk = '#E65100';     // Acento muscular profundo
+    const sk = isFem ? '#D4B5B0' : '#BCAAA4';  // Piel neutra (cabeza/manos)
+    const mt = '#B0BEC5';       // Barras metálicas
+    const pl = '#D32F2F';       // Discos de peso
+    const fr = '#37474F';       // Marcos/bancas/máquinas
+    const fl = '#ECEFF1';       // Línea de suelo
 
-    let motionContent = '';
+    let mc = '';
 
     if (exId === 'press_plano' || exId === 'press_mancuernas') {
-      // Press plano (barra o mancuernas)
-      motionContent = `
-        <rect x="15" y="44" width="70" height="6" rx="2" fill="#64748B"/>
-        <line x1="25" y1="50" x2="25" y2="58" stroke="#475569" stroke-width="3"/>
-        <line x1="75" y1="50" x2="75" y2="58" stroke="#475569" stroke-width="3"/>
-        <rect x="25" y="38" width="45" height="7" rx="3" fill="${secondaryCloth}"/>
-        <circle cx="28" cy="40" r="5" fill="${skin}"/>
+      // ═══ PRESS PLANO / MANCUERNAS — 🔥 Pectorales ═══
+      mc = `
+        <line x1="10" y1="72" x2="90" y2="72" stroke="${fl}" stroke-width="1"/>
+        <rect x="16" y="48" width="54" height="4" rx="1.5" fill="${fr}"/>
+        <rect x="15" y="52" width="3" height="16" rx="1" fill="${fr}"/>
+        <rect x="68" y="52" width="3" height="16" rx="1" fill="${fr}"/>
+        <rect x="71" y="42" width="3" height="26" rx="1" fill="${fr}"/>
+        <rect x="70" y="40" width="5" height="3" rx="1" fill="${fr}"/>
+        <path d="M58 48 L64 56 L68 68" stroke="${body}" stroke-width="5.5" stroke-linecap="round"/>
+        <circle cx="24" cy="42" r="5.5" fill="${sk}"/>
+        <rect x="28" y="40" width="32" height="9" rx="3" fill="${body}"/>
+        <ellipse cx="37" cy="43" rx="5.5" ry="3.8" fill="${hi}" opacity="0.92"/>
+        <ellipse cx="51" cy="43" rx="5.5" ry="3.8" fill="${hi}" opacity="0.92"/>
+        <line x1="44" y1="40" x2="44" y2="48" stroke="${hiDk}" stroke-width="0.7" opacity="0.5"/>
         <g class="tp-anim-bench-press">
         ${exId === 'press_mancuernas' ? `
-          <rect x="36" y="16" width="6" height="12" rx="1" fill="#DC2626"/>
-          <rect x="58" y="16" width="6" height="12" rx="1" fill="#DC2626"/>
-          <path d="M40 38 L39 24 M56 38 L58 24" stroke="${skin}" stroke-width="3" stroke-linecap="round"/>
+          <rect x="32" y="18" width="5" height="11" rx="1.5" fill="${pl}"/>
+          <rect x="54" y="18" width="5" height="11" rx="1.5" fill="${pl}"/>
+          <path d="M37 42 L34 26 M53 42 L56 26" stroke="${sk}" stroke-width="2.8" stroke-linecap="round"/>
         ` : `
-          <line x1="30" y1="22" x2="68" y2="22" stroke="#94A3B8" stroke-width="3"/>
-          <rect x="26" y="16" width="4" height="12" rx="1" fill="#DC2626"/>
-          <rect x="68" y="16" width="4" height="12" rx="1" fill="#DC2626"/>
-          <path d="M40 38 L42 23 M56 38 L54 23" stroke="${skin}" stroke-width="3" stroke-linecap="round"/>
+          <line x1="22" y1="24" x2="68" y2="24" stroke="${mt}" stroke-width="2.5"/>
+          <rect x="18" y="19" width="5" height="10" rx="1.5" fill="${pl}"/>
+          <rect x="67" y="19" width="5" height="10" rx="1.5" fill="${pl}"/>
+          <path d="M37 42 L36 26 M53 42 L54 26" stroke="${sk}" stroke-width="2.8" stroke-linecap="round"/>
         `}
         </g>
-        <rect x="36" y="36" width="22" height="6" rx="2" fill="${primaryCloth}"/>
       `;
     } else if (exId === 'press_inclinado' || exId === 'aperturas_pecho') {
-      // Press inclinado / aperturas
-      motionContent = `
-        <line x1="20" y1="54" x2="65" y2="25" stroke="#64748B" stroke-width="4"/>
-        <line x1="20" y1="54" x2="20" y2="60" stroke="#475569" stroke-width="3"/>
-        <circle cx="32" cy="30" r="5" fill="${skin}"/>
-        <rect x="34" y="32" width="20" height="7" rx="2" transform="rotate(-30 34 32)" fill="${primaryCloth}"/>
+      // ═══ PRESS INCLINADO / APERTURAS — 🔥 Pectoral superior ═══
+      mc = `
+        <line x1="10" y1="72" x2="90" y2="72" stroke="${fl}" stroke-width="1"/>
+        <line x1="22" y1="62" x2="56" y2="30" stroke="${fr}" stroke-width="4.5" stroke-linecap="round"/>
+        <rect x="19" y="62" width="3" height="10" rx="1" fill="${fr}"/>
+        <circle cx="34" cy="30" r="5" fill="${sk}"/>
+        <path d="M38 34 L52 42 L58 56" stroke="${body}" stroke-width="5" stroke-linecap="round"/>
+        <rect x="36" y="32" width="15" height="8" rx="3" transform="rotate(-28 36 32)" fill="${body}"/>
+        <ellipse cx="42" cy="34" rx="4.5" ry="3.2" fill="${hi}" opacity="0.92" transform="rotate(-28 42 34)"/>
+        <ellipse cx="50" cy="36" rx="4.5" ry="3.2" fill="${hi}" opacity="0.92" transform="rotate(-28 50 36)"/>
         <g class="tp-anim-bench-press">
-          <rect x="22" y="14" width="6" height="10" rx="1" fill="#DC2626"/>
-          <rect x="68" y="18" width="6" height="10" rx="1" fill="#DC2626"/>
-          <path d="M38 32 L26 22 M50 26 L68 24" stroke="${skin}" stroke-width="3" stroke-linecap="round"/>
+          <rect x="22" y="14" width="5" height="9" rx="1.5" fill="${pl}"/>
+          <rect x="64" y="20" width="5" height="9" rx="1.5" fill="${pl}"/>
+          <path d="M38 32 L26 20 M50 34 L66 26" stroke="${sk}" stroke-width="2.5" stroke-linecap="round"/>
         </g>
       `;
     } else if (exId === 'fondos_pecho' || exId === 'fondos_paralelas') {
-      // Fondos en barras paralelas
-      motionContent = `
-        <line x1="22" y1="20" x2="22" y2="60" stroke="#64748B" stroke-width="4"/>
-        <line x1="78" y1="20" x2="78" y2="60" stroke="#64748B" stroke-width="4"/>
+      // ═══ FONDOS EN PARALELAS — 🔥 Pecho inferior + Tríceps ═══
+      mc = `
+        <line x1="22" y1="14" x2="22" y2="68" stroke="${fr}" stroke-width="4"/>
+        <line x1="78" y1="14" x2="78" y2="68" stroke="${fr}" stroke-width="4"/>
         <g class="tp-anim-dips">
-          <circle cx="50" cy="18" r="6" fill="${skin}"/>
-          ${isFem ? '<path d="M45 17 Q40 12 36 19 Q41 23 45 20" fill="' + hair + '"/>' : ''}
-          <rect x="42" y="24" width="16" height="15" rx="3" fill="${primaryCloth}"/>
-          <path d="M44 39 L47 52 M56 39 L53 52" stroke="${secondaryCloth}" stroke-width="4" stroke-linecap="round"/>
-          <path d="M42 26 L24 30 M58 26 L76 30" stroke="${skin}" stroke-width="3.5" stroke-linecap="round"/>
+          <circle cx="50" cy="18" r="5.5" fill="${sk}"/>
+          <path d="M44.5 23 L50 23.5 L55.5 23 L58 23 L60 36 L56 44 L50 45 L44 44 L40 36 L42 23 Z" fill="${body}"/>
+          <ellipse cx="46" cy="30" rx="4" ry="4.5" fill="${hi}" opacity="0.85"/>
+          <ellipse cx="54" cy="30" rx="4" ry="4.5" fill="${hi}" opacity="0.85"/>
+          <path d="M44 44 L47 58 M56 44 L53 58" stroke="${body}" stroke-width="5" stroke-linecap="round"/>
+          <path d="M42 25 L24 30 M58 25 L76 30" stroke="${body}" stroke-width="4" stroke-linecap="round"/>
+          <ellipse cx="34" cy="27" rx="3" ry="2" fill="${hi}" opacity="0.7" transform="rotate(-10 34 27)"/>
+          <ellipse cx="66" cy="27" rx="3" ry="2" fill="${hi}" opacity="0.7" transform="rotate(10 66 27)"/>
+          <circle cx="24" cy="30" r="2.5" fill="${sk}"/>
+          <circle cx="76" cy="30" r="2.5" fill="${sk}"/>
         </g>
       `;
     } else if (exId === 'fondos_banco') {
-      // Fondos al banco / silla
-      motionContent = `
-        <rect x="65" y="36" width="25" height="6" rx="2" fill="#64748B"/>
-        <line x1="85" y1="42" x2="85" y2="60" stroke="#475569" stroke-width="3"/>
+      // ═══ FONDOS AL BANCO — 🔥 Tríceps ═══
+      mc = `
+        <line x1="10" y1="72" x2="90" y2="72" stroke="${fl}" stroke-width="1"/>
+        <rect x="62" y="38" width="24" height="5" rx="2" fill="${fr}"/>
+        <rect x="84" y="43" width="3" height="25" rx="1" fill="${fr}"/>
         <g class="tp-anim-dips">
-          <circle cx="52" cy="24" r="5" fill="${skin}"/>
-          <rect x="46" y="30" width="12" height="14" rx="2" fill="${primaryCloth}"/>
-          <path d="M46 44 L30 52 L30 60" stroke="${secondaryCloth}" stroke-width="4" stroke-linecap="round"/>
-          <path d="M56 32 L66 38" stroke="${skin}" stroke-width="3.5" stroke-linecap="round"/>
+          <circle cx="52" cy="24" r="5" fill="${sk}"/>
+          <path d="M46 29 L58 29 L60 42 L58 44 L46 44 L44 42 Z" fill="${body}"/>
+          <path d="M46 44 L32 54 L30 68" stroke="${body}" stroke-width="5" stroke-linecap="round"/>
+          <path d="M56 30 L66 38" stroke="${body}" stroke-width="4" stroke-linecap="round"/>
+          <path d="M46 30 L38 38" stroke="${body}" stroke-width="4" stroke-linecap="round"/>
+          <ellipse cx="36" cy="34" rx="2.5" ry="4" fill="${hi}" opacity="0.85"/>
+          <ellipse cx="62" cy="34" rx="2.5" ry="4" fill="${hi}" opacity="0.85"/>
         </g>
       `;
     } else if (exId === 'flexiones_abiertas') {
-      // Flexiones / lagartijas en suelo
-      motionContent = `
-        <line x1="12" y1="52" x2="88" y2="52" stroke="#CBD5E1" stroke-width="2"/>
+      // ═══ FLEXIONES / LAGARTIJAS — 🔥 Pectorales + Tríceps ═══
+      mc = `
+        <line x1="8" y1="62" x2="92" y2="62" stroke="${fl}" stroke-width="1.5"/>
         <g class="tp-anim-pushup">
-          <circle cx="70" cy="34" r="5" fill="${skin}"/>
-          <path d="M68 36 L40 44 L25 48" stroke="${secondaryCloth}" stroke-width="5" stroke-linecap="round"/>
-          <rect x="52" y="36" width="16" height="8" rx="3" transform="rotate(-15 52 36)" fill="${primaryCloth}"/>
-          <path d="M58 40 L65 52 M54 41 L46 52" stroke="${skin}" stroke-width="3" stroke-linecap="round"/>
+          <circle cx="74" cy="34" r="5" fill="${sk}"/>
+          <path d="M70 38 L30 46 L18 56" stroke="${body}" stroke-width="5.5" stroke-linecap="round"/>
+          <rect x="52" y="36" width="18" height="8" rx="3" transform="rotate(-12 52 36)" fill="${body}"/>
+          <ellipse cx="60" cy="38" rx="4" ry="3" fill="${hi}" opacity="0.85" transform="rotate(-12 60 38)"/>
+          <ellipse cx="68" cy="37" rx="4" ry="3" fill="${hi}" opacity="0.85" transform="rotate(-12 68 37)"/>
+          <path d="M62 42 L68 58 M56 44 L48 58" stroke="${sk}" stroke-width="3" stroke-linecap="round"/>
         </g>
       `;
     } else if (exId === 'press_militar' || exId === 'press_hombros_manc' || exId === 'press_arnold') {
-      // Press de hombros overhead
-      motionContent = `
-        <circle cx="50" cy="24" r="6" fill="${skin}"/>
-        ${isFem ? '<path d="M45 23 Q40 18 36 25 Q41 29 46 26" fill="' + hair + '"/>' : ''}
-        <rect x="42" y="30" width="16" height="16" rx="3" fill="${primaryCloth}"/>
-        <line x1="45" y1="46" x2="43" y2="58" stroke="${secondaryCloth}" stroke-width="4"/>
-        <line x1="55" y1="46" x2="57" y2="58" stroke="${secondaryCloth}" stroke-width="4"/>
+      // ═══ PRESS MILITAR / HOMBROS — 🔥 Deltoides ═══
+      mc = `
+        <line x1="10" y1="72" x2="90" y2="72" stroke="${fl}" stroke-width="1"/>
+        <circle cx="50" cy="22" r="5.5" fill="${sk}"/>
+        <path d="M43 27 L57 27 L60 28 L62 42 L58 50 L50 52 L42 50 L38 42 L40 28 Z" fill="${body}"/>
+        <ellipse cx="38" cy="30" rx="5" ry="4.5" fill="${hi}" opacity="0.92"/>
+        <ellipse cx="62" cy="30" rx="5" ry="4.5" fill="${hi}" opacity="0.92"/>
+        <path d="M44 50 L42 62 L40 72" stroke="${body}" stroke-width="5.5" stroke-linecap="round"/>
+        <path d="M56 50 L58 62 L60 72" stroke="${body}" stroke-width="5.5" stroke-linecap="round"/>
         <g class="tp-anim-press-overhead">
         ${exId === 'press_militar' ? `
-          <line x1="22" y1="12" x2="78" y2="12" stroke="#94A3B8" stroke-width="3.5"/>
-          <rect x="18" y="7" width="4" height="10" rx="1" fill="#DC2626"/>
-          <rect x="78" y="7" width="4" height="10" rx="1" fill="#DC2626"/>
-          <path d="M42 32 L36 14 M58 32 L64 14" stroke="${skin}" stroke-width="3.5" stroke-linecap="round"/>
+          <line x1="20" y1="10" x2="80" y2="10" stroke="${mt}" stroke-width="3"/>
+          <rect x="16" y="5" width="5" height="10" rx="1.5" fill="${pl}"/>
+          <rect x="79" y="5" width="5" height="10" rx="1.5" fill="${pl}"/>
+          <path d="M40 30 L34 12 M60 30 L66 12" stroke="${sk}" stroke-width="3" stroke-linecap="round"/>
         ` : `
-          <rect x="26" y="10" width="6" height="12" rx="1" fill="#DC2626"/>
-          <rect x="68" y="10" width="6" height="12" rx="1" fill="#DC2626"/>
-          <path d="M42 32 L30 16 M58 32 L70 16" stroke="${skin}" stroke-width="3.5" stroke-linecap="round"/>
+          <rect x="24" y="6" width="6" height="12" rx="1.5" fill="${pl}"/>
+          <rect x="70" y="6" width="6" height="12" rx="1.5" fill="${pl}"/>
+          <path d="M40 30 L28 14 M60 30 L72 14" stroke="${sk}" stroke-width="3" stroke-linecap="round"/>
         `}
         </g>
       `;
     } else if (exId === 'elevaciones_laterales') {
-      // Elevaciones laterales en T
-      motionContent = `
-        <circle cx="50" cy="20" r="5" fill="${skin}"/>
-        <rect x="44" y="25" width="12" height="17" rx="2" fill="${primaryCloth}"/>
-        <line x1="46" y1="42" x2="45" y2="58" stroke="${secondaryCloth}" stroke-width="3.5"/>
-        <line x1="54" y1="42" x2="55" y2="58" stroke="${secondaryCloth}" stroke-width="3.5"/>
+      // ═══ ELEVACIONES LATERALES — 🔥 Deltoides lateral ═══
+      mc = `
+        <line x1="10" y1="72" x2="90" y2="72" stroke="${fl}" stroke-width="1"/>
+        <circle cx="50" cy="16" r="5" fill="${sk}"/>
+        <path d="M43 21 L57 21 L60 23 L62 38 L58 46 L50 48 L42 46 L38 38 L40 23 Z" fill="${body}"/>
+        <ellipse cx="37" cy="24" rx="5.5" ry="4" fill="${hi}" opacity="0.92"/>
+        <ellipse cx="63" cy="24" rx="5.5" ry="4" fill="${hi}" opacity="0.92"/>
+        <path d="M44 46 L43 60 L42 72" stroke="${body}" stroke-width="5.5" stroke-linecap="round"/>
+        <path d="M56 46 L57 60 L58 72" stroke="${body}" stroke-width="5.5" stroke-linecap="round"/>
         <g class="tp-anim-lateral-raise">
-          <!-- Brazos en cruz horizontal con mancuernas -->
-          <path d="M44 28 L20 28 M56 28 L80 28" stroke="${skin}" stroke-width="3" stroke-linecap="round"/>
-          <rect x="15" y="24" width="5" height="9" fill="#DC2626"/>
-          <rect x="80" y="24" width="5" height="9" fill="#DC2626"/>
+          <path d="M38 25 L18 24 M62 25 L82 24" stroke="${sk}" stroke-width="3.5" stroke-linecap="round"/>
+          <rect x="12" y="20" width="6" height="9" rx="1.5" fill="${pl}"/>
+          <rect x="82" y="20" width="6" height="9" rx="1.5" fill="${pl}"/>
         </g>
       `;
     } else if (exId === 'remo_menton') {
-      // Remo al mentón (codos arriba)
-      motionContent = `
-        <circle cx="50" cy="20" r="6" fill="${skin}"/>
-        <rect x="43" y="26" width="14" height="16" rx="3" fill="${primaryCloth}"/>
-        <line x1="46" y1="42" x2="45" y2="58" stroke="${secondaryCloth}" stroke-width="4"/>
-        <line x1="54" y1="42" x2="55" y2="58" stroke="${secondaryCloth}" stroke-width="4"/>
+      // ═══ REMO AL MENTÓN — 🔥 Trapecio + Deltoides ═══
+      mc = `
+        <line x1="10" y1="72" x2="90" y2="72" stroke="${fl}" stroke-width="1"/>
+        <circle cx="50" cy="18" r="5.5" fill="${sk}"/>
+        <path d="M43 23 L57 23 L60 25 L62 40 L58 48 L50 50 L42 48 L38 40 L40 25 Z" fill="${body}"/>
+        <path d="M42 24 L58 24 L56 20 L50 18 L44 20 Z" fill="${hi}" opacity="0.85"/>
+        <ellipse cx="38" cy="26" rx="4" ry="3.5" fill="${hi}" opacity="0.8"/>
+        <ellipse cx="62" cy="26" rx="4" ry="3.5" fill="${hi}" opacity="0.8"/>
+        <path d="M44 48 L43 60 L42 72" stroke="${body}" stroke-width="5.5" stroke-linecap="round"/>
+        <path d="M56 48 L57 60 L58 72" stroke="${body}" stroke-width="5.5" stroke-linecap="round"/>
         <g class="tp-anim-rowing">
-          <line x1="36" y1="28" x2="64" y2="28" stroke="#94A3B8" stroke-width="3"/>
-          <rect x="33" y="24" width="3" height="8" fill="#DC2626"/>
-          <rect x="64" y="24" width="3" height="8" fill="#DC2626"/>
-          <path d="M43 28 L34 23 L44 28 M57 28 L66 23 L56 28" stroke="${skin}" stroke-width="3" stroke-linecap="round"/>
+          <line x1="34" y1="28" x2="66" y2="28" stroke="${mt}" stroke-width="2.5"/>
+          <rect x="30" y="24" width="4" height="8" rx="1" fill="${pl}"/>
+          <rect x="66" y="24" width="4" height="8" rx="1" fill="${pl}"/>
+          <path d="M40 26 L34 22 M60 26 L66 22" stroke="${sk}" stroke-width="3" stroke-linecap="round"/>
         </g>
       `;
     } else if (exId === 'peso_muerto') {
-      // Peso muerto
-      motionContent = `
+      // ═══ PESO MUERTO — 🔥 Cadena posterior (espalda + glúteos) ═══
+      mc = `
+        <line x1="10" y1="72" x2="90" y2="72" stroke="${fl}" stroke-width="1"/>
         <g class="tp-anim-deadlift">
-          <line x1="15" y1="56" x2="85" y2="56" stroke="#94A3B8" stroke-width="3.5"/>
-          <rect x="12" y="47" width="5" height="18" rx="2" fill="#DC2626"/>
-          <rect x="83" y="47" width="5" height="18" rx="2" fill="#DC2626"/>
-          <circle cx="50" cy="24" r="6" fill="${skin}"/>
-          <path d="M50 28 L46 40 L44 54" stroke="${secondaryCloth}" stroke-width="4.5" stroke-linecap="round"/>
-          <rect x="43" y="28" width="14" height="13" rx="3" fill="${primaryCloth}"/>
-          <path d="M44 32 L36 54 M56 32 L64 54" stroke="${skin}" stroke-width="3" stroke-linecap="round"/>
+          <circle cx="44" cy="20" r="5.5" fill="${sk}"/>
+          <path d="M40 25 L48 25 L54 28 L56 40 L54 46 L40 46 L36 40 L38 28 Z" fill="${body}" transform="rotate(25 47 35)"/>
+          <path d="M42 36 L56 36 L55 42 L42 42 Z" fill="${hi}" opacity="0.85" transform="rotate(25 47 35)"/>
+          <ellipse cx="48" cy="44" rx="5" ry="3.5" fill="${hi}" opacity="0.75"/>
+          <path d="M44 48 L40 60 L38 72 M52 46 L56 60 L58 72" stroke="${body}" stroke-width="5.5" stroke-linecap="round"/>
+          <path d="M38 30 L34 52 M54 30 L62 52" stroke="${sk}" stroke-width="3" stroke-linecap="round"/>
+          <line x1="20" y1="54" x2="76" y2="54" stroke="${mt}" stroke-width="3"/>
+          <rect x="15" y="48" width="6" height="12" rx="1.5" fill="${pl}"/>
+          <rect x="75" y="48" width="6" height="12" rx="1.5" fill="${pl}"/>
         </g>
       `;
     } else if (exId === 'remo_barra' || exId === 'remo_mancuernas') {
-      // Remo inclinado
-      motionContent = `
-        <circle cx="38" cy="24" r="6" fill="${skin}"/>
-        <path d="M38 29 L50 38 L60 56" stroke="${secondaryCloth}" stroke-width="4.5" stroke-linecap="round"/>
-        <rect x="36" y="29" width="16" height="12" rx="3" transform="rotate(35 36 29)" fill="${primaryCloth}"/>
+      // ═══ REMO CON BARRA / MANCUERNAS — 🔥 Dorsal ancho ═══
+      mc = `
+        <line x1="10" y1="72" x2="90" y2="72" stroke="${fl}" stroke-width="1"/>
+        <circle cx="38" cy="22" r="5.5" fill="${sk}"/>
+        <path d="M34 27 L42 27 L48 30 L50 42 L48 46 L34 46 L30 42 L32 30 Z" fill="${body}" transform="rotate(30 40 36)"/>
+        <path d="M36 32 L46 30 L48 38 L36 40 Z" fill="${hi}" opacity="0.88" transform="rotate(30 40 36)"/>
+        <path d="M40 48 L38 60 L36 72 M50 46 L56 58 L60 72" stroke="${body}" stroke-width="5.5" stroke-linecap="round"/>
         <g class="tp-anim-rowing">
-          <line x1="28" y1="44" x2="68" y2="44" stroke="#94A3B8" stroke-width="3.5"/>
-          <rect x="25" y="38" width="4" height="12" fill="#DC2626"/>
-          <rect x="68" y="38" width="4" height="12" fill="#DC2626"/>
-          <path d="M44 34 L48 44" stroke="${skin}" stroke-width="3" stroke-linecap="round"/>
+          <line x1="28" y1="44" x2="68" y2="44" stroke="${mt}" stroke-width="3"/>
+          <rect x="24" y="38" width="5" height="12" rx="1.5" fill="${pl}"/>
+          <rect x="67" y="38" width="5" height="12" rx="1.5" fill="${pl}"/>
+          <path d="M42 36 L46 44 M36 34 L30 44" stroke="${sk}" stroke-width="3" stroke-linecap="round"/>
         </g>
       `;
     } else if (exId === 'dominadas') {
-      // Dominadas
-      motionContent = `
-        <line x1="15" y1="12" x2="85" y2="12" stroke="#475569" stroke-width="4"/>
+      // ═══ DOMINADAS — 🔥 Dorsal ancho ═══
+      mc = `
+        <line x1="12" y1="10" x2="88" y2="10" stroke="${fr}" stroke-width="4.5"/>
+        <rect x="11" y="10" width="4" height="6" fill="${fr}"/>
+        <rect x="85" y="10" width="4" height="6" fill="${fr}"/>
         <g class="tp-anim-pullup">
-          <circle cx="50" cy="23" r="6" fill="${skin}"/>
-          <rect x="42" y="29" width="16" height="15" rx="3" fill="${primaryCloth}"/>
-          <path d="M46 44 L44 56 M54 44 L56 56" stroke="${secondaryCloth}" stroke-width="4" stroke-linecap="round"/>
-          <path d="M43 31 L32 14 M57 31 L68 14" stroke="${skin}" stroke-width="3.5" stroke-linecap="round"/>
+          <circle cx="50" cy="22" r="5.5" fill="${sk}"/>
+          <path d="M43 27 L57 27 L62 30 L64 44 L60 50 L50 52 L40 50 L36 44 L38 30 Z" fill="${body}"/>
+          <path d="M40 32 L44 28 L50 30 L56 28 L60 32 L60 44 L50 46 L40 44 Z" fill="${hi}" opacity="0.88"/>
+          <path d="M44 50 L43 62 L42 72 M56 50 L57 62 L58 72" stroke="${body}" stroke-width="5" stroke-linecap="round"/>
+          <path d="M38 30 L30 14 M62 30 L70 14" stroke="${sk}" stroke-width="3.5" stroke-linecap="round"/>
+          <circle cx="30" cy="13" r="2.5" fill="${sk}"/>
+          <circle cx="70" cy="13" r="2.5" fill="${sk}"/>
         </g>
       `;
     } else if (exId === 'sentadilla_trasera' || exId === 'sentadillas' || exId === 'sentadilla_frontal') {
-      // Sentadillas
-      motionContent = `
+      // ═══ SENTADILLAS — 🔥 Cuádriceps + Glúteos ═══
+      mc = `
+        <line x1="10" y1="72" x2="90" y2="72" stroke="${fl}" stroke-width="1"/>
         <g class="tp-anim-squat">
+          <circle cx="50" cy="16" r="5.5" fill="${sk}"/>
+          <path d="M43 21 L57 21 L60 24 L62 38 L58 44 L50 46 L42 44 L38 38 L40 24 Z" fill="${body}"/>
           ${exId !== 'sentadillas' ? `
-            <line x1="20" y1="${exId === 'sentadilla_frontal' ? '28' : '23'}" x2="80" y2="${exId === 'sentadilla_frontal' ? '28' : '23'}" stroke="#94A3B8" stroke-width="3.5"/>
-            <rect x="16" y="${exId === 'sentadilla_frontal' ? '22' : '17'}" width="5" height="13" rx="1" fill="#DC2626"/>
-            <rect x="79" y="${exId === 'sentadilla_frontal' ? '22' : '17'}" width="5" height="13" rx="1" fill="#DC2626"/>
-          ` : ''}
-          <circle cx="50" cy="22" r="6" fill="${skin}"/>
-          <rect x="42" y="27" width="16" height="14" rx="3" fill="${primaryCloth}"/>
-          <path d="M44 40 L34 46 L38 58 M56 40 L66 46 L62 58" stroke="${secondaryCloth}" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"/>
-          <path d="M42 29 L32 25 M58 29 L68 25" stroke="${skin}" stroke-width="3" stroke-linecap="round"/>
+            <line x1="18" y1="${exId === 'sentadilla_frontal' ? '22' : '18'}" x2="82" y2="${exId === 'sentadilla_frontal' ? '22' : '18'}" stroke="${mt}" stroke-width="3"/>
+            <rect x="13" y="${exId === 'sentadilla_frontal' ? '16' : '12'}" width="6" height="12" rx="1.5" fill="${pl}"/>
+            <rect x="81" y="${exId === 'sentadilla_frontal' ? '16' : '12'}" width="6" height="12" rx="1.5" fill="${pl}"/>
+            <path d="M40 24 L30 20 M60 24 L70 20" stroke="${sk}" stroke-width="3" stroke-linecap="round"/>
+          ` : `
+            <path d="M40 24 L34 34 M60 24 L66 34" stroke="${sk}" stroke-width="3" stroke-linecap="round"/>
+          `}
+          <path d="M44 44 L34 50 L36 62 L38 72 M56 44 L66 50 L64 62 L62 72" stroke="${body}" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round"/>
+          <ellipse cx="36" cy="54" rx="4" ry="6" fill="${hi}" opacity="0.88"/>
+          <ellipse cx="64" cy="54" rx="4" ry="6" fill="${hi}" opacity="0.88"/>
+          <ellipse cx="48" cy="44" rx="4" ry="3" fill="${hi}" opacity="0.7"/>
+          <ellipse cx="52" cy="44" rx="4" ry="3" fill="${hi}" opacity="0.7"/>
         </g>
       `;
     } else if (exId === 'estocadas') {
-      // Estocadas / Zancadas
-      motionContent = `
+      // ═══ ESTOCADAS / ZANCADAS — 🔥 Glúteos + Cuádriceps ═══
+      mc = `
+        <line x1="10" y1="72" x2="90" y2="72" stroke="${fl}" stroke-width="1"/>
         <g class="tp-anim-squat">
-          <circle cx="45" cy="20" r="5" fill="${skin}"/>
-          <rect x="40" y="25" width="12" height="14" rx="2" fill="${primaryCloth}"/>
-          <path d="M42 39 L58 46 L58 58 M46 39 L32 46 L24 58" stroke="${secondaryCloth}" stroke-width="4" stroke-linecap="round"/>
-          <path d="M42 28 L40 40 M48 28 L50 40" stroke="${skin}" stroke-width="3" stroke-linecap="round"/>
-          <rect x="38" y="39" width="4" height="6" fill="#DC2626"/>
-          <rect x="48" y="39" width="4" height="6" fill="#DC2626"/>
+          <circle cx="46" cy="16" r="5" fill="${sk}"/>
+          <path d="M40 21 L52 21 L55 24 L56 38 L52 44 L46 46 L40 44 L36 38 L38 24 Z" fill="${body}"/>
+          <path d="M42 44 L58 52 L58 62 L58 72" stroke="${body}" stroke-width="5.5" stroke-linecap="round"/>
+          <path d="M48 44 L32 52 L24 62 L22 72" stroke="${body}" stroke-width="5.5" stroke-linecap="round"/>
+          <ellipse cx="54" cy="54" rx="4" ry="6" fill="${hi}" opacity="0.88"/>
+          <ellipse cx="34" cy="52" rx="4" ry="5" fill="${hi}" opacity="0.88"/>
+          <ellipse cx="46" cy="44" rx="4" ry="3" fill="${hi}" opacity="0.7"/>
+          <path d="M40 24 L38 36 M52 24 L54 36" stroke="${sk}" stroke-width="3" stroke-linecap="round"/>
+          <rect x="36" y="35" width="4" height="6" rx="1" fill="${pl}"/>
+          <rect x="52" y="35" width="4" height="6" rx="1" fill="${pl}"/>
         </g>
       `;
     } else if (exId === 'subidas_podio') {
-      // Subidas al podio / cajón
-      motionContent = `
-        <rect x="55" y="44" width="30" height="16" rx="2" fill="#64748B"/>
+      // ═══ SUBIDAS AL PODIO — 🔥 Glúteos + Cuádriceps ═══
+      mc = `
+        <line x1="10" y1="72" x2="90" y2="72" stroke="${fl}" stroke-width="1"/>
+        <rect x="54" y="50" width="28" height="22" rx="2" fill="${fr}"/>
         <g class="tp-anim-bounce">
-          <circle cx="45" cy="18" r="5" fill="${skin}"/>
-          <rect x="40" y="23" width="12" height="15" rx="2" fill="${primaryCloth}"/>
-          <path d="M46 38 L62 44 L62 44 M42 38 L38 56" stroke="${secondaryCloth}" stroke-width="4" stroke-linecap="round"/>
-          <path d="M42 26 L48 38" stroke="${skin}" stroke-width="3" stroke-linecap="round"/>
+          <circle cx="48" cy="16" r="5" fill="${sk}"/>
+          <path d="M42 21 L54 21 L56 24 L57 38 L54 44 L48 46 L42 44 L38 38 L40 24 Z" fill="${body}"/>
+          <path d="M48 44 L60 48 L62 50" stroke="${body}" stroke-width="5.5" stroke-linecap="round"/>
+          <path d="M44 44 L38 58 L36 72" stroke="${body}" stroke-width="5.5" stroke-linecap="round"/>
+          <ellipse cx="56" cy="48" rx="4" ry="5" fill="${hi}" opacity="0.88"/>
+          <ellipse cx="40" cy="52" rx="4" ry="5" fill="${hi}" opacity="0.88"/>
+          <ellipse cx="48" cy="44" rx="3.5" ry="2.5" fill="${hi}" opacity="0.65"/>
+          <path d="M42 24 L46 36 M54 24 L52 36" stroke="${sk}" stroke-width="2.5" stroke-linecap="round"/>
         </g>
       `;
     } else if (exId === 'prensa_inclinada') {
-      // Prensa inclinada 45°
-      motionContent = `
-        <line x1="20" y1="56" x2="75" y2="20" stroke="#64748B" stroke-width="3"/>
-        <rect x="22" y="44" width="20" height="6" rx="2" fill="#475569"/>
-        <circle cx="28" cy="40" r="5" fill="${skin}"/>
-        <rect x="30" y="42" width="14" height="7" rx="2" fill="${primaryCloth}"/>
+      // ═══ PRENSA INCLINADA 45° — 🔥 Cuádriceps ═══
+      mc = `
+        <line x1="10" y1="72" x2="90" y2="72" stroke="${fl}" stroke-width="1"/>
+        <line x1="20" y1="64" x2="72" y2="22" stroke="${fr}" stroke-width="3.5"/>
+        <rect x="16" y="64" width="8" height="4" rx="1" fill="${fr}"/>
+        <rect x="22" y="50" width="20" height="5" rx="2" fill="${fr}"/>
+        <circle cx="30" cy="46" r="5" fill="${sk}"/>
+        <rect x="32" y="48" width="14" height="7" rx="2" fill="${body}"/>
         <g class="tp-anim-legpress">
-          <rect x="60" y="14" width="18" height="12" rx="2" transform="rotate(-35 60 14)" fill="#DC2626"/>
-          <path d="M38 45 L52 36 L66 26" stroke="${secondaryCloth}" stroke-width="4.5" stroke-linecap="round"/>
+          <rect x="60" y="16" width="16" height="10" rx="2" transform="rotate(-35 60 16)" fill="${pl}"/>
+          <path d="M40 52 L52 40 L66 28" stroke="${body}" stroke-width="5.5" stroke-linecap="round"/>
+          <ellipse cx="50" cy="44" rx="4" ry="6" fill="${hi}" opacity="0.88"/>
+          <ellipse cx="58" cy="36" rx="4" ry="5" fill="${hi}" opacity="0.88"/>
         </g>
       `;
     } else if (exId === 'rompe_craneo' || exId === 'extensiones_triceps') {
-      // Rompe cráneo / Tríceps
-      motionContent = `
-        <rect x="18" y="46" width="60" height="6" rx="2" fill="#64748B"/>
-        <circle cx="28" cy="42" r="5" fill="${skin}"/>
-        <rect x="30" y="40" width="30" height="7" rx="2" fill="${secondaryCloth}"/>
-        <rect x="34" y="39" width="16" height="6" rx="2" fill="${primaryCloth}"/>
+      // ═══ ROMPE CRÁNEO / TRÍCEPS — 🔥 Tríceps ═══
+      mc = `
+        <line x1="10" y1="72" x2="90" y2="72" stroke="${fl}" stroke-width="1"/>
+        <rect x="16" y="48" width="60" height="5" rx="2" fill="${fr}"/>
+        <rect x="15" y="53" width="3" height="15" rx="1" fill="${fr}"/>
+        <circle cx="26" cy="44" r="5" fill="${sk}"/>
+        <rect x="28" y="42" width="32" height="7" rx="2" fill="${body}"/>
+        <path d="M56 46 L60 58 L62 68" stroke="${body}" stroke-width="5" stroke-linecap="round"/>
+        <rect x="32" y="41" width="18" height="5" rx="2" fill="${body}"/>
         <g class="tp-anim-dips">
-          <path d="M36 40 L34 26 L22 32" stroke="${skin}" stroke-width="3" stroke-linecap="round"/>
-          <rect x="18" y="30" width="6" height="8" rx="1" fill="#DC2626"/>
+          <path d="M36 42 L34 28 L22 34" stroke="${sk}" stroke-width="3" stroke-linecap="round"/>
+          <rect x="18" y="30" width="5" height="9" rx="1.5" fill="${pl}"/>
+          <ellipse cx="34" cy="34" rx="2.5" ry="5" fill="${hi}" opacity="0.88"/>
+          <ellipse cx="40" cy="34" rx="2.5" ry="5" fill="${hi}" opacity="0.88"/>
         </g>
       `;
     } else if (exId === 'abdominales_oblicuos') {
-      // Abdominales oblicuos (suelo cruzado)
-      motionContent = `
-        <line x1="12" y1="56" x2="88" y2="56" stroke="#CBD5E1" stroke-width="2"/>
-        <path d="M56 46 L70 36 L64 56" stroke="${secondaryCloth}" stroke-width="4.5" stroke-linecap="round"/>
+      // ═══ ABDOMINALES OBLICUOS — 🔥 Recto abdominal + Oblicuos ═══
+      mc = `
+        <line x1="8" y1="64" x2="92" y2="64" stroke="${fl}" stroke-width="1.5"/>
+        <path d="M58 50 L72 40 L66 62" stroke="${body}" stroke-width="5" stroke-linecap="round"/>
         <g class="tp-anim-crunch">
-          <circle cx="34" cy="40" r="5" fill="${skin}"/>
-          <rect x="38" y="42" width="20" height="8" rx="3" fill="${primaryCloth}"/>
-          <path d="M36 40 L48 34" stroke="${skin}" stroke-width="3" stroke-linecap="round"/>
+          <circle cx="34" cy="42" r="5" fill="${sk}"/>
+          <rect x="38" y="44" width="22" height="8" rx="3" fill="${body}"/>
+          <rect x="42" y="45" width="14" height="6" rx="2" fill="${hi}" opacity="0.92"/>
+          <line x1="49" y1="45" x2="49" y2="51" stroke="${hiDk}" stroke-width="0.6" opacity="0.5"/>
+          <line x1="46" y1="45" x2="46" y2="51" stroke="${hiDk}" stroke-width="0.6" opacity="0.4"/>
+          <line x1="52" y1="45" x2="52" y2="51" stroke="${hiDk}" stroke-width="0.6" opacity="0.4"/>
+          <path d="M36 42 L48 36" stroke="${sk}" stroke-width="3" stroke-linecap="round"/>
         </g>
       `;
     } else if (exId === 'plancha') {
-      // Plancha isométrica horizontal
-      motionContent = `
-        <line x1="10" y1="54" x2="90" y2="54" stroke="#CBD5E1" stroke-width="2"/>
+      // ═══ PLANCHA ISOMÉTRICA — 🔥 Core profundo ═══
+      mc = `
+        <line x1="8" y1="62" x2="92" y2="62" stroke="${fl}" stroke-width="1.5"/>
         <g class="tp-anim-plank">
-          <circle cx="76" cy="38" r="5" fill="${skin}"/>
-          <path d="M72 40 L30 44 L20 52" stroke="${secondaryCloth}" stroke-width="4.5" stroke-linecap="round"/>
-          <rect x="50" y="39" width="22" height="7" rx="2" fill="${primaryCloth}"/>
-          <path d="M68 42 L68 54" stroke="${skin}" stroke-width="3" stroke-linecap="round"/>
+          <circle cx="78" cy="38" r="5" fill="${sk}"/>
+          <path d="M74 42 L28 46 L18 58" stroke="${body}" stroke-width="5.5" stroke-linecap="round"/>
+          <rect x="48" y="40" width="24" height="7" rx="2.5" fill="${body}"/>
+          <rect x="50" y="41" width="18" height="5" rx="1.5" fill="${hi}" opacity="0.88"/>
+          <line x1="55" y1="41" x2="55" y2="46" stroke="${hiDk}" stroke-width="0.5" opacity="0.4"/>
+          <line x1="59" y1="41" x2="59" y2="46" stroke="${hiDk}" stroke-width="0.5" opacity="0.4"/>
+          <line x1="63" y1="41" x2="63" y2="46" stroke="${hiDk}" stroke-width="0.5" opacity="0.4"/>
+          <path d="M70 44 L70 58" stroke="${sk}" stroke-width="3" stroke-linecap="round"/>
         </g>
       `;
     } else if (exId === 'escaladas') {
-      // Escaladas / mountain climbers
-      motionContent = `
-        <line x1="10" y1="54" x2="90" y2="54" stroke="#CBD5E1" stroke-width="2"/>
-        <circle cx="72" cy="32" r="5" fill="${skin}"/>
-        <path d="M68 34 L45 42 L22 52" stroke="${secondaryCloth}" stroke-width="4" stroke-linecap="round"/>
-        <rect x="52" y="34" width="16" height="8" rx="2" transform="rotate(-15 52 34)" fill="${primaryCloth}"/>
-        <path d="M64 36 L66 54" stroke="${skin}" stroke-width="3" stroke-linecap="round"/>
+      // ═══ ESCALADAS / MOUNTAIN CLIMBERS — 🔥 Core + Flexores de cadera ═══
+      mc = `
+        <line x1="8" y1="62" x2="92" y2="62" stroke="${fl}" stroke-width="1.5"/>
+        <circle cx="74" cy="32" r="5" fill="${sk}"/>
+        <path d="M70 36 L44 44 L20 58" stroke="${body}" stroke-width="5" stroke-linecap="round"/>
+        <rect x="52" y="34" width="18" height="8" rx="3" transform="rotate(-14 52 34)" fill="${body}"/>
+        <rect x="54" y="35" width="12" height="5" rx="1.5" fill="${hi}" opacity="0.85" transform="rotate(-14 54 35)"/>
+        <path d="M66 38 L68 58" stroke="${sk}" stroke-width="3" stroke-linecap="round"/>
         <g class="tp-anim-climber">
-          <path d="M46 42 L52 48 L44 54" stroke="#DC2626" stroke-width="4" stroke-linecap="round"/>
+          <path d="M46 44 L52 50 L44 58" stroke="${hi}" stroke-width="4.5" stroke-linecap="round"/>
         </g>
       `;
     } else if (exId === 'paracaidas') {
-      // Paracaídas / Saltos en tijera (Jumping Jacks en estrella ⭐)
-      motionContent = `
-        <circle cx="50" cy="18" r="6" fill="${skin}"/>
-        ${isFem ? '<path d="M45 17 Q40 12 36 19 Q41 23 45 20" fill="' + hair + '"/>' : ''}
-        <rect x="43" y="24" width="14" height="15" rx="3" fill="${primaryCloth}"/>
-        <!-- Piernas abiertas en salto tijera -->
+      // ═══ PARACAÍDAS / JUMPING JACKS — 🔥 Full Body cardio ═══
+      mc = `
+        <line x1="10" y1="72" x2="90" y2="72" stroke="${fl}" stroke-width="1"/>
+        <circle cx="50" cy="14" r="5.5" fill="${sk}"/>
+        <path d="M43 19 L57 19 L60 22 L62 36 L58 42 L50 44 L42 42 L38 36 L40 22 Z" fill="${body}"/>
+        <rect x="44" y="28" width="12" height="10" rx="2" fill="${hi}" opacity="0.55"/>
         <g class="tp-anim-jj-legs">
-          <path d="M44 39 L26 56 M56 39 L74 56" stroke="${secondaryCloth}" stroke-width="4" stroke-linecap="round"/>
+          <path d="M44 42 L26 64 L24 72 M56 42 L74 64 L76 72" stroke="${body}" stroke-width="5.5" stroke-linecap="round"/>
+          <ellipse cx="34" cy="54" rx="3.5" ry="5" fill="${hi}" opacity="0.65"/>
+          <ellipse cx="66" cy="54" rx="3.5" ry="5" fill="${hi}" opacity="0.65"/>
         </g>
-        <!-- Brazos abiertos en V hacia arriba -->
         <g class="tp-anim-jj-arms">
-          <path d="M43 26 L22 14 M57 26 L78 14" stroke="${skin}" stroke-width="3.5" stroke-linecap="round"/>
-          <circle cx="20" cy="13" r="2.5" fill="${skin}"/>
-          <circle cx="80" cy="13" r="2.5" fill="${skin}"/>
+          <path d="M40 24 L22 10 M60 24 L78 10" stroke="${sk}" stroke-width="3.5" stroke-linecap="round"/>
+          <circle cx="20" cy="9" r="2.5" fill="${sk}"/>
+          <circle cx="80" cy="9" r="2.5" fill="${sk}"/>
         </g>
       `;
     } else if (exId === 'rodillas_arriba' || exId === 'talones_cola') {
-      // Skipping rodillas arriba o talones cola
-      motionContent = `
+      // ═══ SKIPPING / RODILLAS ARRIBA — 🔥 Flexores de cadera + Cardio ═══
+      mc = `
+        <line x1="10" y1="72" x2="90" y2="72" stroke="${fl}" stroke-width="1"/>
         <g class="tp-anim-skipping">
-          <circle cx="50" cy="18" r="6" fill="${skin}"/>
-          <rect x="44" y="24" width="12" height="16" rx="2" fill="${primaryCloth}"/>
+          <circle cx="50" cy="14" r="5.5" fill="${sk}"/>
+          <path d="M43 19 L57 19 L60 22 L62 36 L58 42 L50 44 L42 42 L38 36 L40 22 Z" fill="${body}"/>
           ${exId === 'rodillas_arriba' ? `
-            <path d="M44 40 L34 44 L34 58 M54 40 L66 38 L66 48" stroke="${secondaryCloth}" stroke-width="4" stroke-linecap="round"/>
+            <path d="M44 42 L34 48 L34 62 L32 72" stroke="${body}" stroke-width="5.5" stroke-linecap="round"/>
+            <path d="M56 42 L66 38 L66 50" stroke="${body}" stroke-width="5.5" stroke-linecap="round"/>
+            <ellipse cx="62" cy="42" rx="3.5" ry="4.5" fill="${hi}" opacity="0.88"/>
+            <ellipse cx="36" cy="48" rx="3.5" ry="4" fill="${hi}" opacity="0.65"/>
           ` : `
-            <path d="M44 40 L42 58 M54 40 L58 48 L46 50" stroke="${secondaryCloth}" stroke-width="4" stroke-linecap="round"/>
+            <path d="M44 42 L42 60 L40 72" stroke="${body}" stroke-width="5.5" stroke-linecap="round"/>
+            <path d="M56 42 L60 50 L48 54" stroke="${body}" stroke-width="5.5" stroke-linecap="round"/>
+            <ellipse cx="56" cy="48" rx="3.5" ry="5" fill="${hi}" opacity="0.88"/>
           `}
-          <path d="M44 26 L34 34 M56 26 L66 22" stroke="${skin}" stroke-width="3" stroke-linecap="round"/>
+          <path d="M40 24 L34 34 M60 24 L66 20" stroke="${sk}" stroke-width="3" stroke-linecap="round"/>
         </g>
       `;
     } else {
-      // Silueta atlética genérica
-      motionContent = `
+      // ═══ SILUETA ATLÉTICA GENÉRICA ═══
+      mc = `
+        <line x1="10" y1="72" x2="90" y2="72" stroke="${fl}" stroke-width="1"/>
         <g class="tp-anim-bounce">
-          <circle cx="50" cy="20" r="6" fill="${skin}"/>
-          <rect x="42" y="26" width="16" height="16" rx="3" fill="${primaryCloth}"/>
-          <line x1="45" y1="42" x2="43" y2="58" stroke="${secondaryCloth}" stroke-width="4"/>
-          <line x1="55" y1="42" x2="57" y2="58" stroke="${secondaryCloth}" stroke-width="4"/>
-          <path d="M42 28 L30 38 M58 28 L70 38" stroke="${skin}" stroke-width="3" stroke-linecap="round"/>
+          <circle cx="50" cy="14" r="5.5" fill="${sk}"/>
+          <path d="M43 19 L57 19 L60 22 L62 36 L58 42 L50 44 L42 42 L38 36 L40 22 Z" fill="${body}"/>
+          <path d="M44 42 L42 58 L40 72" stroke="${body}" stroke-width="5.5" stroke-linecap="round"/>
+          <path d="M56 42 L58 58 L60 72" stroke="${body}" stroke-width="5.5" stroke-linecap="round"/>
+          <path d="M40 24 L28 36 M60 24 L72 36" stroke="${sk}" stroke-width="3" stroke-linecap="round"/>
         </g>
       `;
     }
 
     return `
-      <svg viewBox="0 0 100 64" width="100%" height="64" style="display:block;background:${isFem ? '#FFF1F2' : '#EFF6FF'};border-radius:0.5rem;overflow:hidden;">
-        ${motionContent}
+      <svg viewBox="0 0 100 76" width="100%" height="76" style="display:block;background:#FAFAFA;border-radius:0.5rem;overflow:hidden;" xmlns="http://www.w3.org/2000/svg">
+        ${mc}
       </svg>
     `;
   };
@@ -5313,9 +5401,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
         <div style="padding:1.15rem;display:flex;flex-direction:column;gap:1rem;">
           
-          <!-- Ilustración SVG del Ejercicio -->
-          <div style="background:${isFem ? '#FFF1F2' : '#EFF6FF'};border-radius:12px;padding:0.5rem;border:1px solid ${isFem ? '#FECDD3' : '#BFDBFE'};">
+          <!-- Ilustración Anatómica PRO del Ejercicio -->
+          <div style="background:#FAFAFA;border-radius:12px;padding:0.5rem;border:1px solid #E2E8F0;text-align:center;">
             ${window.timeplusGetExerciseAvatarSvg(ex.id, curGender)}
+            <div style="font-size:0.95rem;font-weight:900;color:#0F172A;margin-top:0.35rem;letter-spacing:0.5px;font-family:system-ui,-apple-system,sans-serif;">
+              🎯 Guía sugerida: <strong>${ex.targetSets} × ${ex.targetReps}</strong> <span style="font-size:0.7rem;color:#64748B;font-weight:700;">(Series × Reps)</span>
+            </div>
           </div>
 
           <!-- Campos Serie, Peso (kg) y Repeticiones -->
@@ -5658,6 +5749,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div style="position:absolute;bottom:4px;right:4px;background:rgba(15,23,42,0.7);color:#fff;border-radius:4px;padding:0.1rem 0.35rem;font-size:0.55rem;font-weight:700;">
                   ${inRoutine ? '✏️ Modificar' : '👆 Seleccionar'}
                 </div>
+              </div>
+
+              <!-- Series x Reps estilo Pro Gym Guide (como 3x12, 3x10 en la referencia) -->
+              <div style="text-align:center;padding:2px 0 0 0;cursor:pointer;" onclick="window.timeplusOpenExerciseConfigModal('${ex.id}')">
+                <span style="font-size:0.95rem;font-weight:900;color:#0F172A;letter-spacing:0.5px;font-family:system-ui,-apple-system,sans-serif;">
+                  ${ex.targetSets}×${ex.targetReps}
+                </span>
+                <span style="font-size:0.58rem;color:#64748B;font-weight:700;margin-left:3px;text-transform:uppercase;">
+                  reps
+                </span>
               </div>
 
               <!-- Nombre y descripción -->
